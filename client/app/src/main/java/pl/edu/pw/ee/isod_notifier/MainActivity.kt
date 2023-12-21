@@ -16,11 +16,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import pl.edu.pw.ee.isod_notifier.ui.theme.ISOD_NotifierTheme
 import androidx.compose.runtime.*
+import androidx.core.app.NotificationManagerCompat
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.SwipeRefreshState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.lang.reflect.Array
 
 
 class MainActivity : ComponentActivity() {
@@ -43,12 +43,22 @@ fun MainContent() {
     val scrollState = rememberScrollState()
     var isRefreshing by remember { mutableStateOf(false) }
     var showAppInfo by remember { mutableStateOf(false) }
+    var showPrivilagesDialog by remember { mutableStateOf(NotificationManagerCompat.from(context).areNotificationsEnabled().not()) }
 
     val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
     val version = packageInfo.versionName
 
+    if (showPrivilagesDialog) {
+        PrivilagesPopup(
+            context,
+            onDismiss = {
+                showPrivilagesDialog = false
+            }
+        )
+    }
+
     if (showAppInfo) {
-        AppInfoScreen(
+        InfoPopup(
             onDismiss = {
                 showAppInfo = false
             },

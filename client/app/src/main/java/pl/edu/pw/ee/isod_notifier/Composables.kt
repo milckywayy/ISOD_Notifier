@@ -1,7 +1,7 @@
 package pl.edu.pw.ee.isod_notifier
 
 import android.content.Context
-import android.health.connect.datatypes.AppInfo
+import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
@@ -13,8 +13,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
+import android.provider.Settings
+import androidx.core.app.NotificationManagerCompat
 
 
 @Composable
@@ -77,7 +77,7 @@ fun MainScreenFloatingButton(onClick: () -> Unit, text: String) {
 }
 
 @Composable
-fun AppInfoScreen(onDismiss: () -> Unit, title: String, textLines: Array<String>) {
+fun InfoPopup(onDismiss: () -> Unit, title: String, textLines: Array<String>) {
     AlertDialog(
         onDismissRequest = { onDismiss() },
         title = { Text(title) },
@@ -89,6 +89,36 @@ fun AppInfoScreen(onDismiss: () -> Unit, title: String, textLines: Array<String>
             }
         },
         confirmButton = {
+            TextButton(onClick = { onDismiss() }) {
+                Text("Dismiss")
+            }
+        },
+        containerColor = MaterialTheme.colorScheme.background,
+        textContentColor = MaterialTheme.colorScheme.secondary,
+        titleContentColor = MaterialTheme.colorScheme.primary
+    )
+}
+
+@Composable
+fun PrivilagesPopup(context: Context, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = { onDismiss() },
+        title = { Text("Enable Notifications") },
+        text = {
+            Column {
+                Text("Notifications are disabled for this app. Please enable them in settings for the full functionality.")
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                context.startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                    putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                })
+            }) {
+                Text("Open Settings")
+            }
+        },
+        dismissButton = {
             TextButton(onClick = { onDismiss() }) {
                 Text("Dismiss")
             }
