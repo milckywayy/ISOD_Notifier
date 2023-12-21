@@ -1,5 +1,7 @@
 package pl.edu.pw.ee.isod_notifier
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -44,12 +46,13 @@ fun MainContent() {
     var isRefreshing by remember { mutableStateOf(false) }
     var showAppInfo by remember { mutableStateOf(false) }
     var showPrivilagesDialog by remember { mutableStateOf(NotificationManagerCompat.from(context).areNotificationsEnabled().not()) }
+    var isRunning by remember { mutableStateOf(false) }
 
     val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
     val version = packageInfo.versionName
 
     if (showPrivilagesDialog) {
-        PrivilagesPopup(
+        PrivilegesPopup(
             context,
             onDismiss = {
                 showPrivilagesDialog = false
@@ -58,7 +61,7 @@ fun MainContent() {
     }
 
     if (showAppInfo) {
-        InfoPopup(
+        AppInfoPopup(
             onDismiss = {
                 showAppInfo = false
             },
@@ -88,12 +91,15 @@ fun MainContent() {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(52.dp))
-            MainScreenLogo()
+            MainScreenLogo(
+                if (isRunning) R.drawable.logo_sunny_filled else R.drawable.logo_sunny,
+                if (isRunning) R.drawable.logo_white_filled else R.drawable.logo_white
+            )
             Spacer(modifier = Modifier.height(52.dp))
 
-            MainScreenTextField(context, "ISOD Username", "USERNAME")
+            MainScreenTextField(context, "ISOD Username", "USERNAME", !isRunning)
             Spacer(modifier = Modifier.height(4.dp))
-            MainScreenTextField(context, "ISOD API key", "API_KEY")
+            MainScreenTextField(context, "ISOD API key", "API_KEY", !isRunning)
             Spacer(modifier = Modifier.height(8.dp))
 
             Row(
@@ -101,7 +107,11 @@ fun MainContent() {
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 MainScreenButton(
-                    onClick = { },
+                    onClick = {
+                        val intent = Intent(Intent.ACTION_VIEW)
+                        intent.data = Uri.parse("https://isod.ee.pw.edu.pl/isod-stud/person")
+                        context.startActivity(intent)
+                    },
                     "Get API key"
                 )
                 MainScreenButton(
@@ -112,8 +122,15 @@ fun MainContent() {
         }
 
         MainScreenFloatingButton(
-            onClick = { },
-            "Start service"
+            onClick = {
+                if (!isRunning) {
+                    isRunning = true
+                }
+                else {
+                    isRunning = false
+                }
+            },
+            if (isRunning) "Stop service" else "Start service"
         )
     }
 }

@@ -14,20 +14,19 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Modifier
 import android.provider.Settings
-import androidx.core.app.NotificationManagerCompat
 
 
 @Composable
-fun MainScreenLogo() {
+fun MainScreenLogo(logoDark : Int, logoLight : Int) {
     if (isSystemInDarkTheme()) {
         Image(
-            painter = painterResource(id = R.drawable.logo_sunny),
+            painter = painterResource(logoDark),
             contentDescription = "ISOD Notifier logo"
         )
     }
     else {
         Image(
-            painter = painterResource(id = R.drawable.logo_white),
+            painter = painterResource(logoLight),
             contentDescription = "ISOD Notifier logo"
         )
     }
@@ -35,7 +34,7 @@ fun MainScreenLogo() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreenTextField(context: Context, placeholder: String, key: String) {
+fun MainScreenTextField(context: Context, placeholder: String, key: String, enabled: Boolean) {
     val username = remember { mutableStateOf(PreferencesManager.getPreference(context, key)) }
 
     OutlinedTextField(
@@ -47,7 +46,8 @@ fun MainScreenTextField(context: Context, placeholder: String, key: String) {
         label = { Text(placeholder, color = MaterialTheme.colorScheme.primary) },
         maxLines = 1,
         singleLine = true,
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+        enabled = enabled
     )
 }
 
@@ -77,7 +77,7 @@ fun MainScreenFloatingButton(onClick: () -> Unit, text: String) {
 }
 
 @Composable
-fun InfoPopup(onDismiss: () -> Unit, title: String, textLines: Array<String>) {
+fun AppInfoPopup(onDismiss: () -> Unit, title: String, textLines: Array<String>) {
     AlertDialog(
         onDismissRequest = { onDismiss() },
         title = { Text(title) },
@@ -100,7 +100,7 @@ fun InfoPopup(onDismiss: () -> Unit, title: String, textLines: Array<String>) {
 }
 
 @Composable
-fun PrivilagesPopup(context: Context, onDismiss: () -> Unit) {
+fun PrivilegesPopup(context: Context, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = { onDismiss() },
         title = { Text("Enable Notifications") },
