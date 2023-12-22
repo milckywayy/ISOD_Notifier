@@ -13,7 +13,7 @@ android {
         minSdk = 22
         targetSdk = 34
         versionCode = 1
-        versionName = "1.0"
+        versionName = "0.1a"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -49,7 +49,7 @@ android {
 
 dependencies {
     implementation ("com.google.accompanist:accompanist-swiperefresh:0.32.0")
-    implementation ("com.squareup.okhttp3:okhttp:4.9.0")
+    implementation ("com.squareup.okhttp3:okhttp:5.0.0-alpha.3")
     implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
     implementation("com.google.firebase:firebase-messaging-ktx:23.4.0")
 

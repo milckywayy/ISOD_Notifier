@@ -1,10 +1,8 @@
-import json
-
 import requests.exceptions
 from aiohttp import web
 
-from notify import send_notification
 from http_request import get_request
+from notify import notify
 
 INSERT_QUERY = '''INSERT INTO clients (token, username, api_key, version) VALUES (?, ?, ?, ?)'''
 
@@ -25,7 +23,6 @@ async def register(request):
     print('Register request')
 
     try:
-        # Correctly parse JSON data
         data = await request.json()
         token = data['token']
         username = data['username']
@@ -41,7 +38,7 @@ async def register(request):
 
     if is_response_valid(response):
         db.execute(INSERT_QUERY, (token, username, api_key, version))
-        print('Successfully registered')
+        notify(token, "Successfully registered!", "You'll be notified with ISOD news.")
         return web.Response(status=200, text='Successfully registered')
 
     return web.Response(status=500, text='Invalid username or API key.')

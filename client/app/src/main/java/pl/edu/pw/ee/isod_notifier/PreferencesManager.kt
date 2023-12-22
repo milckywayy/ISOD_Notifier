@@ -18,4 +18,16 @@ object PreferencesManager {
     fun getPreference(context: Context, key: String): String {
         return getPreferences(context).getString(key, "") ?: ""
     }
+
+    fun getPreferenceFileKey() : String {
+        return PREFERENCES_FILE_KEY
+    }
+
+    fun getPreferenceNoContext(sharedPref: SharedPreferences, key: String) : String? {
+        return sharedPref.getString(PREFERENCES_FILE_KEY, key)
+    }
+
+    fun setPreferenceNoContext(sharedPref: SharedPreferences, key: String, value: String) {
+        return sharedPref.edit().putString(key, value).apply()
+    }
 }

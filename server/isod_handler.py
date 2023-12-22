@@ -5,7 +5,7 @@ REQUESTS_INTERVAL_TIME_SECONDS = 60
 
 async def check_for_new_notifications(db):
     while True:
-        print("Send notifications")
+        print("Handling ISOD news")
 
         db.commit()
 

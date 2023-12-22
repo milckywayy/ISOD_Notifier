@@ -1,7 +1,7 @@
 from firebase_admin import messaging
 
 
-def send_notification(token, title, body):
+def notify(token, title, body):
     message = messaging.Message(
         notification=messaging.Notification(
             title=title,
@@ -13,5 +13,8 @@ def send_notification(token, title, body):
         )
     )
 
-    response = messaging.send(message)
-    print('Successfully sent message:', response)
+    try:
+        response = messaging.send(message)
+        print('Successfully sent message:', response)
+    except Exception as e:
+        print('Error sending message:', e)
