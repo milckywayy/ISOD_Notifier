@@ -6,8 +6,10 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 import java.net.SocketTimeoutException
 
+const val SERVER_URL = "http://192.168.1.100:8080"
 
-fun sendPostRequest(token: String, username: String, api_key: String, version: String, callback: (Pair<Int, Exception?>) -> Unit) {
+
+fun registerRequest(token: String, username: String, api_key: String, version: String, callback: (Pair<Int, Exception?>) -> Unit) {
     val client = OkHttpClient()
 
     val mediaType = "application/json; charset=utf-8".toMediaTypeOrNull()
@@ -15,10 +17,29 @@ fun sendPostRequest(token: String, username: String, api_key: String, version: S
     val body = jsonString.toRequestBody(mediaType)
 
     val request = Request.Builder()
-        .url("http://192.168.1.137:8080/register")
+        .url("$SERVER_URL/register")
         .post(body)
         .build()
 
+    handleResponse(client, request, callback)
+}
+
+fun unregisterRequest(token: String, callback: (Pair<Int, Exception?>) -> Unit) {
+    val client = OkHttpClient()
+
+    val mediaType = "application/json; charset=utf-8".toMediaTypeOrNull()
+    val jsonString = "{\"token\" : \"$token\"}"
+    val body = jsonString.toRequestBody(mediaType)
+
+    val request = Request.Builder()
+        .url("$SERVER_URL/unregister")
+        .post(body)
+        .build()
+
+    handleResponse(client, request, callback)
+}
+
+fun handleResponse(client: OkHttpClient, request: Request, callback: (Pair<Int, Exception?>) -> Unit) {
     client.newCall(request).enqueue(object : Callback {
         override fun onResponse(call: Call, response: Response) {
             if (response.isSuccessful) {

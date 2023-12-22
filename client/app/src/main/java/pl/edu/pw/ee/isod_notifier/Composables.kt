@@ -61,7 +61,7 @@ fun MainScreenButton(onClick: () -> Unit, text: String) {
 }
 
 @Composable
-fun MainScreenFloatingButton(onClick: () -> Unit, text: String) {
+fun MainScreenFloatingButton(onClick: () -> Unit, text: String, enabled: Boolean =true) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -69,6 +69,7 @@ fun MainScreenFloatingButton(onClick: () -> Unit, text: String) {
         contentAlignment = Alignment.BottomCenter
     ) {
         Button(
+            enabled = enabled,
             onClick = onClick
         ) {
             Text(text = text, color = MaterialTheme.colorScheme.background)

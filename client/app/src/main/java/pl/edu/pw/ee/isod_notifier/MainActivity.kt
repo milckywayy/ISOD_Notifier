@@ -130,6 +130,7 @@ fun MainContent() {
         MainScreenFloatingButton(
             onClick = {
                 isRefreshing = true
+
                 if (!isRunning(context)) {
                     // Get token
                     FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
@@ -141,7 +142,7 @@ fun MainContent() {
                     }
 
                     // Register on server
-                    sendPostRequest(
+                    registerRequest(
                         PreferencesManager.getPreference(context, "TOKEN"),
                         PreferencesManager.getPreference(context, "USERNAME"),
                         PreferencesManager.getPreference(context, "API_KEY"),
@@ -160,16 +161,32 @@ fun MainContent() {
                                 PreferencesManager.setPreference(context, "IS_RUNNING", "1")
                             }
                         }
-
                         isRefreshing = false
                     }
                 }
                 else {
-                    PreferencesManager.setPreference(context, "IS_RUNNING", "")
-                    isRefreshing = false
+                    unregisterRequest(
+                        PreferencesManager.getPreference(context, "TOKEN"),
+                    ) { result ->
+                        val (statusCode, exception) = result
+
+                        // Handle success or failure
+                        MainScope().launch(Dispatchers.Main) {
+                            if (statusCode != 200) {
+                                if (exception != null) {
+                                    Toast.makeText(context, "Error: ${exception.message}", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                            else {
+                                PreferencesManager.setPreference(context, "IS_RUNNING", "")
+                            }
+                        }
+                        isRefreshing = false
+                    }
                 }
             },
-            if (isRunning(context)) "Stop service" else "Start service"
+            if (isRunning(context)) "Stop service" else "Start service",
+            enabled = !isRefreshing,
         )
     }
 }

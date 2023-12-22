@@ -34,7 +34,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             val version = this.packageManager.getPackageInfo(this.packageName, 0).versionName
 
             if (username != null && api_key != null) {
-                sendPostRequest(token, username, api_key, version) {result ->
+                registerRequest(token, username, api_key, version) { result ->
                     val (statusCode, exception) = result
 
                     // Stop notification service if failed
