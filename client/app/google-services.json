@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "282050882773",
+    "project_id": "isod-notifier",
+    "storage_bucket": "isod-notifier.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:282050882773:android:36ba617fd1a1b947d5465c",
+        "android_client_info": {
+          "package_name": "pl.edu.pw.ee.isod_notifier"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA92XFCupaEBfonbEPmU182t_g-l6CeVFA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

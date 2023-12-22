@@ -25,11 +25,14 @@ class DatabaseManager:
             self.conn.close()
 
     def execute(self, query, params=()):
-        if not self.conn:
-            self.open()
-        self.cursor.execute(query, params)
+        try:
+            if not self.conn:
+                self.open()
+            self.cursor.execute(query, params)
 
-        return self.cursor
+            return self.cursor
+        except sqlite3.IntegrityError:
+            pass
 
     def fetchall(self):
         return self.cursor.fetchall()

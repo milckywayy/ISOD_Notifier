@@ -77,7 +77,7 @@ fun MainScreenFloatingButton(onClick: () -> Unit, text: String) {
 }
 
 @Composable
-fun AppInfoPopup(onDismiss: () -> Unit, title: String, textLines: Array<String>) {
+fun InfoPopup(onDismiss: () -> Unit, title: String, textLines: Array<String>) {
     AlertDialog(
         onDismissRequest = { onDismiss() },
         title = { Text(title) },

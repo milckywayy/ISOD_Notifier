@@ -1,6 +1,6 @@
 import asyncio
 
-REQUESTS_INTERVAL_TIME_SECONDS = 5
+REQUESTS_INTERVAL_TIME_SECONDS = 60
 
 
 async def check_for_new_notifications(db):

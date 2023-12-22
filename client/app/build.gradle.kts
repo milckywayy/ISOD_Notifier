@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -48,6 +49,9 @@ android {
 
 dependencies {
     implementation ("com.google.accompanist:accompanist-swiperefresh:0.32.0")
+    implementation ("com.squareup.okhttp3:okhttp:4.9.0")
+    implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
+    implementation("com.google.firebase:firebase-messaging-ktx:23.4.0")
 
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")

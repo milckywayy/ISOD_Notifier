@@ -1,8 +1,12 @@
 package pl.edu.pw.ee.isod_notifier
 
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
+import android.widget.ProgressBar
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
@@ -18,11 +22,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import pl.edu.pw.ee.isod_notifier.ui.theme.ISOD_NotifierTheme
 import androidx.compose.runtime.*
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.app.NotificationManagerCompat
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.SwipeRefreshState
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import android.widget.LinearLayout.LayoutParams
+import androidx.compose.ui.graphics.toArgb
+import com.google.firebase.messaging.FirebaseMessaging
 
 
 class MainActivity : ComponentActivity() {
@@ -47,6 +57,7 @@ fun MainContent() {
     var showAppInfo by remember { mutableStateOf(false) }
     var showPrivilagesDialog by remember { mutableStateOf(NotificationManagerCompat.from(context).areNotificationsEnabled().not()) }
     var isRunning by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(false) }
 
     val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
     val version = packageInfo.versionName
@@ -61,7 +72,7 @@ fun MainContent() {
     }
 
     if (showAppInfo) {
-        AppInfoPopup(
+        InfoPopup(
             onDismiss = {
                 showAppInfo = false
             },
@@ -123,14 +134,61 @@ fun MainContent() {
 
         MainScreenFloatingButton(
             onClick = {
+                isLoading = true
                 if (!isRunning) {
-                    isRunning = true
+                    FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+                        if (!task.isSuccessful) {
+                            return@addOnCompleteListener
+                        }
+                        val token = task.result
+                        PreferencesManager.setPreference(context, "TOKEN", token)
+                    }
+
+                    sendPostRequest(context) { result ->
+                        val (statusCode, exception) = result
+
+                        if (statusCode != 200) {
+                            MainScope().launch(Dispatchers.Main) {
+                                if (exception != null) {
+                                    Toast.makeText(context, "Error: ${exception.message}", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        } else {
+                            MainScope().launch(Dispatchers.Main) {
+                                isRunning = true
+                            }
+                        }
+
+                        isLoading = false
+                    }
                 }
                 else {
                     isRunning = false
+                    isLoading = false
                 }
             },
             if (isRunning) "Stop service" else "Start service"
         )
     }
+
+      if (isLoading) {
+          ProgressBar()
+      }
+}
+
+@Composable
+fun ProgressBar(modifier: Modifier = Modifier) {
+    val primaryColor = MaterialTheme.colorScheme.primary.toArgb()
+
+    AndroidView(
+        modifier = modifier,
+        factory = { context ->
+            ProgressBar(context, null, android.R.attr.progressBarStyleLarge).apply {
+                layoutParams = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT)
+                isIndeterminate = true
+                indeterminateTintList = ColorStateList.valueOf(primaryColor)
+                setPadding(350, 350, 350, 350)
+            }
+        }
+    )
 }
