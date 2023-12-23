@@ -3,8 +3,10 @@ from aiohttp import web
 
 from http_request import get_request
 from notify import notify
+import time
 
 INSERT_QUERY = '''INSERT INTO clients (token, username, api_key, version) VALUES (?, ?, ?, ?)'''
+DELETE_QUERY = '''DELETE FROM clients WHERE token = ?'''
 
 
 def is_response_valid(data):
@@ -37,7 +39,11 @@ async def register(request):
         return web.Response(status=err.response.status_code, text=str(err))
 
     if is_response_valid(response):
-        db.execute(INSERT_QUERY, (token, username, api_key, version))
+        try:
+            db.execute(INSERT_QUERY, (token, username, api_key, version))
+        except Exception as e:
+            return web.Response(status=500, text='Server failure.')
+
         notify(token, "Successfully registered!", "You'll be notified with ISOD news.")
         return web.Response(status=200, text='Successfully registered')
 
@@ -49,7 +55,18 @@ async def unregister(request):
 
     print('Unregister request')
 
-    return web.Response(status=200)
+    try:
+        data = await request.json()
+        token = data['token']
+    except Exception as e:
+        return web.Response(status=400, text=f"Invalid request: {e}")
+
+    try:
+        db.execute(DELETE_QUERY, (token,))
+    except Exception as e:
+        return web.Response(status=500, text='Server failure.')
+
+    return web.Response(status=200, text='Unregistered successfully')
 
 
 async def registration_status(request):
