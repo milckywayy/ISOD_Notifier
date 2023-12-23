@@ -39,6 +39,21 @@ fun unregisterRequest(token: String, callback: (Pair<Int, Exception?>) -> Unit) 
     handleResponse(client, request, callback)
 }
 
+fun registrationStatusRequest(token: String, callback: (Pair<Int, Exception?>) -> Unit) {
+    val client = OkHttpClient()
+
+    val mediaType = "application/json; charset=utf-8".toMediaTypeOrNull()
+    val jsonString = "{\"token\" : \"$token\"}"
+    val body = jsonString.toRequestBody(mediaType)
+
+    val request = Request.Builder()
+        .url("$SERVER_URL/registration_status")
+        .post(body)
+        .build()
+
+    handleResponse(client, request, callback)
+}
+
 fun handleResponse(client: OkHttpClient, request: Request, callback: (Pair<Int, Exception?>) -> Unit) {
     client.newCall(request).enqueue(object : Callback {
         override fun onResponse(call: Call, response: Response) {

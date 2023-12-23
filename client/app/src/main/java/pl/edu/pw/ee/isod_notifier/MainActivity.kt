@@ -1,10 +1,8 @@
 package pl.edu.pw.ee.isod_notifier
 
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -94,6 +92,29 @@ fun MainContent() {
             }
         }
     ) {
+        LaunchedEffect(key1 = "refreshOnStart") {
+            if (isRunning) {
+                isRefreshing = true
+
+                registrationStatusRequest(
+                    PreferencesManager.getPreference(context, "TOKEN")
+                ) { result ->
+                    val (statusCode, exception) = result
+
+                    if (statusCode == 251) {
+                        isRunning = false
+                        PreferencesManager.setPreference(context, "IS_RUNNING", "")
+
+                    } else {
+                        if (exception != null) {
+                            Toast.makeText(context, "Error: ${exception.message}", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    isRefreshing = false
+                }
+            }
+        }
+
         Column(
             modifier = Modifier
                 .verticalScroll(scrollState)
