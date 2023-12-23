@@ -1,10 +1,11 @@
+import firebase_admin
+from firebase_admin import credentials
+import ssl
+
 from rate_limiter import rate_limiter
 from endpoints import *
 from isod_handler import start_isod_handler
 from database_manager import DatabaseManager
-
-import firebase_admin
-from firebase_admin import credentials
 
 
 if __name__ == '__main__':
@@ -21,4 +22,7 @@ if __name__ == '__main__':
     app['db_manager'] = db
     app.on_startup.append(start_isod_handler)
 
-    web.run_app(app, port=8080)
+    ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+    ssl_context.load_cert_chain('certificate.crt', 'private.key')
+
+    web.run_app(app, port=8080, ssl_context=ssl_context)
