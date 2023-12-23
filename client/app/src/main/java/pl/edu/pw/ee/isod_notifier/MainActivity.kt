@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -143,30 +144,30 @@ fun MainContent() {
                         }
                         val token = task.result
                         PreferencesManager.setPreference(context, "TOKEN", token)
-                    }
 
-                    // Register on server
-                    registerRequest(
-                        PreferencesManager.getPreference(context, "TOKEN"),
-                        PreferencesManager.getPreference(context, "USERNAME"),
-                        PreferencesManager.getPreference(context, "API_KEY"),
-                        version
-                    ) { result ->
-                        val (statusCode, exception) = result
+                        // Register on server
+                        registerRequest(
+                            token,
+                            PreferencesManager.getPreference(context, "USERNAME"),
+                            PreferencesManager.getPreference(context, "API_KEY"),
+                            version
+                        ) { result ->
+                            val (statusCode, exception) = result
 
-                        // Handle success or failure
-                        MainScope().launch(Dispatchers.Main) {
-                            if (statusCode != 200) {
-                                if (exception != null) {
-                                    Toast.makeText(context, "Error: ${exception.message}", Toast.LENGTH_SHORT).show()
+                            // Handle success or failure
+                            MainScope().launch(Dispatchers.Main) {
+                                if (statusCode != 200) {
+                                    if (exception != null) {
+                                        Toast.makeText(context, "Error: ${exception.message}", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                                else {
+                                    isRunning = true
+                                    PreferencesManager.setPreference(context, "IS_RUNNING", "1")
                                 }
                             }
-                            else {
-                                isRunning = true
-                                PreferencesManager.setPreference(context, "IS_RUNNING", "1")
-                            }
+                            isRefreshing = false
                         }
-                        isRefreshing = false
                     }
                 }
                 else {
