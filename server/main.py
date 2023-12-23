@@ -17,7 +17,7 @@ if __name__ == '__main__':
     app = web.Application(middlewares=[rate_limiter(max_requests=10, period=60)])
     app.add_routes([web.post('/register', register),
                     web.post('/unregister', unregister),
-                    web.post('/check', registration_status)])
+                    web.post('/registration_status', registration_status)])
     app['db_manager'] = db
     app.on_startup.append(start_isod_handler)
 

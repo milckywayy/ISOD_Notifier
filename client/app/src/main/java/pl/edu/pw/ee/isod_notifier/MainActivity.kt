@@ -1,5 +1,6 @@
 package pl.edu.pw.ee.isod_notifier
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -78,42 +79,31 @@ fun MainContent() {
         )
     }
 
-    SwipeRefresh(
-        swipeEnabled = false,
-        state = SwipeRefreshState(isRefreshing),
-        onRefresh = {
-            isRefreshing = true
-
-            kotlinx.coroutines.MainScope().launch {
-
-                delay(2000)
-
+    fun refreshApp() {
+        registrationStatusCheck( context,
+            onLaunch = {
+                isRefreshing = true
+            },
+            onStateRunning = {
+                isRunning = true
+                PreferencesManager.setPreference(context, "IS_RUNNING", "1")
+            },
+            onStateStopped = {
+                isRunning = false
+                PreferencesManager.setPreference(context, "IS_RUNNING", "")
+            },
+            onFinish =  {
                 isRefreshing = false
             }
-        }
+        )
+    }
+
+    SwipeRefresh(
+        swipeEnabled = true,
+        state = SwipeRefreshState(isRefreshing),
+        onRefresh = { refreshApp() }
     ) {
-        LaunchedEffect(key1 = "refreshOnStart") {
-            if (isRunning) {
-                isRefreshing = true
-
-                registrationStatusRequest(
-                    PreferencesManager.getPreference(context, "TOKEN")
-                ) { result ->
-                    val (statusCode, exception) = result
-
-                    if (statusCode == 251) {
-                        isRunning = false
-                        PreferencesManager.setPreference(context, "IS_RUNNING", "")
-
-                    } else {
-                        if (exception != null) {
-                            Toast.makeText(context, "Error: ${exception.message}", Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                    isRefreshing = false
-                }
-            }
-        }
+        LaunchedEffect(key1 = "refreshOnStart") { refreshApp() }
 
         Column(
             modifier = Modifier
@@ -172,9 +162,7 @@ fun MainContent() {
                             PreferencesManager.getPreference(context, "USERNAME"),
                             PreferencesManager.getPreference(context, "API_KEY"),
                             version
-                        ) { result ->
-                            val (statusCode, exception) = result
-
+                        ) { result -> val (statusCode, exception) = result
                             // Handle success or failure
                             MainScope().launch(Dispatchers.Main) {
                                 if (statusCode != 200) {
@@ -194,9 +182,7 @@ fun MainContent() {
                 else {
                     unregisterRequest(
                         PreferencesManager.getPreference(context, "TOKEN"),
-                    ) { result ->
-                        val (statusCode, exception) = result
-
+                    ) { result -> val (statusCode, exception) = result
                         // Handle success or failure
                         MainScope().launch(Dispatchers.Main) {
                             if (statusCode != 200) {
@@ -207,6 +193,7 @@ fun MainContent() {
                             else {
                                 isRunning = false
                                 PreferencesManager.setPreference(context, "IS_RUNNING", "")
+                                PreferencesManager.setPreference(context, "TOKEN", "")
                             }
                         }
                         isRefreshing = false
@@ -216,5 +203,34 @@ fun MainContent() {
             if (isRunning) "Stop service" else "Start service",
             enabled = !isRefreshing,
         )
+    }
+}
+
+fun registrationStatusCheck(context: Context, onLaunch: () -> Unit, onStateRunning: () -> Unit, onStateStopped: () -> Unit, onFinish: () -> Unit) {
+    val token = PreferencesManager.getPreference(context, "TOKEN")
+
+    if (token == "") {
+        return
+    }
+
+    onLaunch()
+
+    registrationStatusRequest(token) {
+        result -> val (statusCode, exception) = result
+
+        if (statusCode == 250) {
+            onStateRunning()
+        }
+        else if (statusCode == 251) {
+            onStateStopped()
+        }
+        else {
+            if (exception != null) {
+                MainScope().launch(Dispatchers.Main) {
+                    Toast.makeText(context, "Error: ${exception.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+        onFinish()
     }
 }
