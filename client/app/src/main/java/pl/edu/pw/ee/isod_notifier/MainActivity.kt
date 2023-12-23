@@ -53,6 +53,10 @@ fun MainContent() {
     var isRefreshing by remember { mutableStateOf(false) }
     var showPrivilagesDialog by remember { mutableStateOf(NotificationManagerCompat.from(context).areNotificationsEnabled().not()) }
 
+    var isRunning by remember {
+        mutableStateOf(PreferencesManager.getPreference(context, "IS_RUNNING") == "1")
+    }
+
     val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
     val version = packageInfo.versionName
 
@@ -98,14 +102,14 @@ fun MainContent() {
         ) {
             Spacer(modifier = Modifier.height(52.dp))
             MainScreenLogo(
-                if (isRunning(context)) R.drawable.logo_sunny_filled else R.drawable.logo_sunny,
-                if (isRunning(context)) R.drawable.logo_white_filled else R.drawable.logo_white
+                if (isRunning) R.drawable.logo_sunny_filled else R.drawable.logo_sunny,
+                if (isRunning) R.drawable.logo_white_filled else R.drawable.logo_white
             )
             Spacer(modifier = Modifier.height(52.dp))
 
-            MainScreenTextField(context, "ISOD Username", "USERNAME", !isRunning(context))
+            MainScreenTextField(context, "ISOD Username", "USERNAME", !isRunning)
             Spacer(modifier = Modifier.height(4.dp))
-            MainScreenTextField(context, "ISOD API key", "API_KEY", !isRunning(context))
+            MainScreenTextField(context, "ISOD API key", "API_KEY", !isRunning)
             Spacer(modifier = Modifier.height(8.dp))
 
             Row(
@@ -131,7 +135,7 @@ fun MainContent() {
             onClick = {
                 isRefreshing = true
 
-                if (!isRunning(context)) {
+                if (!isRunning) {
                     // Get token
                     FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
                         if (!task.isSuccessful) {
@@ -158,6 +162,7 @@ fun MainContent() {
                                 }
                             }
                             else {
+                                isRunning = true
                                 PreferencesManager.setPreference(context, "IS_RUNNING", "1")
                             }
                         }
@@ -178,6 +183,7 @@ fun MainContent() {
                                 }
                             }
                             else {
+                                isRunning = false
                                 PreferencesManager.setPreference(context, "IS_RUNNING", "")
                             }
                         }
@@ -185,12 +191,8 @@ fun MainContent() {
                     }
                 }
             },
-            if (isRunning(context)) "Stop service" else "Start service",
+            if (isRunning) "Stop service" else "Start service",
             enabled = !isRefreshing,
         )
     }
-}
-
-fun isRunning(context: Context): Boolean {
-    return PreferencesManager.getPreference(context, "IS_RUNNING") == "1"
 }
