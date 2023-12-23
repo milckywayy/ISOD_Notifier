@@ -1,16 +1,17 @@
 package pl.edu.pw.ee.isod_notifier
 
+import android.content.Context
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 import java.net.SocketTimeoutException
 
-const val SERVER_URL = "http://194.59.158.29:8080"
+const val SERVER_URL = "https://194.59.158.29:8080"
 
 
-fun registerRequest(token: String, username: String, api_key: String, version: String, callback: (Pair<Int, Exception?>) -> Unit) {
-    val client = OkHttpClient()
+fun registerRequest(context: Context, token: String, username: String, api_key: String, version: String, callback: (Pair<Int, Exception?>) -> Unit) {
+    val client = getSslOkHttpClient(context)
 
     val mediaType = "application/json; charset=utf-8".toMediaTypeOrNull()
     val jsonString = "{\"token\" : \"$token\", \"username\" : \"$username\", \"api_key\" : \"$api_key\", \"version\" : \"$version\"}"
@@ -24,8 +25,8 @@ fun registerRequest(token: String, username: String, api_key: String, version: S
     handleResponse(client, request, callback)
 }
 
-fun unregisterRequest(token: String, callback: (Pair<Int, Exception?>) -> Unit) {
-    val client = OkHttpClient()
+fun unregisterRequest(context: Context, token: String, callback: (Pair<Int, Exception?>) -> Unit) {
+    val client = getSslOkHttpClient(context)
 
     val mediaType = "application/json; charset=utf-8".toMediaTypeOrNull()
     val jsonString = "{\"token\" : \"$token\"}"
@@ -39,8 +40,8 @@ fun unregisterRequest(token: String, callback: (Pair<Int, Exception?>) -> Unit) 
     handleResponse(client, request, callback)
 }
 
-fun registrationStatusRequest(token: String, callback: (Pair<Int, Exception?>) -> Unit) {
-    val client = OkHttpClient()
+fun registrationStatusRequest(context: Context, token: String, callback: (Pair<Int, Exception?>) -> Unit) {
+    val client = getSslOkHttpClient(context)
 
     val mediaType = "application/json; charset=utf-8".toMediaTypeOrNull()
     val jsonString = "{\"token\" : \"$token\"}"

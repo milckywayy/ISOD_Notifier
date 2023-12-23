@@ -158,6 +158,7 @@ fun MainContent() {
 
                         // Register on server
                         registerRequest(
+                            context,
                             token,
                             PreferencesManager.getPreference(context, "USERNAME"),
                             PreferencesManager.getPreference(context, "API_KEY"),
@@ -181,6 +182,7 @@ fun MainContent() {
                 }
                 else {
                     unregisterRequest(
+                        context,
                         PreferencesManager.getPreference(context, "TOKEN"),
                     ) { result -> val (statusCode, exception) = result
                         // Handle success or failure
@@ -215,7 +217,7 @@ fun registrationStatusCheck(context: Context, onLaunch: () -> Unit, onStateRunni
 
     onLaunch()
 
-    registrationStatusRequest(token) {
+    registrationStatusRequest(context, token) {
         result -> val (statusCode, exception) = result
 
         if (statusCode == 250) {
