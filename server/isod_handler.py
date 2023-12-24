@@ -1,7 +1,7 @@
 import asyncio
 
-from server.http_request import get_request
-from server.notify import notify
+from http_request import get_request
+from notify import notify
 
 REQUESTS_INTERVAL_TIME_SECONDS = 60
 
