@@ -27,7 +27,7 @@ async def check_for_new_notifications(db):
 
         db.commit()
 
-        await asyncio.sleep(1)
+        await asyncio.sleep(60)
 
 
 async def start_isod_handler(app):
