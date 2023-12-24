@@ -7,7 +7,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 import java.net.SocketTimeoutException
 
-const val SERVER_URL = "https://194.59.158.29:8080"
+const val SERVER_URL = "https://192.168.1.100:8080"
 
 
 fun registerRequest(context: Context, token: String, username: String, api_key: String, version: String, callback: (Pair<Int, Exception?>) -> Unit) {

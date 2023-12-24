@@ -16,5 +16,7 @@ def notify(token, title, body):
     try:
         response = messaging.send(message)
         print('Successfully sent message:', response)
+    except messaging.exceptions.NotFoundError:
+        print('Token inactive.')
     except Exception as e:
         print('Error sending message:', e)

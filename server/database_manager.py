@@ -15,7 +15,8 @@ class DatabaseManager:
                             token TEXT PRIMARY KEY,
                             username TEXT NOT NULL,
                             api_key TEXT NOT NULL,
-                            version TEXT NOT NULL
+                            version TEXT NOT NULL,
+                            news_fingerprint TEXT NOT NULL
                           )''')
 
     def close(self):

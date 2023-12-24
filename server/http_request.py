@@ -1,9 +1,9 @@
 import requests
 
 
-def get_request(username, api_key):
+def get_request(url):
     try:
-        response = requests.get(f'https://isod.ee.pw.edu.pl/isod-portal/wapi?q=mynewsheaders&username={username}&apikey={api_key}&from=0&to=3')
+        response = requests.get(url)
 
         return response.json()
 

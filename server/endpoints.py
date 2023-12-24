@@ -4,7 +4,7 @@ from aiohttp import web
 from http_request import get_request
 from notify import notify
 
-INSERT_QUERY = '''INSERT INTO clients (token, username, api_key, version) VALUES (?, ?, ?, ?)'''
+INSERT_QUERY = '''INSERT INTO clients (token, username, api_key, version, news_fingerprint) VALUES (?, ?, ?, ?, ?)'''
 DELETE_QUERY = '''DELETE FROM clients WHERE token = ?'''
 REGISTRATION_STATUS_QUERY = '''SELECT COUNT(token) FROM clients WHERE token = ?'''
 
@@ -34,13 +34,13 @@ async def register(request):
         return web.Response(status=400, text=f"Invalid request: {e}")
 
     try:
-        response = get_request(username, api_key)
+        response = get_request(f'https://isod.ee.pw.edu.pl/isod-portal/wapi?q=mynewsfingerprint&username={username}&apikey={api_key}')
     except requests.exceptions.RequestException as err:
         return web.Response(status=err.response.status_code, text=str(err))
 
     if is_response_valid(response):
         try:
-            db.execute(INSERT_QUERY, (token, username, api_key, version))
+            db.execute(INSERT_QUERY, (token, username, api_key, version, response['fingerprint']))
         except Exception as e:
             return web.Response(status=500, text='Server failure')
 
