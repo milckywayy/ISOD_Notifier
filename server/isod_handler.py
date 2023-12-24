@@ -16,21 +16,18 @@ async def check_for_new_notifications(db):
         clients = db.execute(GET_CLIENTS_QUERY)
 
         for client in clients:
-            token = client[0]
-            username = client[1]
-            api_key = client[2]
-            fingerprint = client[4]
+            token, username, api_key, _, fingerprint = client
 
             new_fingerprint = get_request(f'https://isod.ee.pw.edu.pl/isod-portal/wapi?q=mynewsfingerprint&username={username}&apikey={api_key}')
 
-            if fingerprint != new_fingerprint:
+            if fingerprint != new_fingerprint['fingerprint']:
                 news = get_request(f'https://isod.ee.pw.edu.pl/isod-portal/wapi?q=mynewsheaders&username={username}&apikey={api_key}&from=0&to=1')
                 notify(token, "New ISOD notification", news["subject"])
-                db.execute(UPDATE_FINGERPRINT_QUERY, new_fingerprint, token)
+                db.execute(UPDATE_FINGERPRINT_QUERY, new_fingerprint['fingerprint'], token)
 
         db.commit()
 
-        await asyncio.sleep(REQUESTS_INTERVAL_TIME_SECONDS)
+        await asyncio.sleep(1)
 
 
 async def start_isod_handler(app):
