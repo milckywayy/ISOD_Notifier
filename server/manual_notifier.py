@@ -8,7 +8,7 @@ GET_CLIENTS_QUERY = '''SELECT * FROM clients'''
 
 title = 'Service Interruption Alert'
 message = '''Dear user, we're temporarily pausing our service for a brief maintenance update. Expect to be back online shortly.'''
-
+url = 'https://github.com/milckywayy/ISOD_Notifier'
 
 if __name__ == '__main__':
     cred = credentials.Certificate('isod-notifier-6c6a8e2eca56.json')
@@ -22,3 +22,4 @@ if __name__ == '__main__':
         token, username, api_key, _, fingerprint = client
 
         notify(token, title, message)
+        # notify(token, title, message, url)
