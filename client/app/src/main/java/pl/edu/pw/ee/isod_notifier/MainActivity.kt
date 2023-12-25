@@ -82,7 +82,14 @@ fun MainContent() {
                 showAppInfo = false
             },
             "ISOD Notifier",
-            arrayOf("Created by Mikołaj Frączek", "Version: $version")
+            arrayOf("Created by Mikołaj Frączek", "Version: $version"),
+            buttons = arrayOf(
+                Pair("Visit GitHub") {
+                    val intent = Intent(Intent.ACTION_VIEW)
+                    intent.data = Uri.parse("https://github.com/milckywayy/ISOD_Notifier")
+                    context.startActivity(intent)
+                }
+            )
         )
     }
 

@@ -78,9 +78,8 @@ fun MainScreenFloatingButton(onClick: () -> Unit, text: String, enabled: Boolean
 }
 
 @Composable
-fun InfoPopup(onDismiss: () -> Unit, title: String, textLines: Array<String>) {
+fun InfoPopup(onDismiss: () -> Unit, title: String, textLines: Array<String>, buttons: Array<Pair<String, () -> Unit>> = arrayOf()) {
     AlertDialog(
-        onDismissRequest = { onDismiss() },
         title = { Text(title) },
         text = {
             Column {
@@ -90,10 +89,20 @@ fun InfoPopup(onDismiss: () -> Unit, title: String, textLines: Array<String>) {
             }
         },
         confirmButton = {
-            TextButton(onClick = { onDismiss() }) {
+            Button(onClick = { onDismiss() }) {
                 Text("Dismiss")
             }
         },
+        dismissButton = {
+            for (button in buttons) {
+                TextButton(
+                    onClick = button.second
+                ) {
+                    Text(button.first)
+                }
+            }
+        },
+        onDismissRequest = { onDismiss() },
         containerColor = MaterialTheme.colorScheme.background,
         textContentColor = MaterialTheme.colorScheme.secondary,
         titleContentColor = MaterialTheme.colorScheme.primary
