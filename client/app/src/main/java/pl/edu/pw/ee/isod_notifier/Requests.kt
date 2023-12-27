@@ -5,7 +5,6 @@ import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
-import java.net.SocketTimeoutException
 
 const val SERVER_URL = "https://194.59.158.29:8080"
 
@@ -66,11 +65,7 @@ fun handleResponse(client: OkHttpClient, request: Request, callback: (Pair<Int, 
         }
 
         override fun onFailure(call: Call, e: IOException) {
-            if (e is SocketTimeoutException) {
-                callback(Pair(-1, IOException("Couldn't connect to server. Check your internet connection.")))
-            } else {
-                callback(Pair(-1, e))
-            }
+            callback(Pair(-1, IOException("Couldn't connect to server. Check your internet connection.")))
         }
     })
 }
