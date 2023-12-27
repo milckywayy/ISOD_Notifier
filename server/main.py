@@ -7,6 +7,10 @@ from endpoints import *
 from isod_handler import start_isod_handler
 from database_manager import DatabaseManager
 
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+SERVICE_PORT = 8080
+
 
 if __name__ == '__main__':
     cred = credentials.Certificate('isod-notifier-6c6a8e2eca56.json')
@@ -25,4 +29,5 @@ if __name__ == '__main__':
     ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
     ssl_context.load_cert_chain('certificate.crt', 'private.key')
 
-    web.run_app(app, port=8080, ssl_context=ssl_context)
+    logging.info(f'Starting service on port {SERVICE_PORT}')
+    web.run_app(app, port=SERVICE_PORT, ssl_context=ssl_context)
