@@ -82,10 +82,14 @@ fun MainContent() {
             onDismiss = {
                 showAppInfo = false
             },
-            "ISOD Notifier",
-            arrayOf("Created by Mikołaj Frączek", "Version: $version"),
+            context.getString(R.string.app_info_title),
+            arrayOf(
+                context.getString(R.string.app_info_line1),
+                context.getString(R.string.app_info_line2) + " $version"
+            ),
+            context.getString(R.string.app_info_dismiss_button_text),
             buttons = arrayOf(
-                Pair("Visit GitHub") {
+                Pair(context.getString(R.string.app_info_visit_github_button_text)) {
                     val intent = Intent(Intent.ACTION_VIEW)
                     intent.data = Uri.parse("https://github.com/milckywayy/ISOD_Notifier")
                     context.startActivity(intent)
@@ -100,14 +104,16 @@ fun MainContent() {
                 showChangelog = false
                 PreferencesManager.setPreference(context, "APP_VERSION", version)
             },
-            "What's new?",
+            context.getString(R.string.whats_new_title),
             arrayOf(
-                "- \"What's new?\" popup",
-                "- safe SSL connection",
-                "- Notifications may open URL",
-                "- Improved icons",
-                "- Fixed error messages"
-            )
+                "- " + context.getString(R.string.whats_new_line1),
+                "- " + context.getString(R.string.whats_new_line2),
+                "- " + context.getString(R.string.whats_new_line3),
+                "- " + context.getString(R.string.whats_new_line4),
+                "- " + context.getString(R.string.whats_new_line5),
+                "- " + context.getString(R.string.whats_new_line6)
+            ),
+            context.getString(R.string.whats_new_dismiss_button_text)
         )
     }
 
@@ -145,37 +151,37 @@ fun MainContent() {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(52.dp))
-            MainScreenLogo(
+            AppLogo(
                 if (isRunning) R.drawable.logo_sunny_filled else R.drawable.logo_sunny,
                 if (isRunning) R.drawable.logo_white_filled else R.drawable.logo_white
             )
             Spacer(modifier = Modifier.height(52.dp))
 
-            MainScreenTextField(context, "ISOD Username", "USERNAME", !isRunning)
+            TextField(context, context.getString(R.string.username_field_text), "USERNAME", !isRunning)
             Spacer(modifier = Modifier.height(4.dp))
-            MainScreenTextField(context, "ISOD API key", "API_KEY", !isRunning)
+            TextField(context, context.getString(R.string.api_key_field_text), "API_KEY", !isRunning)
             Spacer(modifier = Modifier.height(8.dp))
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                MainScreenButton(
+                Button(
                     onClick = {
                         val intent = Intent(Intent.ACTION_VIEW)
                         intent.data = Uri.parse("https://isod.ee.pw.edu.pl/isod-stud/person")
                         context.startActivity(intent)
                     },
-                    "Get API key"
+                    context.getString(R.string.get_api_key_button_text)
                 )
-                MainScreenButton(
+                Button(
                     onClick = { showAppInfo = true },
-                    "See app info"
+                    context.getString(R.string.see_app_info_button_text)
                 )
             }
         }
 
-        MainScreenFloatingButton(
+        FloatingButton(
             onClick = {
                 isRefreshing = true
 
@@ -234,7 +240,7 @@ fun MainContent() {
                     }
                 }
             },
-            if (isRunning) "Stop service" else "Start service",
+            if (isRunning) context.getString(R.string.service_button_running) else context.getString(R.string.service_button_stopped),
             enabled = !isRefreshing,
         )
     }

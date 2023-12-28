@@ -17,7 +17,7 @@ import android.provider.Settings
 
 
 @Composable
-fun MainScreenLogo(logoDark : Int, logoLight : Int) {
+fun AppLogo(logoDark : Int, logoLight : Int) {
     if (isSystemInDarkTheme()) {
         Image(
             painter = painterResource(logoDark),
@@ -34,7 +34,7 @@ fun MainScreenLogo(logoDark : Int, logoLight : Int) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreenTextField(context: Context, placeholder: String, key: String, enabled: Boolean) {
+fun TextField(context: Context, placeholder: String, key: String, enabled: Boolean) {
     val username = remember { mutableStateOf(PreferencesManager.getPreference(context, key)) }
 
     OutlinedTextField(
@@ -52,7 +52,7 @@ fun MainScreenTextField(context: Context, placeholder: String, key: String, enab
 }
 
 @Composable
-fun MainScreenButton(onClick: () -> Unit, text: String) {
+fun Button(onClick: () -> Unit, text: String) {
     OutlinedButton(
         onClick = onClick,
     ) {
@@ -61,7 +61,7 @@ fun MainScreenButton(onClick: () -> Unit, text: String) {
 }
 
 @Composable
-fun MainScreenFloatingButton(onClick: () -> Unit, text: String, enabled: Boolean =true) {
+fun FloatingButton(onClick: () -> Unit, text: String, enabled: Boolean =true) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -78,7 +78,7 @@ fun MainScreenFloatingButton(onClick: () -> Unit, text: String, enabled: Boolean
 }
 
 @Composable
-fun InfoPopup(onDismiss: () -> Unit, title: String, textLines: Array<String>, buttons: Array<Pair<String, () -> Unit>> = arrayOf()) {
+fun InfoPopup(onDismiss: () -> Unit, title: String, textLines: Array<String>, dismissButtonText: String, buttons: Array<Pair<String, () -> Unit>> = arrayOf()) {
     AlertDialog(
         title = { Text(title) },
         text = {
@@ -90,7 +90,7 @@ fun InfoPopup(onDismiss: () -> Unit, title: String, textLines: Array<String>, bu
         },
         confirmButton = {
             Button(onClick = { onDismiss() }) {
-                Text("Dismiss")
+                Text(dismissButtonText)
             }
         },
         dismissButton = {

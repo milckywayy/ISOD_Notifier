@@ -1,3 +1,31 @@
 <resources>
-    <string name="app_name">ISOD Notifier</string>
+    <!-- General -->
+    <string name="app_name" translatable="false">ISOD Notifier</string>
+
+    <!-- Main screen text fields -->
+    <string name="username_field_text">ISOD Username</string>
+    <string name="api_key_field_text">ISOD API Key</string>
+
+    <!-- Main screen buttons -->
+    <string name="get_api_key_button_text">Get API key</string>
+    <string name="see_app_info_button_text">See app info</string>
+    <string name="service_button_running">Stop service</string>
+    <string name="service_button_stopped">Start service</string>
+
+    <!-- App info popup -->
+    <string name="app_info_title">About ISOD Notifier</string>
+    <string name="app_info_line1">Made by Mikołaj Frączek</string>
+    <string name="app_info_line2">Version:</string>
+    <string name="app_info_visit_github_button_text">Visit GitHub</string>
+    <string name="app_info_dismiss_button_text">Dismiss</string>
+
+    <!-- What's new popup -->
+    <string name="whats_new_title">What\'s new?</string>
+    <string name="whats_new_line1">\"What\'s new\?" popup</string>
+    <string name="whats_new_line2">Safe SSL connection</string>
+    <string name="whats_new_line3">Polish language support</string>
+    <string name="whats_new_line4">Notifications may open URL</string>
+    <string name="whats_new_line5">Fixed icons</string>
+    <string name="whats_new_line6">Fixed error messages</string>
+    <string name="whats_new_dismiss_button_text">Dismiss</string>
 </resources>

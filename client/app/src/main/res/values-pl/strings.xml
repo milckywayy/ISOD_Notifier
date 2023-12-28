@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Main screen text fields -->
+    <string name="username_field_text">Nazwa użytkownika ISOD</string>
+    <string name="api_key_field_text">Klucz API ISOD</string>
+
+    <!-- Main screen buttons -->
+    <string name="get_api_key_button_text">Zdobądź klucz</string>
+    <string name="see_app_info_button_text">Więcej o apce</string>
+    <string name="service_button_running">Zatrzymaj usługę</string>
+    <string name="service_button_stopped">Uruchom usługę</string>
+
+    <!-- App info popup -->
+    <string name="app_info_title">O ISOD Notifier</string>
+    <string name="app_info_line1">Autor: Mikołaj Frączek</string>
+    <string name="app_info_line2">Wersja:</string>
+    <string name="app_info_visit_github_button_text">Odwiedź GitHub</string>
+    <string name="app_info_dismiss_button_text">Zamknij</string>
+
+    <!-- What's new popup -->
+    <string name="whats_new_title">Co nowego?</string>
+    <string name="whats_new_line1">Popup \"Co nowego?\"</string>
+    <string name="whats_new_line2">Bezpieczne połączenie SSL</string>
+    <string name="whats_new_line3">Wsparcie dla języka polskiego</string>
+    <string name="whats_new_line4">Powiadomienia mogą otwierać URL</string>
+    <string name="whats_new_line5">Poprawione ikony</string>
+    <string name="whats_new_line6">Poprawione komunikaty o błędach</string>
+    <string name="whats_new_dismiss_button_text">Zamknij</string>
+</resources>
