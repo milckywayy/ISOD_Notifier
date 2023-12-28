@@ -56,8 +56,9 @@ class MainActivity : ComponentActivity() {
 fun MainContent() {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
-    var showAppInfo by remember { mutableStateOf(false) }
     var isRefreshing by remember { mutableStateOf(false) }
+    var showAppInfo by remember { mutableStateOf(false) }
+    var showChangelog by remember { mutableStateOf(true) }
     var showPrivilagesDialog by remember { mutableStateOf(NotificationManagerCompat.from(context).areNotificationsEnabled().not()) }
 
     var isRunning by remember {
@@ -89,6 +90,23 @@ fun MainContent() {
                     intent.data = Uri.parse("https://github.com/milckywayy/ISOD_Notifier")
                     context.startActivity(intent)
                 }
+            )
+        )
+    }
+
+    if (PreferencesManager.getPreference(context, "APP_VERSION") != version && showChangelog) {
+        InfoPopup(
+            onDismiss = {
+                showChangelog = false
+                PreferencesManager.setPreference(context, "APP_VERSION", version)
+            },
+            "What's new?",
+            arrayOf(
+                "- \"What's new?\" popup",
+                "- safe SSL connection",
+                "- Notifications may open URL",
+                "- Improved icons",
+                "- Fixed error messages"
             )
         )
     }
