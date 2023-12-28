@@ -91,7 +91,7 @@ fun MainContent() {
             buttons = arrayOf(
                 Pair(context.getString(R.string.app_info_visit_github_button_text)) {
                     val intent = Intent(Intent.ACTION_VIEW)
-                    intent.data = Uri.parse("https://github.com/milckywayy/ISOD_Notifier")
+                    intent.data = Uri.parse(context.getString(R.string.github_url))
                     context.startActivity(intent)
                 }
             )
@@ -169,7 +169,7 @@ fun MainContent() {
                 Button(
                     onClick = {
                         val intent = Intent(Intent.ACTION_VIEW)
-                        intent.data = Uri.parse("https://isod.ee.pw.edu.pl/isod-stud/person")
+                        intent.data = Uri.parse(context.getString(R.string.isod_api_url))
                         context.startActivity(intent)
                     },
                     context.getString(R.string.get_api_key_button_text)
@@ -198,8 +198,8 @@ fun MainContent() {
                         registerRequest(
                             context,
                             token,
-                            PreferencesManager.getPreference(context, "USERNAME"),
-                            PreferencesManager.getPreference(context, "API_KEY"),
+                            PreferencesManager.getPreference(context, "USERNAME").trim(),
+                            PreferencesManager.getPreference(context, "API_KEY").trim(),
                             version
                         ) { result -> val (statusCode, exception) = result
                             // Handle success or failure

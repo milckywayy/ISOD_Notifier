@@ -1,6 +1,9 @@
 <resources>
     <!-- General -->
     <string name="app_name" translatable="false">ISOD Notifier</string>
+    <string name="server_url" translatable="false">https://194.59.158.29:8080</string>
+    <string name="isod_api_url" translatable="false">https://isod.ee.pw.edu.pl/isod-stud/person</string>
+    <string name="github_url" translatable="false">https://github.com/milckywayy/ISOD_Notifier</string>
 
     <!-- Main screen text fields -->
     <string name="username_field_text">ISOD Username</string>

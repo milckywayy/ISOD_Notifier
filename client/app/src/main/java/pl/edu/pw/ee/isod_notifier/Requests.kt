@@ -6,8 +6,6 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 
-const val SERVER_URL = "https://194.59.158.29:8080"
-
 
 fun registerRequest(context: Context, token: String, username: String, api_key: String, version: String, callback: (Pair<Int, Exception?>) -> Unit) {
     val client = getSslOkHttpClient(context)
@@ -17,7 +15,7 @@ fun registerRequest(context: Context, token: String, username: String, api_key: 
     val body = jsonString.toRequestBody(mediaType)
 
     val request = Request.Builder()
-        .url("$SERVER_URL/register")
+        .url(context.getString(R.string.server_url) + "/register")
         .post(body)
         .build()
 
@@ -32,7 +30,7 @@ fun unregisterRequest(context: Context, token: String, callback: (Pair<Int, Exce
     val body = jsonString.toRequestBody(mediaType)
 
     val request = Request.Builder()
-        .url("$SERVER_URL/unregister")
+        .url(context.getString(R.string.server_url) + "/unregister")
         .post(body)
         .build()
 
@@ -47,7 +45,7 @@ fun registrationStatusRequest(context: Context, token: String, callback: (Pair<I
     val body = jsonString.toRequestBody(mediaType)
 
     val request = Request.Builder()
-        .url("$SERVER_URL/registration_status")
+        .url(context.getString(R.string.server_url) + "/registration_status")
         .post(body)
         .build()
 
