@@ -1,13 +1,17 @@
 package pl.edu.pw.ee.isod_notifier
 
 import android.content.Context
+import android.widget.Toast
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 
 
-fun registerRequest(context: Context, token: String, username: String, api_key: String, version: String, callback: (Pair<Int, Exception?>) -> Unit) {
+fun registerRequest(context: Context, token: String, username: String, api_key: String, version: String, onSuccess: (Response) -> Unit, onFailure: () -> Unit) {
     val client = getSslOkHttpClient(context)
 
     val mediaType = "application/json; charset=utf-8".toMediaTypeOrNull()
@@ -19,10 +23,10 @@ fun registerRequest(context: Context, token: String, username: String, api_key: 
         .post(body)
         .build()
 
-    handleResponse(client, request, callback)
+    handleResponse(context, client, request, onSuccess, onFailure)
 }
 
-fun unregisterRequest(context: Context, token: String, callback: (Pair<Int, Exception?>) -> Unit) {
+fun unregisterRequest(context: Context, token: String, onSuccess: (Response) -> Unit, onFailure: () -> Unit) {
     val client = getSslOkHttpClient(context)
 
     val mediaType = "application/json; charset=utf-8".toMediaTypeOrNull()
@@ -34,10 +38,10 @@ fun unregisterRequest(context: Context, token: String, callback: (Pair<Int, Exce
         .post(body)
         .build()
 
-    handleResponse(client, request, callback)
+    handleResponse(context, client, request, onSuccess, onFailure)
 }
 
-fun registrationStatusRequest(context: Context, token: String, version: String, callback: (Pair<Int, Exception?>) -> Unit) {
+fun registrationStatusRequest(context: Context, token: String, version: String, onSuccess: (Response) -> Unit, onFailure: () -> Unit) {
     val client = getSslOkHttpClient(context)
 
     val mediaType = "application/json; charset=utf-8".toMediaTypeOrNull()
@@ -49,21 +53,30 @@ fun registrationStatusRequest(context: Context, token: String, version: String, 
         .post(body)
         .build()
 
-    handleResponse(client, request, callback)
+    handleResponse(context, client, request, onSuccess, onFailure)
 }
 
-fun handleResponse(client: OkHttpClient, request: Request, callback: (Pair<Int, Exception?>) -> Unit) {
+fun handleResponse(context: Context, client: OkHttpClient, request: Request, onSuccess: (Response) -> Unit, onFailure: () -> Unit) {
+    fun showToast(text: String) {
+        MainScope().launch(Dispatchers.Main) {
+            Toast.makeText(context, text, Toast.LENGTH_SHORT).show()
+        }
+    }
+
     client.newCall(request).enqueue(object : Callback {
         override fun onResponse(call: Call, response: Response) {
             if (response.isSuccessful) {
-                callback(Pair(response.code, null))
-            } else {
-                callback(Pair(response.code, IOException(response.body?.string())))
+                onSuccess(response)
+            }
+            else {
+                showToast("Error: ${response.body?.string()}")
+                onFailure()
             }
         }
 
         override fun onFailure(call: Call, e: IOException) {
-            callback(Pair(-1, IOException("Couldn't connect to server. Check your internet connection.")))
+            showToast("Couldn't connect to server. Check your internet connection.")
+            onFailure()
         }
     })
 }

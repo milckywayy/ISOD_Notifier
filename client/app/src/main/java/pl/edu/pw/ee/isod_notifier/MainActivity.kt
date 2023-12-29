@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -23,9 +22,6 @@ import androidx.core.app.NotificationManagerCompat
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.SwipeRefreshState
 import com.google.firebase.messaging.FirebaseMessaging
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.launch
 import pl.edu.pw.ee.isod_notifier.ui.theme.ISOD_NotifierTheme
 
 
@@ -60,7 +56,7 @@ fun MainContent() {
     var isRefreshing by remember { mutableStateOf(false) }
     var showAppInfo by remember { mutableStateOf(false) }
     var showChangelog by remember { mutableStateOf(true) }
-    var showPrivilagesDialog by remember { mutableStateOf(NotificationManagerCompat.from(context).areNotificationsEnabled().not()) }
+    var showPrivilegesDialog by remember { mutableStateOf(NotificationManagerCompat.from(context).areNotificationsEnabled().not()) }
 
     var isRunning by remember {
         mutableStateOf(PreferencesManager.getPreference(context, "IS_RUNNING") == "1")
@@ -69,11 +65,11 @@ fun MainContent() {
     val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
     val version = packageInfo.versionName
 
-    if (showPrivilagesDialog) {
+    if (showPrivilegesDialog) {
         PrivilegesPopup(
             context,
             onDismiss = {
-                showPrivilagesDialog = false
+                showPrivilegesDialog = false
             }
         )
     }
@@ -198,44 +194,34 @@ fun MainContent() {
                             token,
                             PreferencesManager.getPreference(context, "USERNAME").trim(),
                             PreferencesManager.getPreference(context, "API_KEY").trim(),
-                            version
-                        ) { result -> val (statusCode, exception) = result
-                            // Handle success or failure
-                            MainScope().launch(Dispatchers.Main) {
-                                if (statusCode != 200) {
-                                    if (exception != null) {
-                                        Toast.makeText(context, "Error: ${exception.message}", Toast.LENGTH_SHORT).show()
-                                    }
-                                }
-                                else {
-                                    isRunning = true
-                                    PreferencesManager.setPreference(context, "IS_RUNNING", "1")
-                                }
+                            version,
+                            onSuccess = {
+                                isRunning = true
+                                PreferencesManager.setPreference(context, "IS_RUNNING", "1")
+
+                                isRefreshing = false
+                            },
+                            onFailure = {
+                                isRefreshing = false
                             }
-                            isRefreshing = false
-                        }
+                        )
                     }
                 }
                 else {
                     unregisterRequest(
                         context,
                         PreferencesManager.getPreference(context, "TOKEN"),
-                    ) { result -> val (statusCode, exception) = result
-                        // Handle success or failure
-                        MainScope().launch(Dispatchers.Main) {
-                            if (statusCode != 200) {
-                                if (exception != null) {
-                                    Toast.makeText(context, "Error: ${exception.message}", Toast.LENGTH_SHORT).show()
-                                }
-                            }
-                            else {
-                                isRunning = false
-                                PreferencesManager.setPreference(context, "IS_RUNNING", "")
-                                PreferencesManager.setPreference(context, "TOKEN", "")
-                            }
+                        onSuccess = {
+                            isRunning = false
+                            PreferencesManager.setPreference(context, "IS_RUNNING", "")
+                            PreferencesManager.setPreference(context, "TOKEN", "")
+
+                            isRefreshing = false
+                        },
+                        onFailure = {
+                            isRefreshing = false
                         }
-                        isRefreshing = false
-                    }
+                    )
                 }
             },
             if (isRunning) context.getString(R.string.service_button_running) else context.getString(R.string.service_button_stopped),
@@ -253,22 +239,18 @@ fun registrationStatusCheck(context: Context, version: String, onLaunch: () -> U
 
     onLaunch()
 
-    registrationStatusRequest(context, token, version) {
-        result -> val (statusCode, exception) = result
-
-        if (statusCode == 250) {
-            onStateRunning()
-        }
-        else if (statusCode == 251) {
-            onStateStopped()
-        }
-        else {
-            if (exception != null) {
-                MainScope().launch(Dispatchers.Main) {
-                    Toast.makeText(context, "Error: ${exception.message}", Toast.LENGTH_SHORT).show()
-                }
+    registrationStatusRequest(context, token, version,
+        onSuccess = {
+            if (it.body.toString() == "User is unregistered" || it.code == 251) {
+                onStateStopped()
             }
+            else {
+                onStateRunning()
+            }
+            onFinish()
+        },
+        onFailure = {
+            onFinish()
         }
-        onFinish()
-    }
+    )
 }
