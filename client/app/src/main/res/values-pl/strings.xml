@@ -11,7 +11,7 @@
     <string name="service_button_stopped">Uruchom usługę</string>
 
     <!-- App info popup -->
-    <string name="app_info_title">O ISOD Notifier</string>
+    <string name="app_info_title">Więcej o ISOD Notifier</string>
     <string name="app_info_line1">Autor: Mikołaj Frączek</string>
     <string name="app_info_line2">Wersja:</string>
     <string name="app_info_visit_github_button_text">Odwiedź GitHub</string>
@@ -19,6 +19,7 @@
 
     <!-- What's new popup -->
     <string name="whats_new_title">Co nowego?</string>
-    <string name="whats_new_line1">naprawiono pomniejsze błędy"</string>
+    <string name="whats_new_line1">animacja głównego logo"</string>
+    <string name="whats_new_line2">naprawiono pomniejsze błędy"</string>
     <string name="whats_new_dismiss_button_text">Zamknij</string>
 </resources>

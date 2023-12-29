@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -106,7 +107,8 @@ fun MainContent() {
             },
             context.getString(R.string.whats_new_title),
             arrayOf(
-                "- " + context.getString(R.string.whats_new_line1)
+                "- " + context.getString(R.string.whats_new_line1),
+                "- " + context.getString(R.string.whats_new_line2)
             ),
             context.getString(R.string.whats_new_dismiss_button_text)
         )
@@ -147,8 +149,9 @@ fun MainContent() {
         ) {
             Spacer(modifier = Modifier.height(52.dp))
             AppLogo(
-                if (isRunning) R.drawable.logo_sunny_filled else R.drawable.logo_sunny,
-                if (isRunning) R.drawable.logo_white_filled else R.drawable.logo_white
+                isRunning,
+                if (isSystemInDarkTheme()) R.drawable.logo_sunny else R.drawable.logo_white,
+                if (isSystemInDarkTheme()) R.drawable.logo_sunny_filled else R.drawable.logo_white_filled
             )
             Spacer(modifier = Modifier.height(52.dp))
 

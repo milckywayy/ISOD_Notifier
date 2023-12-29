@@ -14,19 +14,20 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Modifier
 import android.provider.Settings
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
+
 
 
 @Composable
-fun AppLogo(logoDark : Int, logoLight : Int) {
-    if (isSystemInDarkTheme()) {
+fun AppLogo(isRunning: Boolean, logoEmpty: Int, logoFilled: Int) {
+    Crossfade(
+        targetState = isRunning,
+        label = "LogoTransition",
+        animationSpec = tween(durationMillis = 450)
+    ) { isRunningNow ->
         Image(
-            painter = painterResource(logoDark),
-            contentDescription = "ISOD Notifier logo"
-        )
-    }
-    else {
-        Image(
-            painter = painterResource(logoLight),
+            painter = painterResource(if (isRunningNow) logoFilled else logoEmpty),
             contentDescription = "ISOD Notifier logo"
         )
     }
