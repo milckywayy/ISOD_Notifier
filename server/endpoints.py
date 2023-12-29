@@ -7,7 +7,8 @@ from notify import notify
 
 INSERT_QUERY = '''INSERT INTO clients (token, username, api_key, version, news_fingerprint) VALUES (?, ?, ?, ?, ?)'''
 DELETE_QUERY = '''DELETE FROM clients WHERE token = ?'''
-REGISTRATION_STATUS_QUERY = '''SELECT COUNT(token) FROM clients WHERE token = ?'''
+REGISTRATION_STATUS_QUERY = '''SELECT COUNT(token), version FROM clients WHERE token = ?'''
+VERSION_UPDATE_QUERY = '''UPDATE clients SET version = ? WHERE token = ?'''
 
 
 async def get_request_data(request):
@@ -90,12 +91,23 @@ async def registration_status(request):
     try:
         data = await get_request_data(request)
         token = data['token']
+        app_version = data['version']
         logging.info(f"Checking registration status for token: {token}")
         db.execute(REGISTRATION_STATUS_QUERY, (token,))
-        count = int(db.fetchone()[0])
-        status_text = 'User is Registered' if count == 1 else 'User is unregistered'
+        query_result = db.fetchone()
+        is_registered = bool(query_result[0])
+        db_version = query_result[1]
+        if is_registered:
+            status_text = 'User is Registered'
+            if app_version != db_version:
+                logging.info(f"Updating version for token: {token} from {db_version} to {app_version}")
+                db.execute(VERSION_UPDATE_QUERY, (app_version, token))
+            status = 250
+        else:
+            status_text = 'User is unregistered'
+            status = 251
         logging.info(f"Registration status for token {token}: {status_text}")
-        return web.Response(status=200, text=status_text)
+        return web.Response(status=status, text=status_text)
 
     except ValueError as e:
         logging.error(f"Error checking registration status: {e}")

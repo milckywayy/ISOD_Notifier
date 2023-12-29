@@ -24,11 +24,6 @@
 
     <!-- What's new popup -->
     <string name="whats_new_title">What\'s new?</string>
-    <string name="whats_new_line1">\"What\'s new\?" popup</string>
-    <string name="whats_new_line2">Safe SSL connection</string>
-    <string name="whats_new_line3">Polish language support</string>
-    <string name="whats_new_line4">Notifications may open URL</string>
-    <string name="whats_new_line5">Fixed icons</string>
-    <string name="whats_new_line6">Fixed error messages</string>
+    <string name="whats_new_line1">minor bugfixes</string>
     <string name="whats_new_dismiss_button_text">Dismiss</string>
 </resources>

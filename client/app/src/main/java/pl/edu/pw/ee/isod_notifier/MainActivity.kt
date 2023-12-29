@@ -106,19 +106,14 @@ fun MainContent() {
             },
             context.getString(R.string.whats_new_title),
             arrayOf(
-                "- " + context.getString(R.string.whats_new_line1),
-                "- " + context.getString(R.string.whats_new_line2),
-                "- " + context.getString(R.string.whats_new_line3),
-                "- " + context.getString(R.string.whats_new_line4),
-                "- " + context.getString(R.string.whats_new_line5),
-                "- " + context.getString(R.string.whats_new_line6)
+                "- " + context.getString(R.string.whats_new_line1)
             ),
             context.getString(R.string.whats_new_dismiss_button_text)
         )
     }
 
     fun refreshApp() {
-        registrationStatusCheck( context,
+        registrationStatusCheck( context, version,
             onLaunch = {
                 isRefreshing = true
             },
@@ -246,7 +241,7 @@ fun MainContent() {
     }
 }
 
-fun registrationStatusCheck(context: Context, onLaunch: () -> Unit, onStateRunning: () -> Unit, onStateStopped: () -> Unit, onFinish: () -> Unit) {
+fun registrationStatusCheck(context: Context, version: String, onLaunch: () -> Unit, onStateRunning: () -> Unit, onStateStopped: () -> Unit, onFinish: () -> Unit) {
     val token = PreferencesManager.getPreference(context, "TOKEN")
 
     if (token == "") {
@@ -255,7 +250,7 @@ fun registrationStatusCheck(context: Context, onLaunch: () -> Unit, onStateRunni
 
     onLaunch()
 
-    registrationStatusRequest(context, token) {
+    registrationStatusRequest(context, token, version) {
         result -> val (statusCode, exception) = result
 
         if (statusCode == 250) {

@@ -37,11 +37,11 @@ fun unregisterRequest(context: Context, token: String, callback: (Pair<Int, Exce
     handleResponse(client, request, callback)
 }
 
-fun registrationStatusRequest(context: Context, token: String, callback: (Pair<Int, Exception?>) -> Unit) {
+fun registrationStatusRequest(context: Context, token: String, version: String, callback: (Pair<Int, Exception?>) -> Unit) {
     val client = getSslOkHttpClient(context)
 
     val mediaType = "application/json; charset=utf-8".toMediaTypeOrNull()
-    val jsonString = "{\"token\" : \"$token\"}"
+    val jsonString = "{\"token\" : \"$token\", \"version\" : \"$version\"}"
     val body = jsonString.toRequestBody(mediaType)
 
     val request = Request.Builder()

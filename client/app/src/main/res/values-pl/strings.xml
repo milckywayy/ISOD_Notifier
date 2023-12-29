@@ -19,11 +19,6 @@
 
     <!-- What's new popup -->
     <string name="whats_new_title">Co nowego?</string>
-    <string name="whats_new_line1">Popup \"Co nowego?\"</string>
-    <string name="whats_new_line2">Bezpieczne połączenie SSL</string>
-    <string name="whats_new_line3">Wsparcie dla języka polskiego</string>
-    <string name="whats_new_line4">Powiadomienia mogą otwierać URL</string>
-    <string name="whats_new_line5">Poprawione ikony</string>
-    <string name="whats_new_line6">Poprawione komunikaty o błędach</string>
+    <string name="whats_new_line1">naprawiono pomniejsze błędy"</string>
     <string name="whats_new_dismiss_button_text">Zamknij</string>
 </resources>
