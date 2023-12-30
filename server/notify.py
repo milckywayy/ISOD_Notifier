@@ -1,3 +1,4 @@
+import logging
 from firebase_admin import messaging
 
 DEFAULT_URL = "https://isod.ee.pw.edu.pl/isod-stud/"
@@ -16,10 +17,5 @@ def notify(token, title, body, url=DEFAULT_URL):
         data={"url": url}
     )
 
-    try:
-        response = messaging.send(message)
-        print('Successfully sent message:', response)
-    except messaging.exceptions.NotFoundError:
-        print('Token inactive.')
-    except Exception as e:
-        print('Error sending message:', e)
+    response = messaging.send(message)
+    logging.info(f'Successfully sent message: {response}')
