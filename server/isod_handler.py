@@ -18,7 +18,7 @@ TIME_INTERVALS = {
     (0, 7): 1800,       # 00:00 - 06:59 | 30 min
     (7, 8): 600,        # 07:00 - 07:59 | 10 min
     (8, 16): 60,        # 08:00 - 15:59 | 1 min
-    (16, 22): 90,       # 16:00 - 21:59 | 2 min
+    (16, 22): 120,       # 16:00 - 21:59 | 2 min
     (22, 24): 600,      # 22:00 - 23:59 | 10 min
 }
 
@@ -38,14 +38,14 @@ async def check_for_new_notifications(db):
             interval = get_sleep_duration()
             logging.info('Checking for ISOD news. Interval: ' + str(interval) + 'sec')
 
-            db.execute(GET_CLIENTS_QUERY)
-            clients = db.fetchall()
-            for client in clients:
-                try:
-                    await process_client(client, db, session)
+            clients = db.execute(GET_CLIENTS_QUERY)
 
-                except Exception as e:
-                    logging.error(f"Error processing client {client}: {e}")
+            tasks = [process_client(client, db, session) for client in clients]
+
+            try:
+                await asyncio.gather(*tasks, return_exceptions=True)
+            except Exception as e:
+                logging.error(f"Error in processing clients: {e}")
 
             db.commit()
             await asyncio.sleep(interval)
@@ -53,24 +53,28 @@ async def check_for_new_notifications(db):
 
 async def process_client(client, db, session):
     username, devices, api_key, _, fingerprint = client
-    db.execute(GET_CLIENT_TOKENS_QUERY, (username,))
-    tokens = db.fetchall()
 
-    new_fingerprint = await async_get_request_with_session(session, f'https://isod.ee.pw.edu.pl/isod-portal/wapi?q=mynewsfingerprint&username={username}&apikey={api_key}')
+    try:
+        tokens = db.execute(GET_CLIENT_TOKENS_QUERY, (username,))
 
-    if fingerprint != new_fingerprint['fingerprint']:
-        news = (await async_get_request_with_session(session, f'https://isod.ee.pw.edu.pl/isod-portal/wapi?q=mynewsheaders&username={username}&apikey={api_key}&from=0&to=1'))['items'][0]
+        new_fingerprint = await async_get_request_with_session(session, f'https://isod.ee.pw.edu.pl/isod-portal/wapi?q=mynewsfingerprint&username={username}&apikey={api_key}')
 
-        for token in tokens:
-            token = token[0]
+        if fingerprint != new_fingerprint['fingerprint']:
+            news = (await async_get_request_with_session(session, f'https://isod.ee.pw.edu.pl/isod-portal/wapi?q=mynewsheaders&username={username}&apikey={api_key}&from=0&to=1'))['items'][0]
 
-            try:
-                notify(token, "New ISOD notification", news["subject"])
-                db.execute(UPDATE_FINGERPRINT_QUERY, (new_fingerprint['fingerprint'], token))
+            for token in tokens:
+                token = token[0]
 
-            except messaging.exceptions.NotFoundError:
-                logging.info(f'Token inactive, removing from db: {token}')
-                db.execute(REMOVE_INACTIVE_TOKEN_QUERY, (token,))
+                try:
+                    notify(token, "New ISOD notification", news["subject"])
+                    db.execute(UPDATE_FINGERPRINT_QUERY, (new_fingerprint['fingerprint'], token))
+
+                except messaging.exceptions.NotFoundError:
+                    logging.info(f'Token inactive, removing from db: {token}')
+                    db.execute(REMOVE_INACTIVE_TOKEN_QUERY, (token,))
+
+    except Exception as e:
+        raise Exception(f'Error processing client {username}: {e}') from e
 
 
 async def start_isod_handler(app):

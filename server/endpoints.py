@@ -79,8 +79,7 @@ async def registration_status(request):
 
         logging.info(f"Checking registration status for token: {token}")
 
-        db.execute(REGISTRATION_STATUS_QUERY, (token,))
-        query_result = db.fetchone()
+        query_result = db.execute(REGISTRATION_STATUS_QUERY, (token,))[0]
         is_registered = bool(query_result[0])
         db_version = query_result[1]
 

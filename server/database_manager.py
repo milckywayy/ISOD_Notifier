@@ -31,15 +31,10 @@ class DatabaseManager:
                 self.open()
             self.cursor.execute(query, params)
 
-            return self.cursor
+            return self.cursor.fetchall()
+
         except sqlite3.IntegrityError:
             pass
-
-    def fetchall(self):
-        return self.cursor.fetchall()
-
-    def fetchone(self):
-        return self.cursor.fetchone()
 
     def commit(self):
         if self.conn:
