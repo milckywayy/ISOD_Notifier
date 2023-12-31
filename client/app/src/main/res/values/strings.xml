@@ -24,7 +24,9 @@
 
     <!-- What's new popup -->
     <string name="whats_new_title">What\'s new?</string>
-    <string name="whats_new_line1">main logo animation</string>
-    <string name="whats_new_line2">minor bugfixes</string>
+    <string name="whats_new_line1">massive backend changes</string>
+    <string name="whats_new_line2">improved system stability</string>
+    <string name="whats_new_line3">main logo animation</string>
+    <string name="whats_new_line4">minor bugfixes</string>
     <string name="whats_new_dismiss_button_text">Dismiss</string>
 </resources>

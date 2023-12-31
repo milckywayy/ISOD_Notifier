@@ -19,7 +19,9 @@
 
     <!-- What's new popup -->
     <string name="whats_new_title">Co nowego?</string>
-    <string name="whats_new_line1">animacja głównego logo"</string>
-    <string name="whats_new_line2">naprawiono pomniejsze błędy"</string>
+    <string name="whats_new_line1">duże zmiany backend"</string>
+    <string name="whats_new_line2">poprawiono stabilność systemu"</string>
+    <string name="whats_new_line3">animacja głównego logo"</string>
+    <string name="whats_new_line4">naprawiono pomniejsze błędy"</string>
     <string name="whats_new_dismiss_button_text">Zamknij</string>
 </resources>

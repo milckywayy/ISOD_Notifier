@@ -96,18 +96,28 @@ fun MainContent() {
     }
 
     if (PreferencesManager.getPreference(context, "APP_VERSION") != version && showChangelog) {
-        InfoPopup(
-            onDismiss = {
-                showChangelog = false
-                PreferencesManager.setPreference(context, "APP_VERSION", version)
-            },
-            context.getString(R.string.whats_new_title),
-            arrayOf(
-                "- " + context.getString(R.string.whats_new_line1),
-                "- " + context.getString(R.string.whats_new_line2)
-            ),
-            context.getString(R.string.whats_new_dismiss_button_text)
-        )
+        if (PreferencesManager.getPreference(context, "APP_VERSION") == "") {
+            // User's first installation. No need to show popup.
+            showChangelog = false
+            PreferencesManager.setPreference(context, "APP_VERSION", version)
+        }
+        else {
+            // App has been updated, let's show popup.
+            InfoPopup(
+                onDismiss = {
+                    showChangelog = false
+                    PreferencesManager.setPreference(context, "APP_VERSION", version)
+                },
+                context.getString(R.string.whats_new_title),
+                arrayOf(
+                    "- " + context.getString(R.string.whats_new_line1),
+                    "- " + context.getString(R.string.whats_new_line2),
+                    "- " + context.getString(R.string.whats_new_line3),
+                    "- " + context.getString(R.string.whats_new_line4)
+                ),
+                context.getString(R.string.whats_new_dismiss_button_text)
+            )
+        }
     }
 
     fun refreshApp() {
