@@ -26,11 +26,11 @@ fun registerRequest(context: Context, token: String, username: String, api_key: 
     handleResponse(context, client, request, onSuccess, onFailure)
 }
 
-fun unregisterRequest(context: Context, token: String, onSuccess: (Response) -> Unit, onFailure: () -> Unit) {
+fun unregisterRequest(context: Context, token: String, username: String, onSuccess: (Response) -> Unit, onFailure: () -> Unit) {
     val client = getSslOkHttpClient(context)
 
     val mediaType = "application/json; charset=utf-8".toMediaTypeOrNull()
-    val jsonString = "{\"token\" : \"$token\"}"
+    val jsonString = "{\"token\" : \"$token\", \"username\" : \"$username\"}"
     val body = jsonString.toRequestBody(mediaType)
 
     val request = Request.Builder()

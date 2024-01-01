@@ -221,6 +221,7 @@ fun MainContent() {
                     unregisterRequest(
                         context,
                         PreferencesManager.getPreference(context, "TOKEN"),
+                        PreferencesManager.getPreference(context, "USERNAME"),
                         onSuccess = {
                             isRunning = false
                             PreferencesManager.setPreference(context, "IS_RUNNING", "")
@@ -251,7 +252,7 @@ fun registrationStatusCheck(context: Context, version: String, onLaunch: () -> U
 
     registrationStatusRequest(context, token, version,
         onSuccess = {
-            if (it.body.toString() == "User is unregistered" || it.code == 251) {
+            if (it.body.toString() == "User is unregistered." || it.code == 251) {
                 onStateStopped()
             }
             else {
