@@ -19,3 +19,9 @@ def notify(token, title, body, url=DEFAULT_URL):
 
     response = messaging.send(message)
     logging.info(f'Successfully sent message: {response}')
+
+
+def send_silent_message(token):
+    message = messaging.Message(token=token)
+    response = messaging.send(message)
+    logging.info(f'Successfully sent silent message: {response}')

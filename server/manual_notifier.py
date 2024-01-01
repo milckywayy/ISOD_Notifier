@@ -4,6 +4,7 @@ import logging
 
 from notify import notify
 from database_manager import DatabaseManager
+from sql_queries import *
 
 
 def initialize_firebase():
@@ -12,32 +13,38 @@ def initialize_firebase():
 
 
 def fetch_clients(db, filter_condition):
-    GET_CLIENTS_QUERY = f'''SELECT * FROM clients WHERE {filter_condition}'''
-    return db.execute(GET_CLIENTS_QUERY)
+    return db.execute(GET_CLIENTS_QUERY + f' WHERE {filter_condition}')
+
+
+def fetch_devices(db, filter_condition, username):
+    return db.execute(GET_DEVICES_QUERY + f' AND {filter_condition}', (username,))
 
 
 def display_recipients(clients):
     print("Notifications will be sent to the following recipients:")
     for client in clients:
-        print(client[1])  # Assuming username is the second item in the tuple
+        print(client[0])  # Assuming username is the second item in the tuple
 
 
 def confirm_sending():
     return input("Do you want to continue sending? (Y/n): ") == 'Y'
 
 
-def send_notifications(clients, title, message, url=None):
+def send_notifications(db, clients, device_filter_condition, title, message, url=None):
     for client in clients:
-        token, username, _, _, _ = client
+        username, _ = client
 
-        try:
-            if url:
-                notify(token, title, message, url)
-            else:
-                notify(token, title, message)
+        tokens = fetch_devices(db, device_filter_condition, username)
 
-        except Exception as e:
-            logging.error(f"Error sending notification to {username}: {e}")
+        for token in tokens:
+            try:
+                if url:
+                    notify(token[0], title, message, url)
+                else:
+                    notify(token[0], title, message)
+
+            except Exception as e:
+                logging.error(f"Error sending notification to {username}: {e}")
 
 
 def main(db):
@@ -48,15 +55,16 @@ def main(db):
     url = 'https://github.com/milckywayy/ISOD_Notifier'
 
     send_url = False
-    filter_condition = "1"
+    client_filter_condition = '1'
+    device_filter_condition = '1'
 
     # Fetch and display clients
-    clients = fetch_clients(db, filter_condition)
+    clients = fetch_clients(db, client_filter_condition)
     display_recipients(clients)
 
     # Confirm and send notifications
     if confirm_sending():
-        send_notifications(clients, title, message, url if send_url else None)
+        send_notifications(db, clients, device_filter_condition, title, message, url if send_url else None)
 
 
 if __name__ == '__main__':

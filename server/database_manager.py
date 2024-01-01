@@ -11,13 +11,32 @@ class DatabaseManager:
         self.conn = sqlite3.connect(self.db_name)
         self.cursor = self.conn.cursor()
 
-        self.execute('''CREATE TABLE IF NOT EXISTS clients (
-                            token TEXT PRIMARY KEY,
-                            username TEXT NOT NULL,
-                            api_key TEXT NOT NULL,
-                            version TEXT NOT NULL,
-                            news_fingerprint TEXT NOT NULL
-                          )''')
+        self.execute('''
+            CREATE TABLE IF NOT EXISTS clients (
+                username TEXT PRIMARY KEY NOT NULL,
+                api_key TEXT NOT NULL
+            );
+        ''')
+
+        self.execute('''
+            CREATE TABLE IF NOT EXISTS devices (
+                token TEXT PRIMARY KEY NOT NULL,
+                version TEXT NOT NULL,
+                username TEXT NOT NULL,
+                filter INTEGER NOT NULL,
+                FOREIGN KEY (username) REFERENCES clients(username)
+            );
+        ''')
+
+        self.execute('''
+            CREATE TABLE IF NOT EXISTS news (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT NOT NULL,
+                hash TEXT NOT NULL,
+                type TEXT NOT NULL,
+                FOREIGN KEY (username) REFERENCES clients(username)
+            );
+        ''')
 
     def close(self):
         if self.conn:

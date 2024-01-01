@@ -6,13 +6,9 @@ from firebase_admin import messaging
 
 from async_http_request import async_get_request_with_session
 from notify import notify
+from sql_queries import *
 
 REQUESTS_INTERVAL_TIME_SECONDS = 60
-
-GET_CLIENTS_QUERY = '''SELECT username, COUNT(token) AS "devices", api_key, version, news_fingerprint FROM clients GROUP BY username'''
-GET_CLIENT_TOKENS_QUERY = '''SELECT token FROM clients WHERE username = ?'''
-UPDATE_FINGERPRINT_QUERY = '''UPDATE clients SET news_fingerprint = ? WHERE token = ?'''
-REMOVE_INACTIVE_TOKEN_QUERY = '''DELETE FROM clients WHERE token = ?'''
 
 TIME_INTERVALS = {
     (0, 7): 1800,       # 00:00 - 06:59 | 30 min
@@ -39,7 +35,6 @@ async def check_for_new_notifications(db):
             logging.info('Checking for ISOD news. Interval: ' + str(interval) + 'sec')
 
             clients = db.execute(GET_CLIENTS_QUERY)
-
             tasks = [process_client(client, db, session) for client in clients]
 
             try:
@@ -48,30 +43,49 @@ async def check_for_new_notifications(db):
                 logging.error(f"Error in processing clients: {e}")
 
             db.commit()
-            await asyncio.sleep(interval)
+            await asyncio.sleep(5)
 
 
 async def process_client(client, db, session):
-    username, devices, api_key, _, fingerprint = client
+    username, api_key = client
 
     try:
-        tokens = db.execute(GET_CLIENT_TOKENS_QUERY, (username,))
+        response = await async_get_request_with_session(session, f'https://isod.ee.pw.edu.pl/isod-portal/wapi?q=mynewsheaders&username={username}&apikey={api_key}&from=0&to=3')
+        new_news_hashes = [item['hash'] for item in response['items']]
 
-        new_fingerprint = await async_get_request_with_session(session, f'https://isod.ee.pw.edu.pl/isod-portal/wapi?q=mynewsfingerprint&username={username}&apikey={api_key}')
+        existing_news_hashes = db.execute(GET_NEWS_QUERY, (username,))
+        existing_news_hashes = [item[0] for item in existing_news_hashes]
 
-        if fingerprint != new_fingerprint['fingerprint']:
-            news = (await async_get_request_with_session(session, f'https://isod.ee.pw.edu.pl/isod-portal/wapi?q=mynewsheaders&username={username}&apikey={api_key}&from=0&to=1'))['items'][0]
+        new_hashes = set(new_news_hashes) - set(existing_news_hashes)
+        old_hashes = set(existing_news_hashes) - set(new_news_hashes)
 
-            for token in tokens:
-                token = token[0]
+        for old_hash in old_hashes:
+            db.execute(DELETE_ONE_NEWS_QUERY, (username, old_hash))
 
-                try:
-                    notify(token, "New ISOD notification", news["subject"])
-                    db.execute(UPDATE_FINGERPRINT_QUERY, (new_fingerprint['fingerprint'], token))
+        if new_hashes:
+            logging.info(f'New notifications for: {username}')
+            tokens = [item[0] for item in db.execute(GET_DEVICES_QUERY, (username,))]
 
-                except messaging.exceptions.NotFoundError:
-                    logging.info(f'Token inactive, removing from db: {token}')
-                    db.execute(REMOVE_INACTIVE_TOKEN_QUERY, (token,))
+            for news_hash in new_hashes:
+                news_item = next(item for item in response['items'] if item['hash'] == news_hash)
+
+                for token in tokens:
+                    try:
+                        notify(token, "New ISOD notification", news_item["subject"])
+                    except messaging.exceptions.NotFoundError:
+                        logging.info(f'Token inactive, removing from db: {token}')
+
+                        device_exists = db.execute(DEVICE_EXISTS_QUERY, (token,))[0][0]
+                        if device_exists:
+                            db.execute(DELETE_DEVICE_QUERY, (token,))
+
+                        device_count = db.execute(DEVICE_COUNT_QUERY, (username,))[0][0]
+                        if device_count < 1:
+                            db.execute(DELETE_CLIENT_QUERY, (username,))
+                            db.execute(DELETE_NEWS_QUERY, (username,))
+                            logging.info(f"Removed last {username} device, removed client.")
+
+                db.execute(INSERT_NEWS_QUERY, (username, news_hash, news_item['type']))
 
     except Exception as e:
         raise Exception(f'Error processing client {username}: {e}') from e
