@@ -24,4 +24,8 @@
     <string name="whats_new_line3">animacja głównego logo"</string>
     <string name="whats_new_line4">naprawiono pomniejsze błędy"</string>
     <string name="whats_new_dismiss_button_text">Zamknij</string>
+
+    <!-- Errors -->
+    <string name="error">Błąd</string>
+    <string name="error_could_not_connect_to_server">Nie można połączyć się z serwerem. Sprawdź swoje połączenie internetowe.</string>
 </resources>

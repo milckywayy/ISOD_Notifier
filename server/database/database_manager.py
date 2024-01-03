@@ -24,6 +24,7 @@ class DatabaseManager:
                 version TEXT NOT NULL,
                 username TEXT NOT NULL,
                 filter INTEGER NOT NULL,
+                lang TEXT NOT NULL,
                 FOREIGN KEY (username) REFERENCES clients(username)
             );
         ''')

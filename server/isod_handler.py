@@ -5,8 +5,8 @@ from firebase_admin import messaging
 from datetime import datetime
 
 from async_http_request import async_get_request_with_session
-from notify import notify
-from sql_queries import *
+from server.notifications.notify import notify
+from server.database.sql_queries import *
 
 REQUESTS_INTERVAL_TIME_SECONDS = 60
 NUM_OF_NEWS_TO_CHECK = 10
@@ -29,14 +29,14 @@ def get_sleep_duration():
     return 300  # default value in case something goes wrong
 
 
-async def check_for_new_notifications(db):
+async def check_for_new_notifications(db, loc):
     async with aiohttp.ClientSession() as session:
         while True:
             interval = get_sleep_duration()
             logging.info('Checking for ISOD news. Interval: ' + str(interval) + 'sec')
 
             clients = db.execute(GET_CLIENTS_QUERY)
-            tasks = [process_client(client, db, session) for client in clients]
+            tasks = [process_client(client, db, loc, session) for client in clients]
 
             try:
                 await asyncio.gather(*tasks, return_exceptions=True)
@@ -44,10 +44,10 @@ async def check_for_new_notifications(db):
                 logging.error(f"Error in processing clients: {e}")
 
             db.commit()
-            await asyncio.sleep(10)
+            await asyncio.sleep(interval)
 
 
-async def process_client(client, db, session):
+async def process_client(client, db, loc, session):
     username, api_key = client
 
     try:
@@ -61,16 +61,19 @@ async def process_client(client, db, session):
 
         if new_hashes:
             logging.info(f'New notifications for: {username}')
-            tokens = [item[0] for item in db.execute(GET_DEVICES_QUERY, (username,))]
+            devices = [{'token': item[0], 'lang': item[1]} for item in db.execute(GET_DEVICES_QUERY, (username,))]
 
             for news_hash in new_hashes:
                 news_item = next(item for item in response['items'] if item['hash'] == news_hash)
 
                 db.execute(INSERT_NEWS_QUERY, (username, news_hash, news_item['type'], datetime.now()))
 
-                for token in tokens:
+                for device in devices:
+                    token = device['token']
+                    lang = device['lang']
+
                     try:
-                        notify(token, "New ISOD notification", news_item["subject"])
+                        notify(device['token'], loc.get('new_isod_notification_title', lang), news_item["subject"])
                     except messaging.exceptions.NotFoundError:
                         logging.info(f'Token inactive, removing from db: {token}')
 
@@ -89,6 +92,7 @@ async def process_client(client, db, session):
 
 
 async def start_isod_handler(app):
+    loc = app['localization_manager']
     db = app['db_manager']
 
-    app['scheduled_task'] = asyncio.create_task(check_for_new_notifications(db))
+    app['scheduled_task'] = asyncio.create_task(check_for_new_notifications(db, loc))

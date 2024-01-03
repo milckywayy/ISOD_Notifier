@@ -5,17 +5,19 @@ from aiohttp import web
 from firebase_admin import exceptions
 
 from async_http_request import async_get_request
-from notify import send_silent_message
-from notify import notify
-from sql_queries import *
+from server.notifications.notify import send_silent_message
+from server.notifications.notify import notify
+from server.database.sql_queries import *
 
 
 async def register(request):
+    loc = request.app['localization_manager']
     db = request.app['db_manager']
+    language = 'en'
 
     try:
         data = await request.json()
-        token, username, api_key, version = data['token'], data['username'], data['api_key'], data['version']
+        token, username, api_key, version, language = data['token'], data['username'], data['api_key'], data['version'], data['language']
 
         logging.info(f"Attempting to register device: {username}, {token}")
 
@@ -23,7 +25,7 @@ async def register(request):
             send_silent_message(token)
         except exceptions.FirebaseError as e:
             logging.info(f"Invalid FCM token: {token}")
-            return web.Response(status=400, text="Invalid FCM token.")
+            return web.Response(status=400, text=loc.get('invalid_fcm_token', language))
 
         response = await async_get_request(f'https://isod.ee.pw.edu.pl/isod-portal/wapi?q=mynewsheaders&username={username}&apikey={api_key}&from=0&to=10')
         news_hashes = [(item['hash'], item['type'], item['modifiedDate']) for item in response['items']]
@@ -48,38 +50,40 @@ async def register(request):
                 logging.info(f"Updated: {username} api_key.")
 
         if not device_exists:
-            db.execute(INSERT_DEVICE_QUERY, (token, version, username, 63))
-            notify(token, "Successfully registered!", "You'll be notified with ISOD news.")
-            response_text = "Successfully registered"
+            db.execute(INSERT_DEVICE_QUERY, (token, version, username, 63, language))
+            notify(token, loc.get('hello_notification_title', language), loc.get('hello_notification_body', language))
+            response_text = loc.get('successfully_registered', language)
             logging.info(f"Device registered successfully: {token}")
         else:
-            response_text = "Device is already registered."
+            response_text = loc.get('device_already_registered', language)
             logging.info(f"Device is already registered: {token}")
 
         return web.Response(status=200, text=response_text)
 
     except ValueError as e:
         logging.error(f"Registration error: {e}")
-        return web.Response(status=400, text="Invalid input data.")
+        return web.Response(status=400, text=loc.get('invalid_input_data', language))
 
     except RuntimeError as e:
         logging.error(f"Database error during registration: {e}")
-        return web.Response(status=500, text="Internal server error.")
+        return web.Response(status=500, text=loc.get('internal_server_error', language))
 
     except aiohttp.ClientResponseError as e:
         logging.error(f"HTTP error during registration: {e}")
         if e.status == 400:
-            return web.Response(status=400, text="Invalid username or API key.")
+            return web.Response(status=400, text=loc.get('invalid_username_or_api_key', language))
         else:
-            return web.Response(status=e.status, text="Bad request to external service.")
+            return web.Response(status=e.status, text=loc.get('bad_request_to_external_service', language))
 
     except aiohttp.ClientError as e:
         logging.error(f"Client error during registration: {e}")
-        return web.Response(status=500, text=f"ISOD server error.")
+        return web.Response(status=500, text=loc.get('isod_server_error', language))
 
 
 async def unregister(request):
+    loc = request.app['localization_manager']
     db = request.app['db_manager']
+    language = 'en'
 
     try:
         data = await request.json()
@@ -91,11 +95,12 @@ async def unregister(request):
         device_exists = db.execute(DEVICE_EXISTS_QUERY, (token,))[0][0]
 
         if device_exists:
+            language = db.execute(GET_DEVICE_LANGUAGE_QUERY, (token,))[0][0]
             db.execute(DELETE_DEVICE_QUERY, (token,))
-            response_text = "Successfully unregistered device."
+            response_text = loc.get('successfully_unregistered_device', language)
             logging.info(f"Token unregistered successfully: {token}")
         else:
-            response_text = "Device is already unregistered."
+            response_text = loc.get('device_already_unregistered', language)
             logging.info(f"Token is already unregistered: {token}")
 
         device_count = db.execute(DEVICE_COUNT_QUERY, (username,))[0][0]
@@ -109,15 +114,17 @@ async def unregister(request):
 
     except ValueError as e:
         logging.error(f"Registration error: {e}")
-        return web.Response(status=400, text="Invalid input data.")
+        return web.Response(status=400, text=loc.get('invalid_input_data', language))
 
     except RuntimeError as e:
         logging.error(f"Database error during registration: {e}")
-        return web.Response(status=500, text="Internal server error.")
+        return web.Response(status=500, text=loc.get('internal_server_error', language))
 
 
 async def registration_status(request):
+    loc = request.app['localization_manager']
     db = request.app['db_manager']
+    language = 'en'
 
     try:
         data = await request.json()
@@ -128,7 +135,7 @@ async def registration_status(request):
 
         device_exists = db.execute(DEVICE_EXISTS_QUERY, (token,))[0][0]
         if device_exists:
-            status_text = 'User is registered.'
+            status_text = loc.get('user_is_registered', language)
             status = 250
 
             db_version = db.execute(GET_DEVICE_VERSION_QUERY, (token,))[0][0]
@@ -136,19 +143,19 @@ async def registration_status(request):
                 logging.info(f"Updating version for token: {token} from {db_version} to {app_version}")
                 db.execute(UPDATE_VERSION_QUERY, (app_version, token))
         else:
-            status_text = 'User is unregistered.'
+            status_text = loc.get('user_is_unregistered', language)
             status = 251
 
         logging.info(f"Registration status for token {token}: {status_text}")
         return web.Response(status=status, text=status_text)
 
     except ValueError as e:
-        logging.error(f"Registration error: {e}")
-        return web.Response(status=400, text="Invalid input data.")
+        logging.error(f"Registration status check error: {e}")
+        return web.Response(status=400, text=loc.get('invalid_input_data', language))
 
     except RuntimeError as e:
-        logging.error(f"Database error during registration: {e}")
-        return web.Response(status=500, text="Internal server error.")
+        logging.error(f"Database error while checking registration status: {e}")
+        return web.Response(status=500, text=loc.get('internal_server_error', language))
 
 
 def convert_date(old_date_format):

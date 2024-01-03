@@ -3,8 +3,8 @@ from firebase_admin import credentials
 import logging
 
 from notify import notify
-from database_manager import DatabaseManager
-from sql_queries import *
+from server.database.database_manager import DatabaseManager
+from server.database.sql_queries import *
 
 
 def initialize_firebase():

@@ -23,6 +23,7 @@ import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.SwipeRefreshState
 import com.google.firebase.messaging.FirebaseMessaging
 import pl.edu.pw.ee.isod_notifier.ui.theme.ISOD_NotifierTheme
+import java.util.*
 
 
 class MainActivity : ComponentActivity() {
@@ -205,6 +206,7 @@ fun MainContent() {
                             PreferencesManager.getPreference(context, "USERNAME").trim(),
                             PreferencesManager.getPreference(context, "API_KEY").trim(),
                             version,
+                            Locale.getDefault().language,
                             onSuccess = {
                                 isRunning = true
                                 PreferencesManager.setPreference(context, "IS_RUNNING", "1")
@@ -252,7 +254,7 @@ fun registrationStatusCheck(context: Context, version: String, onLaunch: () -> U
 
     registrationStatusRequest(context, token, version,
         onSuccess = {
-            if (it.body.toString() == "User is unregistered." || it.code == 251) {
+            if (it.code == 251) {
                 onStateStopped()
             }
             else {

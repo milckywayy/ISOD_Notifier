@@ -11,11 +11,11 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 
 
-fun registerRequest(context: Context, token: String, username: String, api_key: String, version: String, onSuccess: (Response) -> Unit, onFailure: () -> Unit) {
+fun registerRequest(context: Context, token: String, username: String, api_key: String, version: String, language: String, onSuccess: (Response) -> Unit, onFailure: () -> Unit) {
     val client = getSslOkHttpClient(context)
 
     val mediaType = "application/json; charset=utf-8".toMediaTypeOrNull()
-    val jsonString = "{\"token\" : \"$token\", \"username\" : \"$username\", \"api_key\" : \"$api_key\", \"version\" : \"$version\"}"
+    val jsonString = "{\"token\" : \"$token\", \"username\" : \"$username\", \"api_key\" : \"$api_key\", \"version\" : \"$version\", \"language\" : \"$language\"}"
     val body = jsonString.toRequestBody(mediaType)
 
     val request = Request.Builder()
@@ -69,13 +69,13 @@ fun handleResponse(context: Context, client: OkHttpClient, request: Request, onS
                 onSuccess(response)
             }
             else {
-                showToast("Error: ${response.body?.string()}")
+                showToast("${context.getString(R.string.error)}: ${response.body?.string()}")
                 onFailure()
             }
         }
 
         override fun onFailure(call: Call, e: IOException) {
-            showToast("Couldn't connect to server. Check your internet connection.")
+            showToast(context.getString(R.string.error_could_not_connect_to_server))
             onFailure()
         }
     })
