@@ -5,9 +5,9 @@ from aiohttp import web
 from firebase_admin import exceptions
 
 from async_http_request import async_get_request
-from server.notifications.notify import send_silent_message
-from server.notifications.notify import notify
-from server.database.sql_queries import *
+from notifications.notify import send_silent_message
+from notifications.notify import notify
+from database.sql_queries import *
 
 
 async def register(request):

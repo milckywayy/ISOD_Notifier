@@ -5,8 +5,8 @@ from firebase_admin import messaging
 from datetime import datetime
 
 from async_http_request import async_get_request_with_session
-from server.notifications.notify import notify
-from server.database.sql_queries import *
+from notifications.notify import notify
+from database.sql_queries import *
 
 REQUESTS_INTERVAL_TIME_SECONDS = 60
 NUM_OF_NEWS_TO_CHECK = 10

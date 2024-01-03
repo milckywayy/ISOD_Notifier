@@ -2,9 +2,9 @@ import firebase_admin
 from firebase_admin import credentials
 import logging
 
-from notify import notify
-from server.database.database_manager import DatabaseManager
-from server.database.sql_queries import *
+from notifications.notify import notify
+from database.database_manager import DatabaseManager
+from database.sql_queries import *
 
 
 def initialize_firebase():
