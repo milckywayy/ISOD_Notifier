@@ -22,15 +22,13 @@
     <string name="app_info_visit_github_button_text">Visit GitHub</string>
     <string name="app_info_dismiss_button_text">Dismiss</string>
 
-    <!-- What's new popup -->
-    <string name="whats_new_title">What\'s new?</string>
-    <string name="whats_new_line1">massive backend changes</string>
-    <string name="whats_new_line2">improved system stability</string>
-    <string name="whats_new_line3">main logo animation</string>
-    <string name="whats_new_line4">minor bugfixes</string>
-    <string name="whats_new_dismiss_button_text">Dismiss</string>
-
     <!-- Errors -->
     <string name="error">Error</string>
     <string name="error_could_not_connect_to_server">Couldn\'t connect to server. Check your internet connection.</string>
+
+    <!-- What's new popup -->
+    <string name="whats_new_title">What\'s new?</string>
+    <string name="whats_new_line1">polish language full support</string>
+    <string name="whats_new_line2">fixed expired notifications bug</string>
+    <string name="whats_new_dismiss_button_text">Dismiss</string>
 </resources>

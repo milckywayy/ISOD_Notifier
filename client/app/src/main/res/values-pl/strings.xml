@@ -17,15 +17,13 @@
     <string name="app_info_visit_github_button_text">Odwiedź GitHub</string>
     <string name="app_info_dismiss_button_text">Zamknij</string>
 
-    <!-- What's new popup -->
-    <string name="whats_new_title">Co nowego?</string>
-    <string name="whats_new_line1">duże zmiany backend"</string>
-    <string name="whats_new_line2">poprawiono stabilność systemu"</string>
-    <string name="whats_new_line3">animacja głównego logo"</string>
-    <string name="whats_new_line4">naprawiono pomniejsze błędy"</string>
-    <string name="whats_new_dismiss_button_text">Zamknij</string>
-
     <!-- Errors -->
     <string name="error">Błąd</string>
     <string name="error_could_not_connect_to_server">Nie można połączyć się z serwerem. Sprawdź swoje połączenie internetowe.</string>
+
+    <!-- What's new popup -->
+    <string name="whats_new_title">Co nowego?</string>
+    <string name="whats_new_line1">pełne wsparcie języka polskiego"</string>
+    <string name="whats_new_line2">naprawiono błąd wygasłych powiadomień"</string>
+    <string name="whats_new_dismiss_button_text">Zamknij</string>
 </resources>

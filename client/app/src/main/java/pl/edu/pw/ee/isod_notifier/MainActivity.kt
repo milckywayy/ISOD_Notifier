@@ -113,8 +113,6 @@ fun MainContent() {
                 arrayOf(
                     "- " + context.getString(R.string.whats_new_line1),
                     "- " + context.getString(R.string.whats_new_line2),
-                    "- " + context.getString(R.string.whats_new_line3),
-                    "- " + context.getString(R.string.whats_new_line4)
                 ),
                 context.getString(R.string.whats_new_dismiss_button_text)
             )
