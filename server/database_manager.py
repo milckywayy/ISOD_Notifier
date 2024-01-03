@@ -34,6 +34,7 @@ class DatabaseManager:
                 username TEXT NOT NULL,
                 hash TEXT NOT NULL,
                 type TEXT NOT NULL,
+                date TEXT NOT NULL,
                 FOREIGN KEY (username) REFERENCES clients(username)
             );
         ''')

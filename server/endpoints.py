@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 import aiohttp
 from aiohttp import web
 from firebase_admin import exceptions
@@ -24,8 +25,8 @@ async def register(request):
             logging.info(f"Invalid FCM token: {token}")
             return web.Response(status=400, text="Invalid FCM token.")
 
-        response = await async_get_request(f'https://isod.ee.pw.edu.pl/isod-portal/wapi?q=mynewsheaders&username={username}&apikey={api_key}&from=0&to=3')
-        news_hashes = [(item['hash'], item['type']) for item in response['items']]
+        response = await async_get_request(f'https://isod.ee.pw.edu.pl/isod-portal/wapi?q=mynewsheaders&username={username}&apikey={api_key}&from=0&to=10')
+        news_hashes = [(item['hash'], item['type'], item['modifiedDate']) for item in response['items']]
 
         client_exists = db.execute(CLIENT_EXISTS_QUERY, (username,))[0][0]
         device_exists = db.execute(DEVICE_EXISTS_QUERY, (token,))[0][0]
@@ -33,8 +34,8 @@ async def register(request):
         if not client_exists:
             db.execute(INSERT_CLIENT_QUERY, (username, api_key))
 
-            for news_hash, news_type in news_hashes:
-                db.execute(INSERT_NEWS_QUERY, (username, news_hash, news_type))
+            for news_hash, news_type, news_date in news_hashes:
+                db.execute(INSERT_NEWS_QUERY, (username, news_hash, news_type, datetime.now()))
 
             logging.info(f"User registered successfully: {username}")
         else:
@@ -148,3 +149,10 @@ async def registration_status(request):
     except RuntimeError as e:
         logging.error(f"Database error during registration: {e}")
         return web.Response(status=500, text="Internal server error.")
+
+
+def convert_date(old_date_format):
+    date_object = datetime.strptime(old_date_format, '%d.%m.%Y %H:%M')
+
+    new_date_format = date_object.strftime('%Y-%m-%d %H:%M:%S')
+    return new_date_format
