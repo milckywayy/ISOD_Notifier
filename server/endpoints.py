@@ -36,7 +36,7 @@ async def register(request):
         if not client_exists:
             db.execute(INSERT_CLIENT_QUERY, (username, api_key))
 
-            for news_hash, news_type, news_date in news_hashes:
+            for news_hash, news_type, news_date in news_hashes[::-1]:
                 db.execute(INSERT_NEWS_QUERY, (username, news_hash, news_type, datetime.now()))
 
             logging.info(f"User registered successfully: {username}")
