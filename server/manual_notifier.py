@@ -8,7 +8,7 @@ from database.sql_queries import *
 
 
 def initialize_firebase():
-    cred = credentials.Certificate('isod-notifier-6c6a8e2eca56.json')
+    cred = credentials.Certificate('credentials/isod-notifier-6c6a8e2eca56.json')
     firebase_admin.initialize_app(cred)
 
 
