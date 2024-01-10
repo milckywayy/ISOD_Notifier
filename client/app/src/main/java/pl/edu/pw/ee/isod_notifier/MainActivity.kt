@@ -56,6 +56,7 @@ fun MainContent() {
     val scrollState = rememberScrollState()
     var isRefreshing by remember { mutableStateOf(false) }
     var showAppInfo by remember { mutableStateOf(false) }
+    var showFilters by remember { mutableStateOf(false) }
     var showChangelog by remember { mutableStateOf(true) }
     var showPrivilegesDialog by remember { mutableStateOf(NotificationManagerCompat.from(context).areNotificationsEnabled().not()) }
 
@@ -93,6 +94,51 @@ fun MainContent() {
                     context.startActivity(intent)
                 }
             )
+        )
+    }
+
+    if (showFilters) {
+        var filterClasses by remember {
+            val prefValue = PreferencesManager.getPreference(context, "FILTER_CLASSES")
+            mutableStateOf(prefValue == "1" || prefValue == "")
+        }
+        var filterAnnouncements by remember {
+            val prefValue = PreferencesManager.getPreference(context, "FILTER_ANNOUNCEMENTS")
+            mutableStateOf(prefValue == "1" || prefValue == "")
+        }
+        var filterWRS by remember {
+            val prefValue = PreferencesManager.getPreference(context, "FILTER_WRS")
+            mutableStateOf(prefValue == "1" || prefValue == "")
+        }
+        var filterOther by remember {
+            val prefValue = PreferencesManager.getPreference(context, "FILTER_OTHER")
+            mutableStateOf(prefValue == "1" || prefValue == "")
+        }
+
+        FilterPopup(
+            onDismiss = {
+                showFilters = false
+                PreferencesManager.setPreference(context, "FILTER_CLASSES", if (filterClasses) "1" else "0")
+                PreferencesManager.setPreference(context, "FILTER_ANNOUNCEMENTS", if (filterAnnouncements) "1" else "0")
+                PreferencesManager.setPreference(context, "FILTER_WRS", if (filterWRS) "1" else "0")
+                PreferencesManager.setPreference(context, "FILTER_OTHER", if (filterOther) "1" else "0")
+            },
+            context.getString(R.string.filters_title),
+            content = {
+                FilterCheckbox(filterClasses, context.getString(R.string.filters_checkbox_classes)) {
+                    newValue -> filterClasses = newValue
+                }
+                FilterCheckbox(filterAnnouncements, context.getString(R.string.filters_checkbox_announcements)) {
+                    newValue -> filterAnnouncements = newValue
+                }
+                FilterCheckbox(filterWRS, context.getString(R.string.filters_checkbox_wrs)) {
+                    newValue -> filterWRS = newValue
+                }
+                FilterCheckbox(filterOther, context.getString(R.string.filters_checkbox_other)) {
+                    newValue -> filterOther = newValue
+                }
+            },
+            context.getString(R.string.filters_dismiss_button_text)
         )
     }
 
@@ -184,8 +230,8 @@ fun MainContent() {
             }
         }
 
-        FloatingButton(
-            onClick = {
+        StartAndFilterButtons(
+            onClickService = {
                 isRefreshing = true
 
                 if (!isRunning) {
@@ -235,8 +281,12 @@ fun MainContent() {
                     )
                 }
             },
+            onClickFilter = {
+                showFilters = true
+            },
             if (isRunning) context.getString(R.string.service_button_running) else context.getString(R.string.service_button_stopped),
-            enabled = !isRefreshing,
+            filterButtonEnabled = !isRunning,
+            serviceButtonEnabled = !isRefreshing,
         )
     }
 }

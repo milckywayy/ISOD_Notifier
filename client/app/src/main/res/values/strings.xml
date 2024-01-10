@@ -26,6 +26,14 @@
     <string name="error">Error</string>
     <string name="error_could_not_connect_to_server">Couldn\'t connect to server. Check your internet connection.</string>
 
+    <!-- Filters Popup -->
+    <string name="filters_title">Filter news</string>
+    <string name="filters_checkbox_classes">Classes</string>
+    <string name="filters_checkbox_announcements">ISOD Announcements</string>
+    <string name="filters_checkbox_wrs">WRS news</string>
+    <string name="filters_checkbox_other">Other</string>
+    <string name="filters_dismiss_button_text">Apply</string>
+
     <!-- What's new popup -->
     <string name="whats_new_title">What\'s new?</string>
     <string name="whats_new_line1">polish language full support</string>

@@ -21,6 +21,14 @@
     <string name="error">Błąd</string>
     <string name="error_could_not_connect_to_server">Nie można połączyć się z serwerem. Sprawdź swoje połączenie internetowe.</string>
 
+    <!-- Filters Popup -->
+    <string name="filters_title">Filtruj wiadomości</string>
+    <string name="filters_checkbox_classes">Zajęcia</string>
+    <string name="filters_checkbox_announcements">Ogłoszenia ISOD</string>
+    <string name="filters_checkbox_wrs">Wiadomości WRS</string>
+    <string name="filters_checkbox_other">Inne</string>
+    <string name="filters_dismiss_button_text">Zastosuj</string>
+
     <!-- What's new popup -->
     <string name="whats_new_title">Co nowego?</string>
     <string name="whats_new_line1">pełne wsparcie języka polskiego"</string>

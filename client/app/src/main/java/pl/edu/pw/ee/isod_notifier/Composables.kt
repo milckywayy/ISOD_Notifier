@@ -3,7 +3,6 @@ package pl.edu.pw.ee.isod_notifier
 import android.content.Context
 import android.content.Intent
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -16,7 +15,8 @@ import androidx.compose.ui.Modifier
 import android.provider.Settings
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
-
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FilterList
 
 
 @Composable
@@ -62,18 +62,31 @@ fun Button(onClick: () -> Unit, text: String) {
 }
 
 @Composable
-fun FloatingButton(onClick: () -> Unit, text: String, enabled: Boolean =true) {
+fun StartAndFilterButtons(onClickService: () -> Unit, onClickFilter: () -> Unit, floatingText: String, filterButtonEnabled: Boolean, serviceButtonEnabled: Boolean) {
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(24.dp),
         contentAlignment = Alignment.BottomCenter
     ) {
-        Button(
-            enabled = enabled,
-            onClick = onClick
-        ) {
-            Text(text = text, color = MaterialTheme.colorScheme.background)
+        Row {
+            IconButton(
+                onClick = onClickFilter,
+                enabled = filterButtonEnabled
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.FilterList,
+                    contentDescription = "Filter icon",
+                )
+            }
+
+            Button(
+                enabled = serviceButtonEnabled,
+                onClick = onClickService,
+                modifier = Modifier.width(160.dp)
+            ) {
+                Text(text = floatingText, color = MaterialTheme.colorScheme.onPrimary)
+            }
         }
     }
 }
@@ -138,4 +151,33 @@ fun PrivilegesPopup(context: Context, onDismiss: () -> Unit) {
         textContentColor = MaterialTheme.colorScheme.secondary,
         titleContentColor = MaterialTheme.colorScheme.primary
     )
+}
+
+@Composable
+fun FilterPopup(onDismiss: () -> Unit, title: String, content: @Composable () -> Unit, dismissButtonText: String) {
+    AlertDialog(
+        title = { Text(title) },
+        text = {
+            Column {
+                content()
+            }
+        },
+        confirmButton = {
+            Button(onClick = { onDismiss() }) {
+                Text(dismissButtonText)
+            }
+        },
+        onDismissRequest = { onDismiss() },
+        containerColor = MaterialTheme.colorScheme.background,
+        textContentColor = MaterialTheme.colorScheme.secondary,
+        titleContentColor = MaterialTheme.colorScheme.primary
+    )
+}
+
+@Composable
+fun FilterCheckbox(state: Boolean, text: String, onCheckedChange: (Boolean) -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Checkbox(checked = state, onCheckedChange = onCheckedChange)
+        Text(text)
+    }
 }
