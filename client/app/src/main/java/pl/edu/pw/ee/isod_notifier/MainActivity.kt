@@ -251,6 +251,7 @@ fun MainContent() {
                             PreferencesManager.getPreference(context, "API_KEY").trim(),
                             version,
                             Locale.getDefault().language,
+                            encodeFilter(context),
                             onSuccess = {
                                 isRunning = true
                                 PreferencesManager.setPreference(context, "IS_RUNNING", "1")
@@ -267,7 +268,7 @@ fun MainContent() {
                     unregisterRequest(
                         context,
                         PreferencesManager.getPreference(context, "TOKEN"),
-                        PreferencesManager.getPreference(context, "USERNAME"),
+                        PreferencesManager.getPreference(context, "USERNAME").trim(),
                         onSuccess = {
                             isRunning = false
                             PreferencesManager.setPreference(context, "IS_RUNNING", "")
@@ -314,4 +315,24 @@ fun registrationStatusCheck(context: Context, version: String, onLaunch: () -> U
             onFinish()
         }
     )
+}
+
+fun encodeFilter(context: Context) : Int {
+    val filterClasses = if(PreferencesManager.getPreference(context, "FILTER_CLASSES") == "1") 1 else 0
+    val filterAnnouncements = if(PreferencesManager.getPreference(context, "FILTER_ANNOUNCEMENTS") == "1") 1 else 0
+    val filterWRS = if(PreferencesManager.getPreference(context, "FILTER_WRS") == "1") 1 else 0
+    val filterOther = if(PreferencesManager.getPreference(context, "FILTER_OTHER") == "1") 1 else 0
+
+    // Combines the individual filters into a single integer, where:
+    // - filterClasses is bit 0 (the least significant bit)
+    // - filterAnnouncements is bit 1
+    // - filterWRS is bit 2
+    // - filterOther is bit 3 (the most significant bit)
+
+    var result = filterClasses
+    result = result or (filterAnnouncements shl 1)
+    result = result or (filterWRS shl 2)
+    result = result or (filterOther shl 3)
+
+    return result
 }

@@ -11,11 +11,11 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 
 
-fun registerRequest(context: Context, token: String, username: String, api_key: String, version: String, language: String, onSuccess: (Response) -> Unit, onFailure: () -> Unit) {
+fun registerRequest(context: Context, token: String, username: String, apiKey: String, version: String, language: String, filter: Int, onSuccess: (Response) -> Unit, onFailure: () -> Unit) {
     val client = getSslOkHttpClient(context)
 
     val mediaType = "application/json; charset=utf-8".toMediaTypeOrNull()
-    val jsonString = "{\"token\" : \"$token\", \"username\" : \"$username\", \"api_key\" : \"$api_key\", \"version\" : \"$version\", \"language\" : \"$language\"}"
+    val jsonString = "{\"token\" : \"$token\", \"username\" : \"$username\", \"api_key\" : \"$apiKey\", \"version\" : \"$version\", \"language\" : \"$language\", \"filter\" : \"${filter}\"}"
     val body = jsonString.toRequestBody(mediaType)
 
     val request = Request.Builder()

@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from datetime import datetime
 import aiohttp
@@ -17,7 +18,7 @@ async def register(request):
 
     try:
         data = await request.json()
-        token, username, api_key, version, language = data['token'], data['username'], data['api_key'], data['version'], data['language']
+        token, username, api_key, version, language, news_filter = data['token'], data['username'], data['api_key'], data['version'], data['language'], data['filter']
 
         logging.info(f"Attempting to register device: {username}, {token}")
 
@@ -37,6 +38,7 @@ async def register(request):
             db.execute(INSERT_CLIENT_QUERY, (username, api_key))
 
             for news_hash, news_type, news_date in news_hashes[::-1]:
+                await asyncio.sleep(0.0001)
                 db.execute(INSERT_NEWS_QUERY, (username, news_hash, news_type, datetime.now()))
 
             logging.info(f"User registered successfully: {username}")
@@ -50,7 +52,7 @@ async def register(request):
                 logging.info(f"Updated: {username} api_key.")
 
         if not device_exists:
-            db.execute(INSERT_DEVICE_QUERY, (token, version, username, 63, language))
+            db.execute(INSERT_DEVICE_QUERY, (token, version, username, news_filter, language))
             notify(token, loc.get('hello_notification_title', language), loc.get('hello_notification_body', language))
             response_text = loc.get('successfully_registered', language)
             logging.info(f"Device registered successfully: {token}")

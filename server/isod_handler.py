@@ -7,16 +7,17 @@ from datetime import datetime
 from async_http_request import async_get_request_with_session
 from notifications.notify import notify
 from database.sql_queries import *
+from utils.decode_filter import decode_filter
 
 REQUESTS_INTERVAL_TIME_SECONDS = 60
 NUM_OF_NEWS_TO_CHECK = 10
 
 TIME_INTERVALS = {
-    (0, 7): 1800,       # 00:00 - 06:59 | 30 min
-    (7, 8): 600,        # 07:00 - 07:59 | 10 min
-    (8, 16): 60,        # 08:00 - 15:59 | 1 min
-    (16, 22): 120,      # 16:00 - 21:59 | 2 min
-    (22, 24): 600,      # 22:00 - 23:59 | 10 min
+    (0, 7): 1800,  # 00:00 - 06:59 | 30 min
+    (7, 8): 600,  # 07:00 - 07:59 | 10 min
+    (8, 16): 60,  # 08:00 - 15:59 | 1 min
+    (16, 22): 120,  # 16:00 - 21:59 | 2 min
+    (22, 24): 600,  # 22:00 - 23:59 | 10 min
 }
 
 
@@ -52,18 +53,18 @@ async def process_client(client, db, loc, session):
 
     try:
         response = await async_get_request_with_session(session, f'https://isod.ee.pw.edu.pl/isod-portal/wapi?q=mynewsheaders&username={username}&apikey={api_key}&from=0&to=3')
-        new_news_hashes = [item['hash'] for item in response['items']]
+        new_news_hashes = [(item['hash'], item['type']) for item in response['items']]
 
         existing_news_hashes = db.execute(GET_LAST_NEWS_QUERY, (username, NUM_OF_NEWS_TO_CHECK))
-        existing_news_hashes = [item[0] for item in existing_news_hashes]
+        existing_news_hashes = [(item[0], int(item[1])) for item in existing_news_hashes]
 
         new_hashes = set(new_news_hashes) - set(existing_news_hashes)
 
         if new_hashes:
             logging.info(f'New notifications for: {username}')
-            devices = [{'token': item[0], 'lang': item[1]} for item in db.execute(GET_DEVICES_QUERY, (username,))]
+            devices = [{'token': item[0], 'lang': item[1], 'filter': item[2]} for item in db.execute(GET_DEVICES_QUERY, (username,))]
 
-            for news_hash in new_hashes:
+            for news_hash, news_type in new_hashes:
                 news_item = next(item for item in response['items'] if item['hash'] == news_hash)
 
                 db.execute(INSERT_NEWS_QUERY, (username, news_hash, news_item['type'], datetime.now()))
@@ -71,6 +72,19 @@ async def process_client(client, db, loc, session):
                 for device in devices:
                     token = device['token']
                     lang = device['lang']
+                    news_filter = device['filter']
+
+                    filter_classes, filter_announcements, _, filter_other = decode_filter(news_filter)
+
+                    if (news_type == 1001 or news_type == 1002) and not filter_classes:
+                        logging.info(f'Skipping class type news: {news_hash}')
+                        continue
+                    elif news_type == 1000 and not filter_announcements:
+                        logging.info(f'Skipping announcement: {news_hash}')
+                        continue
+                    elif news_type == 1003 or news_type == 1004 or news_type == 1005 and not filter_other:
+                        logging.info(f'Skipping other news: {news_hash}')
+                        continue
 
                     try:
                         notify(device['token'], loc.get('new_isod_notification_title', lang), news_item["subject"])
@@ -86,6 +100,12 @@ async def process_client(client, db, loc, session):
                             db.execute(DELETE_CLIENT_QUERY, (username,))
                             db.execute(DELETE_NEWS_QUERY, (username,))
                             logging.info(f"Removed last {username} device, removed client.")
+        else:
+            expired_hashes = set(existing_news_hashes[:3]) - set(new_news_hashes)
+
+            for news_hash in expired_hashes:
+                logging.info(f'Removing expired news: {news_hash[0]}')
+                db.execute(DELETE_ONE_NEWS_QUERY, (username, news_hash[0]))
 
     except Exception as e:
         raise Exception(f'Error processing client {username}: {e}') from e
