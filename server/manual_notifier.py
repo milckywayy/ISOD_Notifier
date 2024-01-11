@@ -5,6 +5,7 @@ import logging
 from notifications.notify import notify
 from database.database_manager import DatabaseManager
 from database.sql_queries import *
+from utils.decode_filter import decode_filter
 
 
 def initialize_firebase():
@@ -32,16 +33,22 @@ def confirm_sending():
 
 def send_notifications(db, clients, device_filter_condition, title, message, url=None):
     for client in clients:
-        username, _ = client
+        username, _, _ = client
 
-        tokens = fetch_devices(db, device_filter_condition, username)
+        devices = fetch_devices(db, device_filter_condition, username)
 
-        for token in tokens:
+        for device in devices:
+            token = device[0]
+            _, _, wrs_filter, _ = decode_filter(int(device[2]))
+
+            if not wrs_filter:
+                return
+
             try:
                 if url:
-                    notify(token[0], title, message, url)
+                    notify(token, title, message, url)
                 else:
-                    notify(token[0], title, message)
+                    notify(token, title, message)
 
             except Exception as e:
                 logging.error(f"Error sending notification to {username}: {e}")
