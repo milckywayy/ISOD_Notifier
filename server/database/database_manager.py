@@ -14,7 +14,8 @@ class DatabaseManager:
         self.execute('''
             CREATE TABLE IF NOT EXISTS clients (
                 username TEXT PRIMARY KEY NOT NULL,
-                api_key TEXT NOT NULL
+                api_key TEXT NOT NULL,
+                news_fingerprint TEXT NOT NULL
             );
         ''')
 

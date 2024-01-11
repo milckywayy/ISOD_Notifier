@@ -24,18 +24,21 @@ async def register(request):
 
         try:
             send_silent_message(token)
+
         except exceptions.FirebaseError as e:
             logging.info(f"Invalid FCM token: {token}")
             return web.Response(status=400, text=loc.get('invalid_fcm_token', language))
 
-        response = await async_get_request(f'https://isod.ee.pw.edu.pl/isod-portal/wapi?q=mynewsheaders&username={username}&apikey={api_key}&from=0&to=10')
+        response = await async_get_request(f'https://isod.ee.pw.edu.pl/isod-portal/wapi?q=mynewsheaders&username={username}&apikey={api_key}&from=0&to=15')
         news_hashes = [(item['hash'], item['type'], item['modifiedDate']) for item in response['items']]
+        response = await async_get_request(f'https://isod.ee.pw.edu.pl/isod-portal/wapi?q=mynewsfingerprint&username={username}&apikey={api_key}')
+        news_fingerprint = response['fingerprint']
 
         client_exists = db.execute(CLIENT_EXISTS_QUERY, (username,))[0][0]
         device_exists = db.execute(DEVICE_EXISTS_QUERY, (token,))[0][0]
 
         if not client_exists:
-            db.execute(INSERT_CLIENT_QUERY, (username, api_key))
+            db.execute(INSERT_CLIENT_QUERY, (username, api_key, news_fingerprint))
 
             for news_hash, news_type, news_date in news_hashes[::-1]:
                 await asyncio.sleep(0.0001)
@@ -46,7 +49,6 @@ async def register(request):
             logging.info(f"User is already registered: {username}")
 
             old_api_key = db.execute(GET_API_KEY_QUERY, (username,))[0][0]
-
             if old_api_key != api_key:
                 db.execute(UPDATE_API_KEY_QUERY, (api_key, username))
                 logging.info(f"Updated: {username} api_key.")
