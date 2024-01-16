@@ -83,7 +83,7 @@ fun StartAndFilterButtons(onClickService: () -> Unit, onClickFilter: () -> Unit,
             Button(
                 enabled = serviceButtonEnabled,
                 onClick = onClickService,
-                modifier = Modifier.width(160.dp)
+                modifier = Modifier.width(170.dp)
             ) {
                 Text(text = floatingText, color = MaterialTheme.colorScheme.background)
             }
