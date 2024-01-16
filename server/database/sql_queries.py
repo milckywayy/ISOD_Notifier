@@ -18,6 +18,7 @@ INSERT_DEVICE_QUERY = '''INSERT INTO devices VALUES (?, ?, ?, ?, ?)'''
 INSERT_NEWS_QUERY = '''INSERT INTO news (username, hash, type, date) VALUES (?, ?, ?, ?)'''
 
 DELETE_DEVICE_QUERY = '''DELETE FROM devices WHERE token = ?'''
+DELETE_ALL_DEVICES_QUERY = '''DELETE FROM devices WHERE username = ?'''
 DELETE_CLIENT_QUERY = '''DELETE FROM clients WHERE username = ?'''
 DELETE_NEWS_QUERY = '''DELETE FROM news WHERE username = ?'''
 DELETE_ONE_NEWS_QUERY = '''DELETE FROM news WHERE username = ? AND hash = ?'''

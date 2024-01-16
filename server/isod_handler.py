@@ -24,7 +24,25 @@ def get_sleep_duration():
     for time_range, interval in TIME_INTERVALS.items():
         if time_range[0] <= hour < time_range[1]:
             return interval
-    return 300  # default value in case something goes wrong
+
+
+def remove_device(username, token, db):
+    device_exists = db.execute(DEVICE_EXISTS_QUERY, (token,))[0][0]
+    if device_exists:
+        db.execute(DELETE_DEVICE_QUERY, (token,))
+        logging.info(f"Removed device: {username}: {token}.")
+
+    device_count = db.execute(DEVICE_COUNT_QUERY, (username,))[0][0]
+    if device_count < 1:
+        logging.info(f"Removed last {username}'s device.")
+        remove_user(username, db)
+
+
+def remove_user(username, db):
+    db.execute(DELETE_CLIENT_QUERY, (username,))
+    db.execute(DELETE_NEWS_QUERY, (username,))
+    db.execute(DELETE_ALL_DEVICES_QUERY, (username,))
+    logging.info(f"Removed user: {username}.")
 
 
 async def check_for_new_notifications(db, loc):
@@ -42,14 +60,15 @@ async def check_for_new_notifications(db, loc):
                 logging.error(f"Error in processing clients: {e}")
 
             db.commit()
-            await asyncio.sleep(interval)
+            await asyncio.sleep(8)
 
 
 async def process_client(client, db, loc, session):
     username, api_key, news_fingerprint = client
 
     try:
-        response = await async_get_request_with_session(session, f'https://isod.ee.pw.edu.pl/isod-portal/wapi?q=mynewsfingerprint&username={username}&apikey={api_key}')
+        response = await async_get_request_with_session(session,
+                                                        f'https://isod.ee.pw.edu.pl/isod-portal/wapi?q=mynewsfingerprint&username={username}&apikey={api_key}')
         new_news_fingerprint = response['fingerprint']
 
         if news_fingerprint == new_news_fingerprint:
@@ -57,7 +76,8 @@ async def process_client(client, db, loc, session):
 
         db.execute(UPDATE_FINGERPRINT_QUERY, (new_news_fingerprint, username))
 
-        response = await async_get_request_with_session(session, f'https://isod.ee.pw.edu.pl/isod-portal/wapi?q=mynewsheaders&username={username}&apikey={api_key}&from=0&to=3')
+        response = await async_get_request_with_session(session,
+                                                        f'https://isod.ee.pw.edu.pl/isod-portal/wapi?q=mynewsheaders&username={username}&apikey={api_key}&from=0&to=3')
         new_news_hashes = [(item['hash'], item['type']) for item in response['items']]
         existing_news_hashes = [(item[0], int(item[1])) for item in db.execute(GET_LAST_NEWS_QUERY, (username,))]
         new_hashes = set(new_news_hashes) - set(existing_news_hashes)
@@ -66,7 +86,8 @@ async def process_client(client, db, loc, session):
             return
 
         logging.info(f'New notifications for: {username}')
-        devices = [{'token': item[0], 'lang': item[1], 'filter': item[2]} for item in db.execute(GET_DEVICES_QUERY, (username,))]
+        devices = [{'token': item[0], 'lang': item[1], 'filter': item[2]} for item in
+                   db.execute(GET_DEVICES_QUERY, (username,))]
 
         for news_hash, news_type in new_hashes:
             news_item = next(item for item in response['items'] if item['hash'] == news_hash)
@@ -95,17 +116,15 @@ async def process_client(client, db, loc, session):
                     notify(device['token'], loc.get('new_isod_notification_title', lang), news_item["subject"])
 
                 except messaging.exceptions.NotFoundError:
-                    logging.info(f'Token inactive, removing from db: {token}')
+                    logging.info(f'Device token inactive, removing from db: {token}')
+                    remove_device(username, token, db)
 
-                    device_exists = db.execute(DEVICE_EXISTS_QUERY, (token,))[0][0]
-                    if device_exists:
-                        db.execute(DELETE_DEVICE_QUERY, (token,))
-
-                    device_count = db.execute(DEVICE_COUNT_QUERY, (username,))[0][0]
-                    if device_count < 1:
-                        db.execute(DELETE_CLIENT_QUERY, (username,))
-                        db.execute(DELETE_NEWS_QUERY, (username,))
-                        logging.info(f"Removed last {username} device, removed client.")
+    except aiohttp.ClientResponseError as e:
+        if e.status == 400:
+            logging.error(f"{username}'s ISOD API key got changed. Removing user.")
+            remove_user(username, db)
+        else:
+            raise Exception(f'Error processing client {username}: {e}') from e
 
     except Exception as e:
         raise Exception(f'Error processing client {username}: {e}') from e
