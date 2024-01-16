@@ -159,6 +159,8 @@ fun MainContent() {
                 arrayOf(
                     "- " + context.getString(R.string.whats_new_line1),
                     "- " + context.getString(R.string.whats_new_line2),
+                    "- " + context.getString(R.string.whats_new_line3),
+                    "- " + context.getString(R.string.whats_new_line4),
                 ),
                 context.getString(R.string.whats_new_dismiss_button_text)
             )
@@ -201,8 +203,8 @@ fun MainContent() {
             Spacer(modifier = Modifier.height(52.dp))
             AppLogo(
                 isRunning,
-                if (isSystemInDarkTheme()) R.drawable.logo_sunny else R.drawable.logo_white,
-                if (isSystemInDarkTheme()) R.drawable.logo_sunny_filled else R.drawable.logo_white_filled
+                if (isSystemInDarkTheme()) R.drawable.logo_sunny else R.drawable.logo_graphite,
+                if (isSystemInDarkTheme()) R.drawable.logo_sunny_filled else R.drawable.logo_graphite_filled
             )
             Spacer(modifier = Modifier.height(52.dp))
 
@@ -263,8 +265,7 @@ fun MainContent() {
                             }
                         )
                     }
-                }
-                else {
+                } else {
                     unregisterRequest(
                         context,
                         PreferencesManager.getPreference(context, "TOKEN"),
@@ -286,7 +287,7 @@ fun MainContent() {
                 showFilters = true
             },
             if (isRunning) context.getString(R.string.service_button_running) else context.getString(R.string.service_button_stopped),
-            filterButtonEnabled = !isRunning,
+            filterButtonEnabled = !isRunning && !isRefreshing,
             serviceButtonEnabled = !isRefreshing,
         )
     }

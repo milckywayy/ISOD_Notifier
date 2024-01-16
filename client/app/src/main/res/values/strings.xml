@@ -1,8 +1,7 @@
 <resources>
     <!-- General -->
     <string name="app_name" translatable="false">ISOD Notifier</string>
-    <!--  <string name="server_url" translatable="false">https://194.59.158.29:8080</string> -->
-    <string name="server_url" translatable="false">https://192.168.1.101:8080</string>
+    <string name="server_url" translatable="false">https://194.59.158.29:8080</string>
     <string name="isod_api_url" translatable="false">https://isod.ee.pw.edu.pl/isod-stud/person</string>
     <string name="github_url" translatable="false">https://github.com/milckywayy/ISOD_Notifier</string>
 
@@ -37,7 +36,9 @@
 
     <!-- What's new popup -->
     <string name="whats_new_title">What\'s new?</string>
-    <string name="whats_new_line1">polish language full support</string>
-    <string name="whats_new_line2">fixed expired notifications bug</string>
+    <string name="whats_new_line1">news filtering option</string>
+    <string name="whats_new_line2">improved backend efficiency</string>
+    <string name="whats_new_line3">improved light theme</string>
+    <string name="whats_new_line4">fixed minor bugs</string>
     <string name="whats_new_dismiss_button_text">Dismiss</string>
 </resources>

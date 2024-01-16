@@ -60,7 +60,7 @@ async def check_for_new_notifications(db, loc):
                 logging.error(f"Error in processing clients: {e}")
 
             db.commit()
-            await asyncio.sleep(8)
+            await asyncio.sleep(interval)
 
 
 async def process_client(client, db, loc, session):

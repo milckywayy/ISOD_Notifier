@@ -31,7 +31,9 @@
 
     <!-- What's new popup -->
     <string name="whats_new_title">Co nowego?</string>
-    <string name="whats_new_line1">pełne wsparcie języka polskiego"</string>
-    <string name="whats_new_line2">naprawiono błąd wygasłych powiadomień"</string>
+    <string name="whats_new_line1">opcja filtrowania powiadomień</string>
+    <string name="whats_new_line2">poprawiono wydajność backendu</string>
+    <string name="whats_new_line3">poprawiono jasny motyw</string>
+    <string name="whats_new_line4">naprawiono drobne błędy</string>
     <string name="whats_new_dismiss_button_text">Zamknij</string>
 </resources>
