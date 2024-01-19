@@ -14,9 +14,10 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
         val title = remoteMessage.notification?.title
         val message = remoteMessage.notification?.body
+        val url = remoteMessage.data["url"]
 
-        if (title != null && message != null) {
-            notificationHelper.sendNotification(title, message)
+        if (title != null && message != null && url != null) {
+            notificationHelper.sendNotification(title, message, url)
         }
     }
 

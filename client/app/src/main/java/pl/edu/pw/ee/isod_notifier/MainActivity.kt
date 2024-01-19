@@ -147,6 +147,11 @@ fun MainContent() {
             // User's first installation. No need to show popup.
             showChangelog = false
             PreferencesManager.setPreference(context, "APP_VERSION", version)
+
+            PreferencesManager.setPreference(context, "FILTER_CLASSES", "1")
+            PreferencesManager.setPreference(context, "FILTER_ANNOUNCEMENTS", "1")
+            PreferencesManager.setPreference(context, "FILTER_WRS", "1")
+            PreferencesManager.setPreference(context, "FILTER_OTHER", "1")
         }
         else {
             // App has been updated, let's show popup.
