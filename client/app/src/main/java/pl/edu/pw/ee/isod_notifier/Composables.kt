@@ -17,6 +17,7 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.foundation.clickable
 
 
 @Composable
@@ -62,7 +63,7 @@ fun Button(onClick: () -> Unit, text: String) {
 }
 
 @Composable
-fun StartAndFilterButtons(onClickService: () -> Unit, onClickFilter: () -> Unit, floatingText: String, filterButtonEnabled: Boolean, serviceButtonEnabled: Boolean) {
+fun StartAndFilterButtons(onClickService: () -> Unit, onClickFilter: () -> Unit, floatingText: String, serviceButtonEnabled: Boolean) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -71,8 +72,7 @@ fun StartAndFilterButtons(onClickService: () -> Unit, onClickFilter: () -> Unit,
     ) {
         Row {
             IconButton(
-                onClick = onClickFilter,
-                enabled = filterButtonEnabled
+                onClick = onClickFilter
             ) {
                 Icon(
                     imageVector = Icons.Filled.FilterList,
@@ -127,10 +127,10 @@ fun InfoPopup(onDismiss: () -> Unit, title: String, textLines: Array<String>, di
 fun PrivilegesPopup(context: Context, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = { onDismiss() },
-        title = { Text("Enable Notifications") },
+        title = { Text(context.getString(R.string.privileges_info_title)) },
         text = {
             Column {
-                Text("Notifications are disabled for this app. Please enable them in settings for the full functionality.")
+                Text(context.getString(R.string.privileges_info_text))
             }
         },
         confirmButton = {
@@ -139,12 +139,12 @@ fun PrivilegesPopup(context: Context, onDismiss: () -> Unit) {
                     putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
                 })
             }) {
-                Text("Open Settings")
+                Text(context.getString(R.string.privileges_info_settings))
             }
         },
         dismissButton = {
             TextButton(onClick = { onDismiss() }) {
-                Text("Dismiss")
+                Text(context.getString(R.string.privileges_info_dismiss))
             }
         },
         containerColor = MaterialTheme.colorScheme.background,

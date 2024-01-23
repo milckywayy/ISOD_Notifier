@@ -17,23 +17,29 @@
     <string name="app_info_visit_github_button_text">Odwiedź GitHub</string>
     <string name="app_info_dismiss_button_text">Zamknij</string>
 
-    <!-- Errors -->
-    <string name="error">Błąd</string>
-    <string name="error_could_not_connect_to_server">Nie można połączyć się z serwerem. Sprawdź swoje połączenie internetowe.</string>
+    <!-- Privileges popup -->
+    <string name="privileges_info_title">Włącz Powiadomienia</string>
+    <string name="privileges_info_text">"Powiadomienia są wyłączone dla tej aplikacji. Proszę włączyć je w ustawieniach, aby korzystać z pełnej funkcjonalności.</string>
+    <string name="privileges_info_settings">Otwórz Ustawienia</string>
+    <string name="privileges_info_dismiss">Odrzuć</string>
 
     <!-- Filters Popup -->
     <string name="filters_title">Filtruj wiadomości</string>
+    <string name="filters_info">Zaznacz typy wiadomości, które chcesz otrzmywać</string>
     <string name="filters_checkbox_classes">Zajęcia</string>
     <string name="filters_checkbox_announcements">Ogłoszenia ISOD</string>
     <string name="filters_checkbox_wrs">Wiadomości WRS</string>
     <string name="filters_checkbox_other">Inne</string>
     <string name="filters_dismiss_button_text">Zastosuj</string>
+    <string name="filters_button_inactive_toast">Aby przefiltrować wiadomości, proszę wyłączyć usługę.</string>
+
+    <!-- Errors -->
+    <string name="error">Błąd</string>
+    <string name="error_could_not_connect_to_server">Nie można połączyć się z serwerem. Sprawdź swoje połączenie internetowe.</string>
 
     <!-- What's new popup -->
     <string name="whats_new_title">Co nowego?</string>
-    <string name="whats_new_line1">opcja filtrowania powiadomień</string>
-    <string name="whats_new_line2">poprawiono wydajność backendu</string>
-    <string name="whats_new_line3">poprawiono jasny motyw</string>
-    <string name="whats_new_line4">naprawiono drobne błędy</string>
+    <string name="whats_new_line1">naprawiono błąd filtrowania powiadomień</string>
+    <string name="whats_new_line2">poprawiono UI</string>
     <string name="whats_new_dismiss_button_text">Zamknij</string>
 </resources>

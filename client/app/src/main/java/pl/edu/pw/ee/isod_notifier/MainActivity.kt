@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -12,6 +13,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,6 +24,9 @@ import androidx.core.app.NotificationManagerCompat
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.SwipeRefreshState
 import com.google.firebase.messaging.FirebaseMessaging
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 import pl.edu.pw.ee.isod_notifier.ui.theme.ISOD_NotifierTheme
 import java.util.*
 
@@ -125,6 +130,10 @@ fun MainContent() {
             },
             context.getString(R.string.filters_title),
             content = {
+                Text(context.getString(R.string.filters_info))
+
+                Spacer(modifier = Modifier.height(16.dp))
+
                 FilterCheckbox(filterClasses, context.getString(R.string.filters_checkbox_classes)) {
                     newValue -> filterClasses = newValue
                 }
@@ -164,8 +173,6 @@ fun MainContent() {
                 arrayOf(
                     "- " + context.getString(R.string.whats_new_line1),
                     "- " + context.getString(R.string.whats_new_line2),
-                    "- " + context.getString(R.string.whats_new_line3),
-                    "- " + context.getString(R.string.whats_new_line4),
                 ),
                 context.getString(R.string.whats_new_dismiss_button_text)
             )
@@ -289,10 +296,14 @@ fun MainContent() {
                 }
             },
             onClickFilter = {
-                showFilters = true
+                if (!isRunning && !isRefreshing) {
+                    showFilters = true
+                }
+                else {
+                    Toast.makeText(context, context.getString(R.string.filters_button_inactive_toast), Toast.LENGTH_SHORT).show()
+                }
             },
             if (isRunning) context.getString(R.string.service_button_running) else context.getString(R.string.service_button_stopped),
-            filterButtonEnabled = !isRunning && !isRefreshing,
             serviceButtonEnabled = !isRefreshing,
         )
     }

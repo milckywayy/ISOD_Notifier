@@ -22,23 +22,29 @@
     <string name="app_info_visit_github_button_text">Visit GitHub</string>
     <string name="app_info_dismiss_button_text">Dismiss</string>
 
-    <!-- Errors -->
-    <string name="error">Error</string>
-    <string name="error_could_not_connect_to_server">Couldn\'t connect to server. Check your internet connection.</string>
+    <!-- Privileges popup -->
+    <string name="privileges_info_title">Enable Notifications</string>
+    <string name="privileges_info_text">"Notifications are disabled for this app. Please enable them in settings for the full functionality.</string>
+    <string name="privileges_info_settings">Open Settings</string>
+    <string name="privileges_info_dismiss">Dismiss</string>
 
     <!-- Filters Popup -->
     <string name="filters_title">Filter news</string>
+    <string name="filters_info">Check types of notification you want to receive</string>
     <string name="filters_checkbox_classes">Classes</string>
     <string name="filters_checkbox_announcements">ISOD Announcements</string>
     <string name="filters_checkbox_wrs">WRS news</string>
     <string name="filters_checkbox_other">Other</string>
     <string name="filters_dismiss_button_text">Apply</string>
+    <string name="filters_button_inactive_toast">In order to filter news, please turn off the service.</string>
+
+    <!-- Errors -->
+    <string name="error">Error</string>
+    <string name="error_could_not_connect_to_server">Couldn\'t connect to server. Check your internet connection.</string>
 
     <!-- What's new popup -->
     <string name="whats_new_title">What\'s new?</string>
-    <string name="whats_new_line1">news filtering option</string>
-    <string name="whats_new_line2">improved backend efficiency</string>
-    <string name="whats_new_line3">improved light theme</string>
-    <string name="whats_new_line4">fixed minor bugs</string>
+    <string name="whats_new_line1">fixed news filter bug</string>
+    <string name="whats_new_line2">UI fixes</string>
     <string name="whats_new_dismiss_button_text">Dismiss</string>
 </resources>

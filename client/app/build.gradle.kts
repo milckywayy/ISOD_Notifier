@@ -12,8 +12,8 @@ android {
         applicationId = "pl.edu.pw.ee.isod_notifier"
         minSdk = 22
         targetSdk = 34
-        versionCode = 6
-        versionName = "0.5a"
+        versionCode = 7
+        versionName = "0.6a"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
