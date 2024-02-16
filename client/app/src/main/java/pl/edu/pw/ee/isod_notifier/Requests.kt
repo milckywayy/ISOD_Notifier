@@ -1,10 +1,6 @@
 package pl.edu.pw.ee.isod_notifier
 
 import android.content.Context
-import android.widget.Toast
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.launch
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -57,25 +53,19 @@ fun registrationStatusRequest(context: Context, token: String, version: String, 
 }
 
 fun handleResponse(context: Context, client: OkHttpClient, request: Request, onSuccess: (Response) -> Unit, onFailure: () -> Unit) {
-    fun showToast(text: String) {
-        MainScope().launch(Dispatchers.Main) {
-            Toast.makeText(context, text, Toast.LENGTH_SHORT).show()
-        }
-    }
-
     client.newCall(request).enqueue(object : Callback {
         override fun onResponse(call: Call, response: Response) {
             if (response.isSuccessful) {
                 onSuccess(response)
             }
             else {
-                showToast("${context.getString(R.string.error)}: ${response.body?.string()}")
+                showToast(context, "${context.getString(R.string.error)}: ${response.body?.string()}")
                 onFailure()
             }
         }
 
         override fun onFailure(call: Call, e: IOException) {
-            showToast(context.getString(R.string.error_could_not_connect_to_server))
+            showToast(context, context.getString(R.string.error_could_not_connect_to_server))
             onFailure()
         }
     })

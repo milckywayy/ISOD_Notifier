@@ -12,9 +12,10 @@
 
     <!-- App info popup -->
     <string name="app_info_title">Więcej o ISOD Notifier</string>
-    <string name="app_info_line1">Autor: Mikołaj Frączek</string>
-    <string name="app_info_line2">Wersja:</string>
-    <string name="app_info_visit_github_button_text">Odwiedź GitHub</string>
+    <string name="app_info_line1">Autor: Mikołaj Frączek, WRS EE</string>
+    <string name="app_info_line3">Wsparcie:</string>
+    <string name="app_info_line2">Wersja aplikacji:</string>
+    <string name="app_info_contact_button_text">Kontakt</string>
     <string name="app_info_dismiss_button_text">Zamknij</string>
 
     <!-- Privileges popup -->
@@ -33,13 +34,18 @@
     <string name="filters_dismiss_button_text">Zastosuj</string>
     <string name="filters_button_inactive_toast">Aby przefiltrować wiadomości, proszę wyłączyć usługę.</string>
 
+    <!-- Contact -->
+    <string name="contact_choose_email_client">Wybierz klienta e-mail</string>
+    <string name="error_email_client_not_found">Brak zainstalowanych klientów e-mail.</string>
+
     <!-- Errors -->
     <string name="error">Błąd</string>
     <string name="error_could_not_connect_to_server">Nie można połączyć się z serwerem. Sprawdź swoje połączenie internetowe.</string>
 
     <!-- What's new popup -->
     <string name="whats_new_title">Co nowego?</string>
-    <string name="whats_new_line1">naprawiono błąd filtrowania powiadomień</string>
-    <string name="whats_new_line2">poprawiono UI</string>
+    <string name="whats_new_line2">dodano przycisk kontaktu z twórcą</string>
+    <string name="whats_new_line3">zaktualizowano informacje o aplikacji</string>
+    <string name="whats_new_line1">naprawiono kolor przycisku filtrowania</string>
     <string name="whats_new_dismiss_button_text">Zamknij</string>
 </resources>

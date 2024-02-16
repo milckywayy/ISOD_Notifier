@@ -3,7 +3,7 @@
     <string name="app_name" translatable="false">ISOD Notifier</string>
     <string name="server_url" translatable="false">https://194.59.158.29:8080</string>
     <string name="isod_api_url" translatable="false">https://isod.ee.pw.edu.pl/isod-stud/person</string>
-    <string name="github_url" translatable="false">https://github.com/milckywayy/ISOD_Notifier</string>
+    <string name="mail" translatable="false">01178835@pw.edu.pl</string>
 
     <!-- Main screen text fields -->
     <string name="username_field_text">ISOD Username</string>
@@ -17,9 +17,10 @@
 
     <!-- App info popup -->
     <string name="app_info_title">About ISOD Notifier</string>
-    <string name="app_info_line1">Made by Mikołaj Frączek</string>
-    <string name="app_info_line2">Version:</string>
-    <string name="app_info_visit_github_button_text">Visit GitHub</string>
+    <string name="app_info_line1">Made by Mikołaj Frączek, WRS EE</string>
+    <string name="app_info_line2">Support:</string>
+    <string name="app_info_line3">App version:</string>
+    <string name="app_info_contact_button_text">Contact</string>
     <string name="app_info_dismiss_button_text">Dismiss</string>
 
     <!-- Privileges popup -->
@@ -38,13 +39,18 @@
     <string name="filters_dismiss_button_text">Apply</string>
     <string name="filters_button_inactive_toast">In order to filter news, please turn off the service.</string>
 
+    <!-- Contact -->
+    <string name="contact_choose_email_client">Choose an email client</string>
+    <string name="error_email_client_not_found">No email clients installed.</string>
+
     <!-- Errors -->
     <string name="error">Error</string>
     <string name="error_could_not_connect_to_server">Couldn\'t connect to server. Check your internet connection.</string>
 
     <!-- What's new popup -->
     <string name="whats_new_title">What\'s new?</string>
-    <string name="whats_new_line1">fixed news filter bug</string>
-    <string name="whats_new_line2">UI fixes</string>
+    <string name="whats_new_line1">added contact button</string>
+    <string name="whats_new_line2">updated app info</string>
+    <string name="whats_new_line3">fixed filter button color</string>
     <string name="whats_new_dismiss_button_text">Dismiss</string>
 </resources>

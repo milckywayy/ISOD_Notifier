@@ -63,7 +63,7 @@ fun Button(onClick: () -> Unit, text: String) {
 }
 
 @Composable
-fun StartAndFilterButtons(onClickService: () -> Unit, onClickFilter: () -> Unit, floatingText: String, serviceButtonEnabled: Boolean) {
+fun StartAndFilterButtons(onClickService: () -> Unit, onClickFilter: () -> Unit, floatingText: String, serviceButtonEnabled: Boolean, filterButtonEnabled: Boolean) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -72,11 +72,13 @@ fun StartAndFilterButtons(onClickService: () -> Unit, onClickFilter: () -> Unit,
     ) {
         Row {
             IconButton(
-                onClick = onClickFilter
+                onClick = onClickFilter,
             ) {
                 Icon(
                     imageVector = Icons.Filled.FilterList,
                     contentDescription = "Filter icon",
+                    tint =  if (filterButtonEnabled) MaterialTheme.colorScheme.onSurface // Kolor dla aktywnego przycisku
+                            else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f) // Kolor dla nieaktywnego przycisku
                 )
             }
 

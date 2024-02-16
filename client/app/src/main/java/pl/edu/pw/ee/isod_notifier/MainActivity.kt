@@ -24,9 +24,6 @@ import androidx.core.app.NotificationManagerCompat
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.SwipeRefreshState
 import com.google.firebase.messaging.FirebaseMessaging
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.launch
 import pl.edu.pw.ee.isod_notifier.ui.theme.ISOD_NotifierTheme
 import java.util.*
 
@@ -89,14 +86,13 @@ fun MainContent() {
             context.getString(R.string.app_info_title),
             arrayOf(
                 context.getString(R.string.app_info_line1),
-                context.getString(R.string.app_info_line2) + " $version"
+                context.getString(R.string.app_info_line2) + " " + context.getString(R.string.mail),
+                context.getString(R.string.app_info_line3) + " $version"
             ),
             context.getString(R.string.app_info_dismiss_button_text),
             buttons = arrayOf(
-                Pair(context.getString(R.string.app_info_visit_github_button_text)) {
-                    val intent = Intent(Intent.ACTION_VIEW)
-                    intent.data = Uri.parse(context.getString(R.string.github_url))
-                    context.startActivity(intent)
+                Pair(context.getString(R.string.app_info_contact_button_text)) {
+                    sendEmail(context, context.getString(R.string.mail), "ISOD Notifier", "")
                 }
             )
         )
@@ -173,6 +169,7 @@ fun MainContent() {
                 arrayOf(
                     "- " + context.getString(R.string.whats_new_line1),
                     "- " + context.getString(R.string.whats_new_line2),
+                    "- " + context.getString(R.string.whats_new_line3),
                 ),
                 context.getString(R.string.whats_new_dismiss_button_text)
             )
@@ -305,6 +302,7 @@ fun MainContent() {
             },
             if (isRunning) context.getString(R.string.service_button_running) else context.getString(R.string.service_button_stopped),
             serviceButtonEnabled = !isRefreshing,
+            filterButtonEnabled = !isRunning && !isRefreshing
         )
     }
 }
@@ -332,24 +330,4 @@ fun registrationStatusCheck(context: Context, version: String, onLaunch: () -> U
             onFinish()
         }
     )
-}
-
-fun encodeFilter(context: Context) : Int {
-    val filterClasses = if(PreferencesManager.getPreference(context, "FILTER_CLASSES") == "1") 1 else 0
-    val filterAnnouncements = if(PreferencesManager.getPreference(context, "FILTER_ANNOUNCEMENTS") == "1") 1 else 0
-    val filterWRS = if(PreferencesManager.getPreference(context, "FILTER_WRS") == "1") 1 else 0
-    val filterOther = if(PreferencesManager.getPreference(context, "FILTER_OTHER") == "1") 1 else 0
-
-    // Combines the individual filters into a single integer, where:
-    // - filterClasses is bit 0 (the least significant bit)
-    // - filterAnnouncements is bit 1
-    // - filterWRS is bit 2
-    // - filterOther is bit 3 (the most significant bit)
-
-    var result = filterClasses
-    result = result or (filterAnnouncements shl 1)
-    result = result or (filterWRS shl 2)
-    result = result or (filterOther shl 3)
-
-    return result
 }
