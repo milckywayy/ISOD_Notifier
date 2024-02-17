@@ -1,17 +1,11 @@
 package pl.edu.pw.ee.isod_notifier.ui.theme
 
 import android.app.Activity
-import android.os.Build
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
@@ -23,35 +17,41 @@ private val DarkColorScheme = darkColorScheme(
     primaryContainer = Sunny
 )
 
-private val LightColorScheme = lightColorScheme(
-    primary = Graphite,
-    background = Saphire,
-    tertiary = Graphite,
-    primaryContainer = Graphite
+private val CyberpunkColorScheme = darkColorScheme(
+    primary = SamuraiBrightRed,
+    secondary = SamuraiNeonBlue,
+    background = SamuraiDarkBlue,
+    surface = SamuraiDarkBlue,
+    onPrimary = SamuraiDarkBlue,
+    onSecondary = SamuraiDarkBlue,
+    onBackground = White,
+    onSurface = White,
+    tertiary = SamuraiElectricPink,
+    onTertiary = SamuraiDarkBlue,
+    onError = White,
+    primaryContainer = SamuraiBrightRed,
+    secondaryContainer = SamuraiNeonBlue,
+    tertiaryContainer = SamuraiElectricPink,
+    onPrimaryContainer = SamuraiDarkBlue,
+    onSecondaryContainer = SamuraiDarkBlue,
+    onTertiaryContainer = SamuraiDarkBlue
 )
 
 @Composable
-fun ISOD_NotifierTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = false,
-    content: @Composable () -> Unit
+fun ISOD_NotifierTheme(themePref: String, content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+    val colorScheme = when(themePref) {
+        "DARK" -> DarkColorScheme
+        "CYBERPUNK" -> CyberpunkColorScheme
+        else -> DarkColorScheme
     }
+
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
             window.statusBarColor = colorScheme.primaryContainer.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = true
         }
     }
 

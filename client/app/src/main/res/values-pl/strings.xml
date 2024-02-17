@@ -41,6 +41,7 @@
     <!-- Errors -->
     <string name="error">Błąd</string>
     <string name="error_could_not_connect_to_server">Nie można połączyć się z serwerem. Sprawdź swoje połączenie internetowe.</string>
+    <string name="error_relic_malfunction">WYKRYTO USZKODZENIE CHIPU RELIC</string>
 
     <!-- What's new popup -->
     <string name="whats_new_title">Co nowego?</string>

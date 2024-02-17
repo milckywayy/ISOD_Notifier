@@ -10,7 +10,7 @@ import kotlinx.coroutines.launch
 
 fun showToast(context:Context, text: String) {
     MainScope().launch(Dispatchers.Main) {
-        Toast.makeText(context, text, Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, text, Toast.LENGTH_LONG).show()
     }
 }
 

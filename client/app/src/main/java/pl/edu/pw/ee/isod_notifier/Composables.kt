@@ -2,14 +2,12 @@ package pl.edu.pw.ee.isod_notifier
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.drawable.AnimationDrawable
+import android.graphics.drawable.Drawable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Modifier
 import android.provider.Settings
@@ -17,19 +15,65 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.foundation.clickable
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import com.google.accompanist.drawablepainter.rememberDrawablePainter
+import kotlinx.coroutines.delay
 
 
 @Composable
-fun AppLogo(isRunning: Boolean, logoEmpty: Int, logoFilled: Int) {
+fun AppLogo(isRunning: Boolean,
+            logoEmpty: Int, logoAnimationEmpty: Drawable?,
+            logoFilled: Int, logoAnimationFilled: Drawable?,
+            onLongPress: (Boolean) -> Unit) {
+
+    val logoAnimationEmptyDrawable = remember { logoAnimationEmpty as AnimationDrawable }
+    val logoAnimationFilledDrawable = remember { logoAnimationFilled as AnimationDrawable }
+    var isGlitchEffect by remember { mutableStateOf(false) }
+    var glitchCount by remember { mutableIntStateOf(1) }
+
+    LaunchedEffect(isGlitchEffect, isRunning) {
+        val animationDrawable = if (isRunning) logoAnimationFilledDrawable else logoAnimationEmptyDrawable
+
+        if (isGlitchEffect) {
+            animationDrawable.start()
+            delay(650)
+            animationDrawable.stop()
+            isGlitchEffect = false
+        }
+    }
+
     Crossfade(
         targetState = isRunning,
         label = "LogoTransition",
         animationSpec = tween(durationMillis = 450)
     ) { isRunningNow ->
         Image(
-            painter = painterResource(if (isRunningNow) logoFilled else logoEmpty),
-            contentDescription = "ISOD Notifier logo"
+            painter = if (isGlitchEffect) {
+                rememberDrawablePainter(drawable = if (isRunningNow) logoAnimationEmptyDrawable else logoAnimationFilledDrawable)
+            } else {
+                painterResource(id = if (isRunningNow) logoFilled else logoEmpty)
+            },
+            contentDescription = "ISOD Notifier logo",
+            modifier = Modifier.pointerInput(Unit) {
+                detectTapGestures(
+                    onLongPress = {
+                        if (glitchCount < 3) {
+                            glitchCount++
+                            isGlitchEffect = true
+                            onLongPress(false)
+                        }
+                        else if (glitchCount == 3) {
+                            glitchCount++
+                            onLongPress(true)
+                            isGlitchEffect = true
+                        }
+                    }
+                )
+            }.width(140.dp)
         )
     }
 }
@@ -48,7 +92,9 @@ fun TextField(context: Context, placeholder: String, key: String, enabled: Boole
         label = { Text(placeholder, color = MaterialTheme.colorScheme.primary) },
         maxLines = 1,
         singleLine = true,
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
         enabled = enabled
     )
 }

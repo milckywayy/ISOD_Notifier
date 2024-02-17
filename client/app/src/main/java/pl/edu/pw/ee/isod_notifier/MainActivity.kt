@@ -7,7 +7,6 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -15,10 +14,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationManagerCompat
 import com.google.accompanist.swiperefresh.SwipeRefresh
@@ -42,18 +41,24 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            ISOD_NotifierTheme {
-                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    MainContent()
-                }
-            }
+            MainScreen()
         }
     }
 }
 
-@Preview
 @Composable
-fun MainContent() {
+fun MainScreen() {
+    val appTheme = rememberSaveable { mutableStateOf("DARK") }
+
+    ISOD_NotifierTheme (appTheme.value) {
+        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+            MainScreenContent(appTheme)
+        }
+    }
+}
+
+@Composable
+fun MainScreenContent(appTheme: MutableState<String>) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
     var isRefreshing by remember { mutableStateOf(false) }
@@ -212,10 +217,18 @@ fun MainContent() {
             Spacer(modifier = Modifier.height(52.dp))
             AppLogo(
                 isRunning,
-                if (isSystemInDarkTheme()) R.drawable.logo_sunny else R.drawable.logo_graphite,
-                if (isSystemInDarkTheme()) R.drawable.logo_sunny_filled else R.drawable.logo_graphite_filled
+                if (appTheme.value == "DARK") { R.drawable.logo_sunny } else {R.drawable.samurai_logo},
+                context.getDrawable(R.drawable.logo_sunny_animation),
+                if (appTheme.value == "DARK") { R.drawable.logo_sunny_filled } else {R.drawable.samurai_logo},
+                context.getDrawable(R.drawable.logo_sunny_filled_animation),
+                onLongPress = { glitchMode ->
+                    if (glitchMode) {
+                        showToast(context, context.getString(R.string.error_relic_malfunction))
+                        appTheme.value = "CYBERPUNK"
+                    }
+                },
             )
-            Spacer(modifier = Modifier.height(52.dp))
+            Spacer(modifier = Modifier.height(44.dp))
 
             TextField(context, context.getString(R.string.username_field_text), "USERNAME", !isRunning)
             Spacer(modifier = Modifier.height(4.dp))
