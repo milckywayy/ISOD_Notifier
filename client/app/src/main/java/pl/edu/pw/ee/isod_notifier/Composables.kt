@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.runtime.*
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
@@ -49,7 +50,7 @@ fun AppLogo(isRunning: Boolean,
     Crossfade(
         targetState = isRunning,
         label = "LogoTransition",
-        animationSpec = tween(durationMillis = 450)
+        animationSpec = tween(durationMillis = 450),
     ) { isRunningNow ->
         Image(
             painter = if (isGlitchEffect) {
@@ -58,7 +59,7 @@ fun AppLogo(isRunning: Boolean,
                 painterResource(id = if (isRunningNow) logoFilled else logoEmpty)
             },
             contentDescription = "ISOD Notifier logo",
-            modifier = Modifier.pointerInput(Unit) {
+            modifier = Modifier.height(160.69.dp).pointerInput(Unit) {
                 detectTapGestures(
                     onLongPress = {
                         if (glitchCount < 3) {
@@ -73,7 +74,7 @@ fun AppLogo(isRunning: Boolean,
                         }
                     }
                 )
-            }.width(140.dp)
+            }
         )
     }
 }

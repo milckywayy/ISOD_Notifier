@@ -217,9 +217,9 @@ fun MainScreenContent(appTheme: MutableState<String>) {
             Spacer(modifier = Modifier.height(52.dp))
             AppLogo(
                 isRunning,
-                if (appTheme.value == "DARK") { R.drawable.logo_sunny } else {R.drawable.samurai_logo},
+                if (appTheme.value == "DARK") { R.drawable.logo_sunny } else { R.drawable.samurai_logo },
                 context.getDrawable(R.drawable.logo_sunny_animation),
-                if (appTheme.value == "DARK") { R.drawable.logo_sunny_filled } else {R.drawable.samurai_logo},
+                if (appTheme.value == "DARK") { R.drawable.logo_sunny_filled } else { R.drawable.samurai_logo },
                 context.getDrawable(R.drawable.logo_sunny_filled_animation),
                 onLongPress = { glitchMode ->
                     if (glitchMode) {
