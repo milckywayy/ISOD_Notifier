@@ -34,7 +34,7 @@
     <string name="filters_info">Check types of notification you want to receive</string>
     <string name="filters_checkbox_classes">Classes</string>
     <string name="filters_checkbox_announcements">ISOD Announcements</string>
-    <string name="filters_checkbox_wrs">WRS news</string>
+    <string name="filters_checkbox_wrs">WRS News</string>
     <string name="filters_checkbox_other">Other</string>
     <string name="filters_dismiss_button_text">Apply</string>
     <string name="filters_button_inactive_toast">In order to filter news, please turn off the service.</string>
