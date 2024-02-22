@@ -1,7 +1,6 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("com.google.gms.google-services")
 }
 
 android {
@@ -10,10 +9,10 @@ android {
 
     defaultConfig {
         applicationId = "pl.edu.pw.ee.isod_notifier"
-        minSdk = 22
+        minSdk = 26
         targetSdk = 34
-        versionCode = 10
-        versionName = "1.0"
+        versionCode = 1
+        versionName = "0.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -38,7 +37,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.4.3"
+        kotlinCompilerExtensionVersion = "1.5.1"
     }
     packaging {
         resources {
@@ -48,17 +47,11 @@ android {
 }
 
 dependencies {
-    implementation ("com.google.accompanist:accompanist-swiperefresh:0.32.0")
-    implementation ("com.squareup.okhttp3:okhttp:5.0.0-alpha.3")
-    implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
-    implementation ("com.google.firebase:firebase-messaging-ktx:23.4.1")
-    implementation ("androidx.compose.material:material-icons-extended:1.6.1")
-    implementation ("com.google.accompanist:accompanist-drawablepainter:0.28.0")
 
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     implementation("androidx.activity:activity-compose:1.8.2")
-    implementation(platform("androidx.compose:compose-bom:2023.03.00"))
+    implementation(platform("androidx.compose:compose-bom:2023.08.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
@@ -66,7 +59,7 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
-    androidTestImplementation(platform("androidx.compose:compose-bom:2023.03.00"))
+    androidTestImplementation(platform("androidx.compose:compose-bom:2023.08.00"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
