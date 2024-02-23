@@ -1,0 +1,31 @@
+<?xml version="1.0" ?>
+<strings>
+
+  <!-- Hello notification -->
+  <string key="hello_notification_title">Successfully registered!</string>
+  <string key="hello_notification_body">You'll be notified with ISOD news.</string>
+
+  <!-- New ISOD notification -->
+  <string key="new_isod_notification_title">New ISOD notification</string>
+
+  <!-- Responses for endpoint: register -->
+  <string key="invalid_fcm_token">Invalid FCM token.</string>
+  <string key="successfully_registered">Successfully registered.</string>
+  <string key="device_already_registered">Device is already registered.</string>
+  <string key="invalid_username_or_api_key">Invalid username or API key.</string>
+
+  <!-- Responses for endpoint: unregister -->
+  <string key="successfully_unregistered_device">Successfully unregistered device.</string>
+  <string key="device_already_unregistered">Device is already unregistered.</string>
+
+  <!-- Responses for endpoint: registration_status -->
+  <string key="user_is_registered">User is registered.</string>
+  <string key="user_is_unregistered">User is unregistered.</string>
+
+  <!-- Error responses -->
+  <string key="invalid_input_data">Invalid input data.</string>
+  <string key="internal_server_error">Internal server error.</string>
+  <string key="bad_request_to_external_service">Bad request to external service.</string>
+  <string key="isod_server_error">ISOD server error.</string>
+
+</strings>
