@@ -12,12 +12,12 @@ import requests
 
 # url = 'https://localhost:8080/unlink_isod_account'
 # data = {
-#     'user_token': 'b4795747744a052ceb61a74659639122303e6cb38f4c99bbfdfd4491ac63d64e',
+#     'user_token': 'c20ed55fef1f8cb5863c53e8281b15a1292fb4bf1ec4eee127baef2738b483be',
 # }
 
 url = 'https://localhost:8080/get_isod_link_status'
 data = {
-    'user_token': 'b4795747744a052ceb61a74659639122303e6cb38f4c99bbfdfd4491ac63d64e',
+    'user_token': 'c20ed55fef1f8cb5863c53e8281b15a1292fb4bf1ec4eee127baef2738b483be',
 }
 
 # W przypadku problemów z certyfikatem SSL, możesz dodać verify=False, ale nie jest to zalecane ze względów bezpieczeństwa

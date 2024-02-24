@@ -3,8 +3,13 @@ import logging
 from aiohttp import web
 
 
-async def register_usos_account(request):
-    logging.info(f"Attempting to register usos account")
+async def get_usos_link_url(request):
+    loc = request.app['localization_manager']
+    db = request.app['database_manager']
+    session = request.app['session']
+    device_language = 'en'
+
+
 
     return web.Response(status=200)
 

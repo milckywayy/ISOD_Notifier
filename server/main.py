@@ -2,18 +2,22 @@ import logging
 import firebase_admin
 from aiohttp import web, ClientSession
 from firebase_admin import credentials
-from firebase_admin import firestore
+from firebase_admin import firestore_async
 import ssl
 
 from constants import SERVICE_PORT
-from endpoints.isod.isod_endpoints import link_isod_account, unlink_isod_account, get_isod_link_status
+from endpoints.isod_endpoints import link_isod_account, unlink_isod_account, get_isod_link_status
+from endpoints.usos_endpoints import get_usos_link_url
 from localization.localizationManager import LocalizationManager
+from usosapi import usosapi
 from utils.rate_limiter import rate_limiter
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 async def create_session(app):
+    app['localization_manager'] = loc
+    app['database_manager'] = firestore_async.client()
     app['session'] = ClientSession()
 
 
@@ -26,14 +30,12 @@ if __name__ == '__main__':
     firebase_admin.initialize_app(cred)
 
     loc = LocalizationManager('localization/strings')
-    db = firestore.client()
 
-    app = web.Application(middlewares=[rate_limiter(max_requests=10, period=60)])
+    app = web.Application(middlewares=[rate_limiter(max_requests=5, period=60)])
     app.add_routes([web.post('/link_isod_account', link_isod_account),
                     web.post('/unlink_isod_account', unlink_isod_account),
-                    web.post('/get_isod_link_status', get_isod_link_status)])
-    app['localization_manager'] = loc
-    app['database_manager'] = db
+                    web.post('/get_isod_link_status', get_isod_link_status),
+                    web.post('/get_usos_link_url', get_usos_link_url)])
     # app.on_startup.append(start_isod_handler)
     app.on_startup.append(create_session)
     app.on_cleanup.append(close_session)

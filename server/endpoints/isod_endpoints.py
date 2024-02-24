@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from datetime import datetime
 import aiohttp
@@ -36,34 +37,40 @@ async def link_isod_account(request):
         news_fingerprint = response['fingerprint']
 
         # Get all news hashes, firstname and index
-        response = await async_get_request(session, ISOD_PORTAL_URL + f'/wapi?q=mynewsheaders&username={isod_username}&apikey={isod_api_key}')
+        response = await async_get_request(session, ISOD_PORTAL_URL + f'/wapi?q=mynewsheaders&username={isod_username}&apikey={isod_api_key}&from=0&to10')
         news_hashes = [(item['hash'], item['type']) for item in response['items']]
         index = response['studentNo']
         firstname = response['firstname']
 
         # Add user
-        user_token = create_user(db, index, firstname)
+        user_token = await create_user(db, index, firstname)
 
         # Link ISOD account (username, api key)
-        db.collection('users').document(index).collection('isod_account').document(isod_username).set({
+        await db.collection('users').document(index).collection('isod_account').document(isod_username).set({
             'isod_api_key': isod_api_key,
             'news_fingerprint': news_fingerprint,
         })
 
         # Add user news
-        for news_hash, news_type in news_hashes:
-            db.collection('users').document(index).collection('isod_news').document(news_hash).set({
+        news_collection = db.collection('users').document(index).collection('isod_news')
+
+        async def save_news(news_hash, news_type):
+            await news_collection.document(news_hash).set({
                 'type': news_type,
                 'date': datetime.now(),
             })
 
+        tasks = [asyncio.create_task(save_news(news_hash, news_type)) for news_hash, news_type in news_hashes]
+        await asyncio.gather(*tasks)
+
         # Add device
-        db.collection('users').document(index).collection('devices').document(token_fcm).set({
+        await db.collection('users').document(index).collection('devices').document(token_fcm).set({
             'app_version': app_version,
             'news_filter': news_filter,
             'language': device_language,
         })
 
+        # Confirm successful link
         notify(token_fcm, loc.get('hello_notification_title', device_language), loc.get('hello_notification_body', device_language))
         logging.info(f"ISOD account ({isod_username}) successfully linked to {index}")
         return web.Response(status=200, text=user_token)
@@ -100,14 +107,14 @@ async def unlink_isod_account(request):
         logging.info(f"Attempting to unlink ISOD account for user: {user_token}")
 
         # Check if user exists
-        user = db.collection('users').where('token', '==', user_token).get()
+        user = await db.collection('users').where('token', '==', user_token).get()
         if not user:
             logging.info(f"Such user does not exist")
             return web.Response(status=200, text='Such user does not exist')
         user = user[0]
 
         # Check if user has linked ISOD account
-        isod_account = user.reference.collection('isod_account').get()
+        isod_account = await user.reference.collection('isod_account').get()
         if not isod_account:
             logging.info(f"User has no linked ISOD account")
             return web.Response(status=200, text='User has no linked ISOD account')
@@ -115,7 +122,7 @@ async def unlink_isod_account(request):
         isod_username = isod_account.id
 
         # Delete ISOD Account
-        isod_account.reference.delete()
+        await isod_account.reference.delete()
 
         logging.info(f"Unlinked ISOD account ({isod_username}) for user: {user.id}")
         return web.Response(status=200)
@@ -142,13 +149,13 @@ async def get_isod_link_status(request):
         logging.info(f"Attempting to check ISOD account link status for user: {user_token}")
 
         # Check if user exists
-        user = db.collection('users').where('token', '==', user_token).get()
+        user = await db.collection('users').where('token', '==', user_token).get()
         if not user:
             return web.Response(status=200, text='Unlinked')
         user = user[0]
 
         # Check if user has linked ISOD account
-        isod_account = user.reference.collection('isod_account').get()
+        isod_account = await user.reference.collection('isod_account').get()
         if not isod_account:
             logging.info(f"User has no linked ISOD account")
             return web.Response(status=200, text='Unlinked')
@@ -158,7 +165,7 @@ async def get_isod_link_status(request):
 
         # Verify api key
         try:
-            response = await async_get_request(session, ISOD_PORTAL_URL + f'/wapi?q=mynewsfingerprint&username={isod_username}&apikey={isod_api_key}')
+            await async_get_request(session, ISOD_PORTAL_URL + f'/wapi?q=mynewsfingerprint&username={isod_username}&apikey={isod_api_key}')
         except aiohttp.ClientResponseError as e:
             if e.status == 400:
                 # Key expired, unlink ISOD account
