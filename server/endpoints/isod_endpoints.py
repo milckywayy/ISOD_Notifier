@@ -14,7 +14,7 @@ from notifications.notify import send_silent_message, notify
 async def link_isod_account(request):
     loc = request.app['localization_manager']
     db = request.app['database_manager']
-    session = request.app['session']
+    session = request.app['http_session']
     device_language = 'en'
 
     try:
@@ -36,23 +36,23 @@ async def link_isod_account(request):
         response = await async_get_request(session, ISOD_PORTAL_URL + f'/wapi?q=mynewsfingerprint&username={isod_username}&apikey={isod_api_key}')
         news_fingerprint = response['fingerprint']
 
-        # Get all news hashes, firstname and index
+        # Get user data
         response = await async_get_request(session, ISOD_PORTAL_URL + f'/wapi?q=mynewsheaders&username={isod_username}&apikey={isod_api_key}&from=0&to10')
         news_hashes = [(item['hash'], item['type']) for item in response['items']]
-        index = response['studentNo']
+        student_number = response['studentNo']
         firstname = response['firstname']
 
         # Add user
-        user_token = await create_user(db, index, firstname)
+        user_token = await create_user(db, student_number, firstname)
 
         # Link ISOD account (username, api key)
-        await db.collection('users').document(index).collection('isod_account').document(isod_username).set({
+        await db.collection('users').document(student_number).collection('isod_account').document(isod_username).set({
             'isod_api_key': isod_api_key,
             'news_fingerprint': news_fingerprint,
         })
 
         # Add user news
-        news_collection = db.collection('users').document(index).collection('isod_news')
+        news_collection = db.collection('users').document(student_number).collection('isod_news')
 
         async def save_news(news_hash, news_type):
             await news_collection.document(news_hash).set({
@@ -64,7 +64,7 @@ async def link_isod_account(request):
         await asyncio.gather(*tasks)
 
         # Add device
-        await db.collection('users').document(index).collection('devices').document(token_fcm).set({
+        await db.collection('users').document(student_number).collection('devices').document(token_fcm).set({
             'app_version': app_version,
             'news_filter': news_filter,
             'language': device_language,
@@ -72,19 +72,24 @@ async def link_isod_account(request):
 
         # Confirm successful link
         notify(token_fcm, loc.get('hello_notification_title', device_language), loc.get('hello_notification_body', device_language))
-        logging.info(f"ISOD account ({isod_username}) successfully linked to {index}")
-        return web.Response(status=200, text=user_token)
+        logging.info(f"ISOD account ({isod_username}) successfully linked to {student_number}")
+
+        data = {
+            'user_token': user_token,
+            'firstname': firstname
+        }
+        return web.json_response(status=200, data=data)
 
     except ValueError as e:
-        logging.error(f"Registration error: {e}")
+        logging.error(f"ISOD account auth error: {e}")
         return web.Response(status=400, text=loc.get('invalid_input_data', device_language))
 
     except exceptions.FirebaseError as e:
-        logging.info(f"Invalid FCM token: {token_fcm}")
+        logging.info(f"Invalid FCM token given during ISOD auth: {e}")
         return web.Response(status=400, text=loc.get('invalid_fcm_token', device_language))
 
     except aiohttp.ClientResponseError as e:
-        logging.error(f"HTTP error during registration (bad request or isod credentials): {e}")
+        logging.error(f"HTTP error during ISOD auth (bad request or ISOD credentials): {e}")
         if e.status == 400:
             return web.Response(status=400, text=loc.get('invalid_username_or_api_key', device_language))
         else:
@@ -128,18 +133,14 @@ async def unlink_isod_account(request):
         return web.Response(status=200)
 
     except ValueError as e:
-        logging.error(f"Registration error: {e}")
+        logging.error(f"Error during ISOD unlink: {e}")
         return web.Response(status=400, text=loc.get('invalid_input_data', device_language))
-
-    except RuntimeError as e:
-        logging.error(f"Database error during registration: {e}")
-        return web.Response(status=500, text=loc.get('internal_server_error', device_language))
 
 
 async def get_isod_link_status(request):
     loc = request.app['localization_manager']
     db = request.app['database_manager']
-    session = request.app['session']
+    session = request.app['http_session']
     device_language = 'en'
 
     try:
@@ -177,13 +178,12 @@ async def get_isod_link_status(request):
         return web.Response(status=200, text='Linked')
 
     except ValueError as e:
-        logging.error(f"Registration error: {e}")
+        logging.error(f"Error during ISOD status check: {e}")
         return web.Response(status=400, text=loc.get('invalid_input_data', device_language))
 
     except aiohttp.ClientResponseError as e:
-        logging.error(f"HTTP error during api key check: {e}")
-        return web.Response(status=e.status, text=loc.get('bad_request_to_external_service', device_language))
-
-    except RuntimeError as e:
-        logging.error(f"Database error during registration: {e}")
-        return web.Response(status=500, text=loc.get('internal_server_error', device_language))
+        logging.error(f"HTTP error during ISOD status check (bad request or ISOD credentials): {e}")
+        if e.status == 400:
+            return web.Response(status=400, text=loc.get('invalid_username_or_api_key', device_language))
+        else:
+            return web.Response(status=e.status, text=loc.get('bad_request_to_external_service', device_language))

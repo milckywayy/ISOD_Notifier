@@ -5,8 +5,6 @@ _REQUEST_TOKEN_SUFFIX = 'services/oauth/request_token'
 _AUTHORIZE_SUFFIX = 'services/oauth/authorize'
 _ACCESS_TOKEN_SUFFIX = 'services/oauth/access_token'
 
-SCOPES = 'offline_access|studies'
-
 
 class USOSAPISessionNotAuthorizedError(Exception):
     def __init__(self, message):
@@ -21,9 +19,10 @@ class USOSAPIAuthorizationError(Exception):
 
 
 class USOSAPISession:
-    def __init__(self, api_base_address, consumer_key, consumer_secret):
-        base_address = api_base_address
+    def __init__(self, api_base_address, consumer_key, consumer_secret, scopes):
+        self.scopes = scopes
 
+        base_address = api_base_address
         if not base_address.endswith('/'):
             base_address += '/'
 
@@ -47,8 +46,8 @@ class USOSAPISession:
 
         self.authorized_session = None
 
-    def get_token_url(self):
-        params = {'oauth_callback': 'oob', 'scopes': SCOPES}
+    def get_auth_url(self):
+        params = {'oauth_callback': 'oob', 'scopes': self.scopes}
         token_tuple = self.service.get_request_token(params=params)
         request_token, request_token_secret = token_tuple
 
