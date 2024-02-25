@@ -8,7 +8,8 @@ import ssl
 
 from constants import SERVICE_PORT
 from endpoints.isod_endpoints import link_isod_account, unlink_isod_account, get_isod_link_status
-from endpoints.usos_endpoints import get_usos_auth_url, authorize_usos_session
+from endpoints.usos_endpoints import get_usos_auth_url, authorize_usos_session, unlink_usos_account, \
+    get_usos_link_status
 from localization.localizationManager import LocalizationManager
 from usosapi.usosapi import USOSAPISession
 from utils.rate_limiter import rate_limiter
@@ -48,7 +49,9 @@ if __name__ == '__main__':
                     web.post('/unlink_isod_account', unlink_isod_account),
                     web.post('/get_isod_link_status', get_isod_link_status),
                     web.post('/get_usos_auth_url', get_usos_auth_url),
-                    web.post('/authorize_usos_session', authorize_usos_session)])
+                    web.post('/authorize_usos_session', authorize_usos_session),
+                    web.post('/unlink_usos_account', unlink_usos_account),
+                    web.post('/get_usos_link_status', get_usos_link_status)])
     # app.on_startup.append(start_isod_handler)
     app.on_startup.append(create_session)
     app.on_cleanup.append(close_session)

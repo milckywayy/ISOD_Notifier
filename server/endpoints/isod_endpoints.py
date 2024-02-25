@@ -27,7 +27,7 @@ async def link_isod_account(request):
         device_language = data['device_language']
         news_filter = data['news_filter']
 
-        logging.info(f"Attempting to link ISOD account for token: {token_fcm}")
+        logging.info(f"Attempting to link ISOD account on device: {token_fcm}")
 
         # Verify token
         send_silent_message(token_fcm)
@@ -161,12 +161,15 @@ async def get_isod_link_status(request):
             logging.info(f"User has no linked ISOD account")
             return web.Response(status=200, text='Unlinked')
         isod_account = isod_account[0]
+
+        # Fetch ISOD auth data
         isod_username = isod_account.id
         isod_api_key = isod_account.get('isod_api_key')
 
         # Verify api key
         try:
             await async_get_request(session, ISOD_PORTAL_URL + f'/wapi?q=mynewsfingerprint&username={isod_username}&apikey={isod_api_key}')
+
         except aiohttp.ClientResponseError as e:
             if e.status == 400:
                 # Key expired, unlink ISOD account
@@ -174,7 +177,7 @@ async def get_isod_link_status(request):
                 isod_account.reference.delete()
                 return web.Response(status=200, text='Unlinked')
 
-        logging.info(f"ISOD account ({isod_username}) is linked with user: {user.id}")
+        logging.info(f"ISOD account ({isod_username}) is now linked with user: {user.id}")
         return web.Response(status=200, text='Linked')
 
     except ValueError as e:

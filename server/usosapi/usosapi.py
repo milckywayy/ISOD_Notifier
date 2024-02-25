@@ -111,7 +111,7 @@ class USOSAPISession:
         self.authorized_session = None
 
     def cleanup_auth_sessions(self):
-        expiration_time = 3600
+        expiration_time = 1800
         current_time = time.time()
 
         expired_tokens = [token for token, details in self.auth_sessions.items() if

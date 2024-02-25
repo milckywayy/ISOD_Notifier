@@ -37,7 +37,7 @@ async def authorize_usos_session(request):
         device_language = data['device_language']
         news_filter = data['news_filter']
 
-        logging.info(f"Attempting to link USOS account for token: {token_fcm}")
+        logging.info(f"Attempting to link USOS account on device: {token_fcm}")
 
         # Verify token
         send_silent_message(token_fcm)
@@ -71,6 +71,9 @@ async def authorize_usos_session(request):
             'language': device_language,
         })
 
+        # Confirm successful link
+        logging.info(f"USOS account ({usos_id}) successfully linked to {student_number}")
+
         data = {
             'user_token': user_token,
             'firstname': firstname
@@ -88,3 +91,88 @@ async def authorize_usos_session(request):
     except USOSAPIAuthorizationError:
         logging.info(f"Invalid USOSAPI pin was given")
         return web.Response(status=400, text=loc.get('invalid_usosapi_pin', device_language))
+
+
+async def unlink_usos_account(request):
+    loc = request.app['localization_manager']
+    db = request.app['database_manager']
+    device_language = 'en'
+
+    try:
+        data = await request.json()
+        user_token = data['user_token']
+
+        logging.info(f"Attempting to unlink USOS account for user: {user_token}")
+
+        # Check if user exists
+        user = await db.collection('users').where('token', '==', user_token).get()
+        if not user:
+            logging.info(f"Such user does not exist")
+            return web.Response(status=200, text='Such user does not exist')
+        user = user[0]
+
+        # Check if user has linked USOS account
+        usos_account = await user.reference.collection('usos_account').get()
+        if not usos_account:
+            logging.info(f"User has no linked USOS account")
+            return web.Response(status=200, text='User has no linked USOS account')
+        usos_account = usos_account[0]
+        usos_id = usos_account.id
+
+        # Delete USOS Account
+        await usos_account.reference.delete()
+
+        logging.info(f"Unlinked USOS account ({usos_id}) for user: {user.id}")
+        return web.Response(status=200)
+
+    except ValueError as e:
+        logging.error(f"Error during USOS unlink: {e}")
+        return web.Response(status=400, text=loc.get('invalid_input_data', device_language))
+
+
+async def get_usos_link_status(request):
+    loc = request.app['localization_manager']
+    db = request.app['database_manager']
+    usosapi = request.app['usosapi_session']
+    device_language = 'en'
+
+    try:
+        data = await request.json()
+        user_token = data['user_token']
+
+        logging.info(f"Attempting to check USOS account link status for user: {user_token}")
+
+        # Check if user exists
+        user = await db.collection('users').where('token', '==', user_token).get()
+        if not user:
+            return web.Response(status=200, text='Unlinked')
+        user = user[0]
+
+        # Check if user has linked USOS account
+        usos_account = await user.reference.collection('usos_account').get()
+        if not usos_account:
+            logging.info(f"User has no linked USOS account")
+            return web.Response(status=200, text='Unlinked')
+        usos_account = usos_account[0]
+
+        # Fetch USOS auth data
+        usos_account_id = usos_account.id
+        usos_access_token = usos_account.get('access_token')
+        usos_access_token_secret = usos_account.get('access_token_secret')
+
+        # Verify USOSAPI tokens
+        try:
+            usosapi.resume_session(usos_access_token, usos_access_token_secret)
+
+        except USOSAPIAuthorizationError:
+            # Tokens expired, unlink USOS account
+            logging.info(f"USOSAPI access tokens expired")
+            usos_account.reference.delete()
+            return web.Response(status=200, text='Unlinked')
+
+        logging.info(f"USOS account ({usos_account_id}) is now linked with user: {user.id}")
+        return web.Response(status=200, text='Linked')
+
+    except ValueError as e:
+        logging.error(f"Error during USOS status check: {e}")
+        return web.Response(status=400, text=loc.get('invalid_input_data', device_language))
