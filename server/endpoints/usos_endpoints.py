@@ -1,14 +1,22 @@
 import logging
 
 from aiohttp import web
-from endpoints.general import create_user
-from notifications.notify import send_silent_message
+from endpoints.general import create_user, validate_post_request
+from notifications.notify import send_silent_message, notify
 from usosapi.usosapi import *
 from firebase_admin import exceptions
 
 
 async def get_usos_auth_url(request):
+    loc = request.app['localization_manager']
     usosapi = request.app['usosapi_session']
+    device_language = 'en'
+
+    is_valid, message = await validate_post_request(request, [])
+
+    if not is_valid:
+        logging.info(f"Invalid request received: {message}")
+        return web.Response(status=400, text=loc.get('invalid_input_data_error', device_language))
 
     logging.info(f"Request for USOSAPI auth url")
     request_token, request_url = usosapi.get_auth_url()
@@ -26,6 +34,15 @@ async def link_usos_account(request):
     db = request.app['database_manager']
     usosapi = request.app['usosapi_session']
     device_language = 'en'
+
+    is_valid, message = await validate_post_request(
+        request,
+        ['token_fcm', 'request_token', 'request_pin', 'app_version', 'device_language', 'news_filter']
+    )
+
+    if not is_valid:
+        logging.info(f"Invalid request received: {message}")
+        return web.Response(status=400, text=loc.get('invalid_input_data_error', device_language))
 
     try:
         data = await request.json()
@@ -72,6 +89,7 @@ async def link_usos_account(request):
         })
 
         # Confirm successful link
+        notify(token_fcm, loc.get('hello_usos_notification_title', device_language), loc.get('hello_usos_notification_body', device_language))
         logging.info(f"USOS account ({usos_id}) successfully linked to {student_number}")
 
         data = {
@@ -97,6 +115,12 @@ async def unlink_usos_account(request):
     loc = request.app['localization_manager']
     db = request.app['database_manager']
     device_language = 'en'
+
+    is_valid, message = await validate_post_request(request, ['user_token'])
+
+    if not is_valid:
+        logging.info(f"Invalid request received: {message}")
+        return web.Response(status=400, text=loc.get('invalid_input_data_error', device_language))
 
     try:
         data = await request.json()
@@ -135,6 +159,12 @@ async def get_usos_link_status(request):
     db = request.app['database_manager']
     usosapi = request.app['usosapi_session']
     device_language = 'en'
+
+    is_valid, message = await validate_post_request(request, ['user_token'])
+
+    if not is_valid:
+        logging.info(f"Invalid request received: {message}")
+        return web.Response(status=400, text=loc.get('invalid_input_data_error', device_language))
 
     try:
         data = await request.json()

@@ -7,7 +7,7 @@ from firebase_admin import exceptions
 
 from asynchttp.async_http_request import async_get_request
 from constants import ISOD_PORTAL_URL
-from endpoints.general import create_user
+from endpoints.general import create_user, validate_post_request
 from notifications.notify import send_silent_message, notify
 
 
@@ -16,6 +16,15 @@ async def link_isod_account(request):
     db = request.app['database_manager']
     session = request.app['http_session']
     device_language = 'en'
+
+    is_valid, message = await validate_post_request(
+        request,
+        ['token_fcm', 'isod_username', 'isod_api_key', 'app_version', 'device_language', 'news_filter']
+    )
+
+    if not is_valid:
+        logging.info(f"Invalid request received: {message}")
+        return web.Response(status=400, text=loc.get('invalid_input_data_error', device_language))
 
     try:
         data = await request.json()
@@ -105,6 +114,12 @@ async def unlink_isod_account(request):
     db = request.app['database_manager']
     device_language = 'en'
 
+    is_valid, message = await validate_post_request(request, ['user_token'])
+
+    if not is_valid:
+        logging.info(f"Invalid request received: {message}")
+        return web.Response(status=400, text=loc.get('invalid_input_data_error', device_language))
+
     try:
         data = await request.json()
         user_token = data['user_token']
@@ -142,6 +157,12 @@ async def get_isod_link_status(request):
     db = request.app['database_manager']
     session = request.app['http_session']
     device_language = 'en'
+
+    is_valid, message = await validate_post_request(request, ['user_token'])
+
+    if not is_valid:
+        logging.info(f"Invalid request received: {message}")
+        return web.Response(status=400, text=loc.get('invalid_input_data_error', device_language))
 
     try:
         data = await request.json()
