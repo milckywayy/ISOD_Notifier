@@ -7,7 +7,8 @@ from firebase_admin import exceptions
 
 from asynchttp.async_http_request import async_get_request
 from constants import ISOD_PORTAL_URL
-from endpoints.general import create_user, validate_post_request
+from endpoints.general import create_user
+from endpoints.validate_request import InvalidRequestError, validate_post_request
 from notifications.notify import send_silent_message, notify
 
 
@@ -17,17 +18,11 @@ async def link_isod_account(request):
     session = request.app['http_session']
     device_language = 'en'
 
-    is_valid, message = await validate_post_request(
-        request,
-        ['token_fcm', 'isod_username', 'isod_api_key', 'app_version', 'device_language', 'news_filter']
-    )
-
-    if not is_valid:
-        logging.info(f"Invalid request received: {message}")
-        return web.Response(status=400, text=loc.get('invalid_input_data_error', device_language))
-
     try:
-        data = await request.json()
+        data = await validate_post_request(
+            request,
+            ['token_fcm', 'isod_username', 'isod_api_key', 'app_version', 'device_language', 'news_filter']
+        )
 
         token_fcm = data['token_fcm']
         isod_username = data['isod_username']
@@ -89,8 +84,8 @@ async def link_isod_account(request):
         }
         return web.json_response(status=200, data=data)
 
-    except ValueError as e:
-        logging.error(f"ISOD account auth error: {e}")
+    except InvalidRequestError as e:
+        logging.info(f"Invalid request received: {e}")
         return web.Response(status=400, text=loc.get('invalid_input_data_error', device_language))
 
     except exceptions.FirebaseError as e:
@@ -114,14 +109,8 @@ async def unlink_isod_account(request):
     db = request.app['database_manager']
     device_language = 'en'
 
-    is_valid, message = await validate_post_request(request, ['user_token'])
-
-    if not is_valid:
-        logging.info(f"Invalid request received: {message}")
-        return web.Response(status=400, text=loc.get('invalid_input_data_error', device_language))
-
     try:
-        data = await request.json()
+        data = await validate_post_request(request, ['user_token'])
         user_token = data['user_token']
 
         logging.info(f"Attempting to unlink ISOD account for user: {user_token}")
@@ -147,8 +136,8 @@ async def unlink_isod_account(request):
         logging.info(f"Unlinked ISOD account ({isod_username}) for user: {user.id}")
         return web.Response(status=200, text=loc.get('isod_account_successfully_unlinked_info', device_language))
 
-    except ValueError as e:
-        logging.error(f"Error during ISOD unlink: {e}")
+    except InvalidRequestError as e:
+        logging.info(f"Invalid request received: {e}")
         return web.Response(status=400, text=loc.get('invalid_input_data_error', device_language))
 
 
@@ -158,14 +147,8 @@ async def get_isod_link_status(request):
     session = request.app['http_session']
     device_language = 'en'
 
-    is_valid, message = await validate_post_request(request, ['user_token'])
-
-    if not is_valid:
-        logging.info(f"Invalid request received: {message}")
-        return web.Response(status=400, text=loc.get('invalid_input_data_error', device_language))
-
     try:
-        data = await request.json()
+        data = await validate_post_request(request, ['user_token'])
         user_token = data['user_token']
 
         logging.info(f"Attempting to check ISOD account link status for user: {user_token}")
@@ -201,8 +184,8 @@ async def get_isod_link_status(request):
         logging.info(f"ISOD account ({isod_username}) is now linked with user: {user.id}")
         return web.Response(status=200, text='1')
 
-    except ValueError as e:
-        logging.error(f"Error during ISOD status check: {e}")
+    except InvalidRequestError as e:
+        logging.info(f"Invalid request received: {e}")
         return web.Response(status=400, text=loc.get('invalid_input_data_error', device_language))
 
     except aiohttp.ClientResponseError as e:
