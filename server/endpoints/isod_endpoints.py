@@ -156,6 +156,7 @@ async def get_isod_link_status(request):
         # Check if user exists
         user = await db.collection('users').where('token', '==', user_token).get()
         if not user:
+            logging.info(f"No such user")
             return web.Response(status=200, text='0')
         user = user[0]
 
@@ -181,7 +182,7 @@ async def get_isod_link_status(request):
                 isod_account.reference.delete()
                 return web.Response(status=200, text='0')
 
-        logging.info(f"ISOD account ({isod_username}) is now linked with user: {user.id}")
+        logging.info(f"ISOD account ({isod_username}) is linked with user: {user.id}")
         return web.Response(status=200, text='1')
 
     except InvalidRequestError as e:

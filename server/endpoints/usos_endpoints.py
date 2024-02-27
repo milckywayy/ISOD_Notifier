@@ -159,6 +159,7 @@ async def get_usos_link_status(request):
         # Check if user exists
         user = await db.collection('users').where('token', '==', user_token).get()
         if not user:
+            logging.info(f"No such user")
             return web.Response(status=200, text='0')
         user = user[0]
 
@@ -184,7 +185,7 @@ async def get_usos_link_status(request):
             usos_account.reference.delete()
             return web.Response(status=200, text='0')
 
-        logging.info(f"USOS account ({usos_account_id}) is now linked with user: {user.id}")
+        logging.info(f"USOS account ({usos_account_id}) is linked with user: {user.id}")
         return web.Response(status=200, text='1')
     
     except InvalidRequestError as e:
