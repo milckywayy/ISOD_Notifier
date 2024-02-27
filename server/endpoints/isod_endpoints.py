@@ -100,8 +100,8 @@ async def link_isod_account(request):
             return web.Response(status=e.status, text=loc.get('isod_server_error', device_language))
 
     except aiohttp.ClientError as e:
-        logging.error(f"Client error during registration: {e}")
-        return web.Response(status=500, text=loc.get('isod_server_error', device_language))
+        logging.error(f"Internal server error during registration: {e}")
+        return web.Response(status=500, text=loc.get('internal_server_error', device_language))
 
 
 async def unlink_isod_account(request):
