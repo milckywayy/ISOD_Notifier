@@ -18,10 +18,13 @@ class LocalizationManager:
         translations = {}
         tree = ElementTree.parse(file_path)
         root = tree.getroot()
-        for string in root.findall('string'):
-            key = string.get('key')
-            text = string.text
-            translations[key] = text
+
+        for system in root:
+            for category in system:
+                for string in category.findall('string'):
+                    key = string.get('key')
+                    text = string.text
+                    translations[key] = text
         return translations
 
     def get(self, key, language):
