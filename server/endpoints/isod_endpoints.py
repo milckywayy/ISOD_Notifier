@@ -123,7 +123,7 @@ async def unlink_isod_account(request):
         user = user[0]
 
         # Check if user has linked ISOD account
-        isod_account = await user.reference.collection('isod_account').get()
+        usos_account = await user.reference.collection('usos_account').get()
         if not isod_account:
             logging.info(f"User has no linked ISOD account")
             return web.Response(status=200, text=loc.get('no_isod_account_linked_info', device_language))

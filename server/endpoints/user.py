@@ -48,7 +48,7 @@ async def logout_from_all_other_devices(request):
         user = await db.collection('users').where('token', '==', user_token).get()
         if not user:
             logging.info(f"Such user does not exist")
-            return web.Response(status=200, text=loc.get('user_not_found_info', device_language))
+            return web.Response(status=400, text=loc.get('user_not_found_info', device_language))
         user = user[0]
         student_number = user.id
 
