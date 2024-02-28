@@ -38,6 +38,8 @@
 
 
   <!-- ====== Global info return strings BEGIN ====== -->
+    <string key="all_user_data_successfully_removed_info">User's data successfully removed</string>
+    <string key="user_successfully_logged_out_from_all_other_devices">User successfully logged out from all other devices</string>
     <string key="user_not_found_info">User not found</string>
   <!-- ====== Global info return strings END ====== -->
 

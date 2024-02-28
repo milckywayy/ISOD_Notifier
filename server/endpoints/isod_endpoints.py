@@ -7,7 +7,7 @@ from firebase_admin import exceptions
 
 from asynchttp.async_http_request import async_get_request
 from constants import ISOD_PORTAL_URL
-from endpoints.general import create_user
+from endpoints.user import create_user
 from endpoints.validate_request import InvalidRequestError, validate_post_request
 from notifications.notify import send_silent_message, notify
 

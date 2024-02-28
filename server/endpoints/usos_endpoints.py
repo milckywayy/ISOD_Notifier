@@ -1,7 +1,7 @@
 import logging
 
 from aiohttp import web
-from endpoints.general import create_user
+from endpoints.user import create_user
 from endpoints.validate_request import InvalidRequestError,validate_post_request
 from notifications.notify import send_silent_message, notify
 from usosapi.usosapi import *
