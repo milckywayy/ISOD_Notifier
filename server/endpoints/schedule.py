@@ -18,7 +18,86 @@ def get_date():
     return formatted_today, formatted_one_week_later
 
 
+def convert_time(time_str, input_format, output_format='%H:%M'):
+    time_obj = datetime.strptime(time_str, input_format)
+    return time_obj.strftime(output_format)
+
+
+def format_isod_schedule(data):
+    formatted_data = {"classes": []}
+    days = {str(i): [] for i in range(1, 8)}
+
+    for item in data['planItems']:
+        if not item['teachers'] or item['cycle'] == 'Cykl inny':
+            continue
+
+        lesson = {
+            "startTime": convert_time(item['startTime'], '%I:%M:%S %p'),
+            "endTime": convert_time(item['endTime'], '%I:%M:%S %p'),
+            "name": {"pl": item['courseName'], "en": item['courseName']},
+            "courseId": item['courseNumber'],
+            "typeOfClasses": item['typeOfClasses'],
+            "building": item['buildingShort'],
+            "room": item['room'],
+            "isActive": "1"
+        }
+
+        days[item['dayOfWeek']].append(lesson)
+
+    for day, lessons in days.items():
+        if lessons:
+            formatted_data["classes"].append({"dayOfWeek": day, "isDayOff": "0", "lessons": lessons})
+
+    return formatted_data
+
+
+def format_usos_schedule(input_data):
+    formatted_data = {"classes": []}
+    days = {}
+
+    for item in input_data:
+        if 'frequency' in item and item['frequency'] == 'other':
+            continue
+
+        start_time = convert_time(item['start_time'], '%Y-%m-%d %H:%M:%S')
+        end_time = convert_time(item['end_time'], '%Y-%m-%d %H:%M:%S')
+        day_of_week = datetime.strptime(item['start_time'], '%Y-%m-%d %H:%M:%S').strftime('%u')
+
+        if day_of_week not in days:
+            days[day_of_week] = {"dayOfWeek": day_of_week, "isDayOff": "0", "lessons": []}
+
+        lesson = {
+            "startTime": start_time,
+            "endTime": end_time,
+            "name": {"pl": item['name']['pl'].split(' - ')[0], "en": item['name']['en'].split(' - ')[0]},
+            "courseId": item['course_id'].split('-')[-1],
+            "typeOfClasses": item['classtype_id'],
+            "building": item['building_id'].split('-')[1],
+            "room": item['room_number'],
+            "isActive": "1"
+        }
+
+        days[day_of_week]["lessons"].append(lesson)
+
+    formatted_data["classes"] = list(days.values())
+    return formatted_data
+
+
 def integrate_schedules(isod_schedule, usos_schedule, days_off):
+    print(format_isod_schedule(isod_schedule))
+    print(format_usos_schedule(usos_schedule))
+
+    if isod_schedule == '' and usos_schedule == '':
+        raise RuntimeError("Schedule couldn't be created")
+
+    elif isod_schedule == '':
+        return format_usos_schedule(usos_schedule)
+
+    elif usos_schedule == '':
+        return format_isod_schedule(isod_schedule)
+
+    # TODO combine schedules
+
     return ''
 
 
@@ -67,7 +146,7 @@ async def get_student_schedule(request):
 
             usosapi.resume_session(usos_access_token, usos_access_token_secret)
 
-            usos_schedule = usosapi.fetch_from_service('services/tt/user', fields='start_time|end_time|name|course_id|classtype_id|frequency')
+            usos_schedule = usosapi.fetch_from_service('services/tt/user', fields='start_time|end_time|name|course_id|classtype_id|frequency|room_number|building_id')
             days_off = usosapi.fetch_from_service('services/calendar/search', faculty_id=EE_USOS_ID, start_date=today, end_date=next_week)
 
         # Integrate schedules
