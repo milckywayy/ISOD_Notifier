@@ -1,6 +1,5 @@
 import logging
 from datetime import datetime, timedelta
-
 from aiohttp import web
 
 from asynchttp.async_http_request import async_get_request
@@ -82,7 +81,7 @@ def format_usos_schedule(input_data):
             "startTime": start_time,
             "endTime": end_time,
             "name": {"pl": item['name']['pl'].split(' - ')[0], "en": item['name']['en'].split(' - ')[0]},
-            "courseId": item['course_id'].split('-')[-1],
+            "courseId": item['course_id'].replace('1040-IN-ISP-', ''),
             "typeOfClasses": item['classtype_id'],
             "building": item['building_id'].split('-')[1],
             "room": item['room_number'],
@@ -96,10 +95,25 @@ def format_usos_schedule(input_data):
     return formatted_data
 
 
-def integrate_schedules(isod_schedule, usos_schedule, days_off):
-    print(format_isod_schedule(isod_schedule))
-    print(format_usos_schedule(usos_schedule))
+def read_days_off(date_ranges):
+    days_of_week = set()
 
+    for date_range in date_ranges:
+        start_date_str = date_range['start_date']
+        end_date_str = date_range['end_date']
+
+        start_date = datetime.strptime(start_date_str, '%Y-%m-%d %H:%M:%S')
+        end_date = datetime.strptime(end_date_str, '%Y-%m-%d %H:%M:%S')
+
+        current_date = start_date
+        while current_date <= end_date:
+            days_of_week.add(str(current_date.isoweekday()))
+            current_date += timedelta(days=1)
+
+    return list(days_of_week)
+
+
+def merge_schedules(isod_schedule, usos_schedule, days_off):
     if isod_schedule == '' and usos_schedule == '':
         raise RuntimeError("Schedule couldn't be created")
 
@@ -109,9 +123,40 @@ def integrate_schedules(isod_schedule, usos_schedule, days_off):
     elif usos_schedule == '':
         return format_isod_schedule(isod_schedule)
 
-    # TODO combine schedules
+    final_schedule = {'classes': []}
+    days_off = read_days_off(days_off)
+    isod_schedule = format_isod_schedule(isod_schedule)
+    usos_schedule = format_usos_schedule(usos_schedule)
+    isod_days = {day['dayOfWeek']: day for day in isod_schedule['classes']}
+    usos_days = {day['dayOfWeek']: day for day in usos_schedule['classes']}
 
-    return ''
+    all_days = sorted(set(isod_days.keys()) | set(usos_days.keys()), key=int)
+
+    for day in all_days:
+        final_day = {'dayOfWeek': day, 'isDayOff': '0', 'lessons': []}
+        if day in days_off:
+            final_day['isDayOff'] = '1'
+
+        isod_lessons = {lesson['courseId']: lesson for lesson in isod_days.get(day, {}).get('lessons', [])}
+        usos_lessons = {lesson['courseId']: lesson for lesson in usos_days.get(day, {}).get('lessons', [])}
+
+        all_course_ids = set(isod_lessons.keys()) | set(usos_lessons.keys())
+
+        for course_id in all_course_ids:
+            if course_id in isod_lessons and course_id in usos_lessons:
+                lesson = usos_lessons[course_id].copy()
+                lesson['note'] = isod_lessons[course_id]['note']
+            elif course_id in isod_lessons:
+                lesson = isod_lessons[course_id].copy()
+                lesson['isActive'] = '0'
+            else:
+                lesson = usos_lessons[course_id].copy()
+
+            final_day['lessons'].append(lesson)
+
+        final_schedule['classes'].append(final_day)
+
+    return final_schedule
 
 
 async def get_student_schedule(request):
@@ -159,14 +204,14 @@ async def get_student_schedule(request):
 
             usosapi.resume_session(usos_access_token, usos_access_token_secret)
 
-            usos_schedule = usosapi.fetch_from_service('services/tt/user', fields='start_time|end_time|name|course_id|classtype_id|frequency|room_number|building_id')
-            days_off = usosapi.fetch_from_service('services/calendar/search', faculty_id=EE_USOS_ID, start_date=monday, end_date=friday)
+            usos_schedule = usosapi.fetch_from_service('services/tt/user', start=monday, days=5, fields='start_time|end_time|name|course_id|classtype_id|frequency|room_number|building_id')
+            days_off = usosapi.fetch_from_service('services/calendar/search', faculty_id=EE_USOS_ID, start_date=monday, end_date=friday, fields='start_date|end_date')
 
         # Integrate schedules
-        final_schedule = integrate_schedules(isod_schedule, usos_schedule, days_off)
+        final_schedule = merge_schedules(isod_schedule, usos_schedule, days_off)
 
         logging.info(f"Created schedule for student: {student_number}")
-        return web.Response(status=200)
+        return web.json_response(status=200, data=final_schedule)
 
     except InvalidRequestError as e:
         logging.info(f"Invalid request received: {e}")
