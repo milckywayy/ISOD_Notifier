@@ -8,14 +8,25 @@ from constants import ISOD_PORTAL_URL, EE_USOS_ID
 from endpoints.validate_request import InvalidRequestError, validate_post_request
 
 
-def get_date():
+def get_week_start_end():
     today = datetime.now()
-    formatted_today = today.strftime("%Y-%m-%d")
+    weekday = today.weekday()
 
-    one_week_later = today + timedelta(days=7)
-    formatted_one_week_later = one_week_later.strftime("%Y-%m-%d")
+    if weekday >= 5:
+        today += timedelta(days=(7-weekday))
 
-    return formatted_today, formatted_one_week_later
+    weekday = today.weekday()
+
+    start_delta = timedelta(days=-weekday)
+    start_of_week = today + start_delta
+
+    end_delta = timedelta(days=4-weekday)
+    end_of_week = today + end_delta
+
+    formatted_start_of_week = start_of_week.strftime("%Y-%m-%d")
+    formatted_end_of_week = end_of_week.strftime("%Y-%m-%d")
+
+    return formatted_start_of_week, formatted_end_of_week
 
 
 def convert_time(time_str, input_format, output_format='%H:%M'):
@@ -39,6 +50,7 @@ def format_isod_schedule(data):
             "typeOfClasses": item['typeOfClasses'],
             "building": item['buildingShort'],
             "room": item['room'],
+            "note": item['notesTeachers'] if 'notesTeachers' in item else '',
             "isActive": "1"
         }
 
@@ -74,6 +86,7 @@ def format_usos_schedule(input_data):
             "typeOfClasses": item['classtype_id'],
             "building": item['building_id'].split('-')[1],
             "room": item['room_number'],
+            "note": '',
             "isActive": "1"
         }
 
@@ -126,7 +139,7 @@ async def get_student_schedule(request):
         usos_schedule = ''
         days_off = ''
 
-        today, next_week = get_date()
+        monday, friday = get_week_start_end()
 
         # Get ISOD schedule
         isod_account = await user.reference.collection('isod_account').get()
@@ -147,7 +160,7 @@ async def get_student_schedule(request):
             usosapi.resume_session(usos_access_token, usos_access_token_secret)
 
             usos_schedule = usosapi.fetch_from_service('services/tt/user', fields='start_time|end_time|name|course_id|classtype_id|frequency|room_number|building_id')
-            days_off = usosapi.fetch_from_service('services/calendar/search', faculty_id=EE_USOS_ID, start_date=today, end_date=next_week)
+            days_off = usosapi.fetch_from_service('services/calendar/search', faculty_id=EE_USOS_ID, start_date=monday, end_date=friday)
 
         # Integrate schedules
         final_schedule = integrate_schedules(isod_schedule, usos_schedule, days_off)
