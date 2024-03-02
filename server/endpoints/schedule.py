@@ -175,7 +175,7 @@ async def get_student_schedule(request):
         # Check if user exists
         user = await db.collection('users').where('token', '==', user_token).get()
         if not user:
-            logging.info(f"Such user does not exist")
+            logging.error(f"Such user does not exist")
             return web.Response(status=400, text=loc.get('user_not_found_info', device_language))
         user = user[0]
         student_number = user.id
@@ -214,5 +214,5 @@ async def get_student_schedule(request):
         return web.json_response(status=200, data=final_schedule)
 
     except InvalidRequestError as e:
-        logging.info(f"Invalid request received: {e}")
+        logging.error(f"Invalid request received: {e}")
         return web.Response(status=400, text=loc.get('invalid_input_data_error', device_language))

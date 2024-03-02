@@ -6,7 +6,7 @@ from aiohttp import web
 from firebase_admin import exceptions
 
 from asynchttp.async_http_request import async_get_request
-from constants import ISOD_PORTAL_URL
+from constants import ISOD_PORTAL_URL, DEFAULT_RESPONSE_LANGUAGE
 from endpoints.user import create_user
 from endpoints.validate_request import InvalidRequestError, validate_post_request
 from notifications.notify import send_silent_message, notify
@@ -16,7 +16,7 @@ async def link_isod_account(request):
     loc = request.app['localization_manager']
     db = request.app['database_manager']
     session = request.app['http_session']
-    device_language = 'en'
+    device_language = DEFAULT_RESPONSE_LANGUAGE
 
     try:
         data = await validate_post_request(
@@ -85,11 +85,11 @@ async def link_isod_account(request):
         return web.json_response(status=200, data=data)
 
     except InvalidRequestError as e:
-        logging.info(f"Invalid request received: {e}")
+        logging.error(f"Invalid request received: {e}")
         return web.Response(status=400, text=loc.get('invalid_input_data_error', device_language))
 
     except exceptions.FirebaseError as e:
-        logging.info(f"Invalid FCM token given during ISOD auth: {e}")
+        logging.error(f"Invalid FCM token given during ISOD auth: {e}")
         return web.Response(status=400, text=loc.get('invalid_fcm_token_error', device_language))
 
     except aiohttp.ClientResponseError as e:
@@ -107,7 +107,7 @@ async def link_isod_account(request):
 async def unlink_isod_account(request):
     loc = request.app['localization_manager']
     db = request.app['database_manager']
-    device_language = 'en'
+    device_language = DEFAULT_RESPONSE_LANGUAGE
 
     try:
         data = await validate_post_request(request, ['user_token'])
@@ -123,7 +123,7 @@ async def unlink_isod_account(request):
         user = user[0]
 
         # Check if user has linked ISOD account
-        usos_account = await user.reference.collection('usos_account').get()
+        isod_account = await user.reference.collection('isod_account').get()
         if not isod_account:
             logging.info(f"User has no linked ISOD account")
             return web.Response(status=200, text=loc.get('no_isod_account_linked_info', device_language))
@@ -137,7 +137,7 @@ async def unlink_isod_account(request):
         return web.Response(status=200, text=loc.get('isod_account_successfully_unlinked_info', device_language))
 
     except InvalidRequestError as e:
-        logging.info(f"Invalid request received: {e}")
+        logging.error(f"Invalid request received: {e}")
         return web.Response(status=400, text=loc.get('invalid_input_data_error', device_language))
 
 
@@ -145,7 +145,7 @@ async def get_isod_link_status(request):
     loc = request.app['localization_manager']
     db = request.app['database_manager']
     session = request.app['http_session']
-    device_language = 'en'
+    device_language = DEFAULT_RESPONSE_LANGUAGE
 
     try:
         data = await validate_post_request(request, ['user_token'])
@@ -186,7 +186,7 @@ async def get_isod_link_status(request):
         return web.Response(status=200, text='1')
 
     except InvalidRequestError as e:
-        logging.info(f"Invalid request received: {e}")
+        logging.error(f"Invalid request received: {e}")
         return web.Response(status=400, text=loc.get('invalid_input_data_error', device_language))
 
     except aiohttp.ClientResponseError as e:

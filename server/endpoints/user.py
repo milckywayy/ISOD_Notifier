@@ -47,7 +47,7 @@ async def logout_from_all_other_devices(request):
         # Check if user exists
         user = await db.collection('users').where('token', '==', user_token).get()
         if not user:
-            logging.info(f"Such user does not exist")
+            logging.error(f"Such user does not exist")
             return web.Response(status=400, text=loc.get('user_not_found_info', device_language))
         user = user[0]
         student_number = user.id
@@ -63,7 +63,7 @@ async def logout_from_all_other_devices(request):
         return web.Response(status=200, text=new_user_token)
 
     except InvalidRequestError as e:
-        logging.info(f"Invalid request received: {e}")
+        logging.error(f"Invalid request received: {e}")
         return web.Response(status=400, text=loc.get('invalid_input_data_error', device_language))
 
 
@@ -93,5 +93,5 @@ async def delete_user_data(request):
         return web.Response(status=200, text=loc.get('all_user_data_successfully_removed_info', device_language))
 
     except InvalidRequestError as e:
-        logging.info(f"Invalid request received: {e}")
+        logging.error(f"Invalid request received: {e}")
         return web.Response(status=400, text=loc.get('invalid_input_data_error', device_language))

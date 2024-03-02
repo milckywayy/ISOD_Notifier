@@ -12,6 +12,7 @@ from endpoints.user import *
 from endpoints.usos_endpoints import *
 from endpoints.isod_endpoints import *
 from localization.localization_manager import LocalizationManager
+from looptasks.invoke_handlers import invoke_handlers
 from usosapi.usosapi import USOSAPISession
 from utils.rate_limiter import rate_limiter
 
@@ -56,8 +57,8 @@ if __name__ == '__main__':
                     web.post('/logout_from_all_other_devices', logout_from_all_other_devices),
                     web.post('/delete_user_data', delete_user_data),
                     web.post('/get_student_schedule', get_student_schedule)])
-    # app.on_startup.append(start_isod_handler)
     app.on_startup.append(create_session)
+    app.on_startup.append(invoke_handlers)
     app.on_cleanup.append(close_session)
 
     ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)

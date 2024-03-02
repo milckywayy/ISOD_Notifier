@@ -1,10 +1,13 @@
 import logging
 from firebase_admin import messaging
 
-from constants import DEFAULT_FORWARD_URL
 
+def notify(token, title, body, url=None, news_hash=None):
+    data = {
+        'url': url if url is not None else {},
+        'news_hash': news_hash if news_hash is not None else {}
+    }
 
-def notify(token, title, body, url=DEFAULT_FORWARD_URL):
     message = messaging.Message(
         notification=messaging.Notification(
             title=title,
@@ -14,7 +17,7 @@ def notify(token, title, body, url=DEFAULT_FORWARD_URL):
         android=messaging.AndroidConfig(
             priority='high'
         ),
-        data={"url": url}
+        data=data
     )
 
     response = messaging.send(message)

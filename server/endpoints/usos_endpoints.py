@@ -1,8 +1,10 @@
 import logging
 
 from aiohttp import web
+
+from constants import DEFAULT_RESPONSE_LANGUAGE
 from endpoints.user import create_user
-from endpoints.validate_request import InvalidRequestError,validate_post_request
+from endpoints.validate_request import InvalidRequestError, validate_post_request
 from notifications.notify import send_silent_message, notify
 from usosapi.usosapi import *
 from firebase_admin import exceptions
@@ -11,7 +13,7 @@ from firebase_admin import exceptions
 async def get_usos_auth_url(request):
     loc = request.app['localization_manager']
     usosapi = request.app['usosapi_session']
-    device_language = 'en'
+    device_language = DEFAULT_RESPONSE_LANGUAGE
 
     try:
         await validate_post_request(request, [])
@@ -27,7 +29,7 @@ async def get_usos_auth_url(request):
         return web.json_response(status=200, data=data)
 
     except InvalidRequestError as e:
-        logging.info(f"Invalid request received: {e}")
+        logging.error(f"Invalid request received: {e}")
         return web.Response(status=400, text=loc.get('invalid_input_data_error', device_language))
 
 
@@ -35,7 +37,7 @@ async def link_usos_account(request):
     loc = request.app['localization_manager']
     db = request.app['database_manager']
     usosapi = request.app['usosapi_session']
-    device_language = 'en'
+    device_language = DEFAULT_RESPONSE_LANGUAGE
 
     try:
         data = await validate_post_request(
@@ -95,11 +97,11 @@ async def link_usos_account(request):
         return web.json_response(status=200, data=data)
 
     except InvalidRequestError as e:
-        logging.info(f"Invalid request received: {e}")
+        logging.error(f"Invalid request received: {e}")
         return web.Response(status=400, text=loc.get('invalid_input_data_error', device_language))
 
     except exceptions.FirebaseError as e:
-        logging.info(f"Invalid FCM token given during USOS auth: {e}")
+        logging.error(f"Invalid FCM token given during USOS auth: {e}")
         return web.Response(status=400, text=loc.get('invalid_fcm_token_error', device_language))
 
     except USOSAPIAuthorizationError:
@@ -110,7 +112,7 @@ async def link_usos_account(request):
 async def unlink_usos_account(request):
     loc = request.app['localization_manager']
     db = request.app['database_manager']
-    device_language = 'en'
+    device_language = DEFAULT_RESPONSE_LANGUAGE
 
     try:
         data = await validate_post_request(request, ['user_token'])
@@ -140,7 +142,7 @@ async def unlink_usos_account(request):
         return web.Response(status=200, text=loc.get('usos_account_successfully_unlinked_info', device_language))
 
     except InvalidRequestError as e:
-        logging.info(f"Invalid request received: {e}")
+        logging.error(f"Invalid request received: {e}")
         return web.Response(status=400, text=loc.get('invalid_input_data_error', device_language))
 
 
@@ -148,7 +150,7 @@ async def get_usos_link_status(request):
     loc = request.app['localization_manager']
     db = request.app['database_manager']
     usosapi = request.app['usosapi_session']
-    device_language = 'en'
+    device_language = DEFAULT_RESPONSE_LANGUAGE
 
     try:
         data = await validate_post_request(request, ['user_token'])
@@ -189,5 +191,5 @@ async def get_usos_link_status(request):
         return web.Response(status=200, text='1')
     
     except InvalidRequestError as e:
-        logging.info(f"Invalid request received: {e}")
+        logging.error(f"Invalid request received: {e}")
         return web.Response(status=400, text=loc.get('invalid_input_data_error', device_language))
