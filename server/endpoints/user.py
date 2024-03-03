@@ -1,9 +1,9 @@
 import logging
 import secrets
-
 from aiohttp import web
 
 from endpoints.validate_request import validate_post_request, InvalidRequestError
+from utils.firestore import delete_collection, user_exists, isod_account_exists, delete_isod_account
 
 
 def generate_new_user_token():
@@ -11,14 +11,11 @@ def generate_new_user_token():
 
 
 async def create_user(db, index, firstname):
-
-    # Check if user exists
-    user = await db.collection('users').document(index).get()
-    if user.exists:
+    user = await user_exists(db, index=index)
+    if user:
         # Get token from db
         logging.info(f"Such user already exists: {index}")
         user_token = user.get('token')
-
     else:
         # Add user and generate new token
         logging.info(f"Adding new user: {index}")
@@ -41,25 +38,29 @@ async def logout_from_all_other_devices(request):
     try:
         data = await validate_post_request(request, ['user_token'])
         user_token = data['user_token']
+        device_token = data['token_fcm']
 
         logging.info(f"Attempting to logout user from all devices except: {user_token}")
 
         # Check if user exists
-        user = await db.collection('users').where('token', '==', user_token).get()
+        user = await user_exists(db, token=user_token)
         if not user:
             logging.error(f"Such user does not exist")
             return web.Response(status=400, text=loc.get('user_not_found_info', device_language))
-        user = user[0]
-        student_number = user.id
+
+        # Remove other devices
+        devices = await user.reference.collection('devices').get()
+        for device in devices:
+            if device.id != device_token:
+                await device.reference.delete()
 
         # Update user token
         new_user_token = generate_new_user_token()
-
         await user.reference.update({
             'token': new_user_token
         })
 
-        logging.info(f"Logged out {student_number} from all other devices")
+        logging.info(f"Logged out {user.id} from all other devices")
         return web.Response(status=200, text=new_user_token)
 
     except InvalidRequestError as e:
@@ -79,35 +80,23 @@ async def delete_user_data(request):
         logging.info(f"Attempting to remove all user data from device: {user_token}")
 
         # Check if user exists
-        user = await db.collection('users').where('token', '==', user_token).get()
+        user = await user_exists(db, token=user_token)
         if not user:
-            logging.info(f"Such user does not exist")
+            logging.error(f"Such user does not exist")
             return web.Response(status=200, text=loc.get('user_not_found_info', device_language))
-        user = user[0]
-        student_number = user.id
 
         # Delete user devices
-        devices_collection = await user.reference.collection('devices').get()
-        for doc in devices_collection:
-            await doc.reference.delete()
+        await delete_collection(user.reference.collection('devices'))
 
         # Delete ISOD account
-        isod_account = await user.reference.collection('isod_account').get()
+        isod_account = await isod_account_exists(user.reference)
         if isod_account:
-            isod_account = isod_account[0]
-
-            # Delete ISOD news
-            isod_news_collection = await isod_account.reference.collection('isod_news').get()
-            for doc in isod_news_collection:
-                await doc.reference.delete()
-
-            # Delete ISOD account
-            await isod_account.reference.delete()
+            await delete_isod_account(isod_account.reference)
 
         # Delete user
         await user.reference.delete()
 
-        logging.info(f"Successfully removed all {student_number}'s data")
+        logging.info(f"Successfully removed all {user.id}'s data")
         return web.Response(status=200, text=loc.get('all_user_data_successfully_removed_info', device_language))
 
     except InvalidRequestError as e:

@@ -9,6 +9,8 @@ from notifications.notify import notify
 from utils.decode_filter import decode_filter
 from firebase_admin import exceptions
 
+from utils.firestore import delete_isod_account
+
 
 def get_sleep_duration():
     hour = datetime.now().hour
@@ -47,14 +49,7 @@ async def process_isod_account(account, db, loc, session):
     except aiohttp.ClientResponseError as e:
         if e.status == 400:
             logging.error(f"Expired ISOD API key. Removing account: {account.id}")
-
-            # Delete ISOD news
-            isod_news_collection = await account.reference.collection('isod_news').get()
-            for doc in isod_news_collection:
-                await doc.reference.delete()
-
-            # Delete ISOD Account
-            await account.reference.delete()
+            await delete_isod_account(account.reference)
         else:
             logging.error(f"ISOD server error: {e}")
         return
