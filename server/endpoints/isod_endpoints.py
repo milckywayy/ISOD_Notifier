@@ -10,6 +10,7 @@ from constants import ISOD_PORTAL_URL, DEFAULT_RESPONSE_LANGUAGE
 from endpoints.user import create_user
 from endpoints.validate_request import InvalidRequestError, validate_post_request
 from notifications.notify import send_silent_message, notify
+from utils.firestore import user_exists, isod_account_exists, delete_isod_account
 
 
 async def link_isod_account(request):
@@ -31,9 +32,9 @@ async def link_isod_account(request):
         device_language = data['device_language']
         news_filter = data['news_filter']
 
-        logging.info(f"Attempting to link ISOD account on device: {token_fcm}")
+        logging.info(f"[link_isod_account] Attempting to link ISOD account on device: {token_fcm}")
 
-        # Verify token
+        # Verify FCM token
         send_silent_message(token_fcm)
 
         # Verify isod account and get news fingerprint
@@ -78,11 +79,10 @@ async def link_isod_account(request):
         notify(token_fcm, loc.get('hello_isod_notification_title', device_language), loc.get('hello_isod_notification_body', device_language))
         logging.info(f"ISOD account ({isod_username}) successfully linked to {student_number}")
 
-        data = {
+        return web.json_response(status=200, data={
             'user_token': user_token,
             'firstname': firstname
-        }
-        return web.json_response(status=200, data=data)
+        })
 
     except InvalidRequestError as e:
         logging.error(f"Invalid request received: {e}")
@@ -116,29 +116,21 @@ async def unlink_isod_account(request):
         logging.info(f"Attempting to unlink ISOD account for user: {user_token}")
 
         # Check if user exists
-        user = await db.collection('users').where('token', '==', user_token).get()
+        user = await user_exists(db, token=user_token)
         if not user:
             logging.info(f"Such user does not exist")
             return web.Response(status=200, text=loc.get('user_not_found_info', device_language))
-        user = user[0]
 
         # Check if user has linked ISOD account
-        isod_account = await user.reference.collection('isod_account').get()
+        isod_account = await isod_account_exists(user.reference)
         if not isod_account:
             logging.info(f"User has no linked ISOD account")
             return web.Response(status=200, text=loc.get('no_isod_account_linked_info', device_language))
-        isod_account = isod_account[0]
-        isod_username = isod_account.id
 
-        # Delete ISOD news
-        isod_news_collection = await isod_account.reference.collection('isod_news').get()
-        for doc in isod_news_collection:
-            await doc.reference.delete()
+        # Delete ISOD account
+        await delete_isod_account(isod_account.reference)
 
-        # Delete ISOD Account
-        await isod_account.reference.delete()
-
-        logging.info(f"Unlinked ISOD account ({isod_username}) for user: {user.id}")
+        logging.info(f"Unlinked ISOD account ({isod_account.id}) for user: {user.id}")
         return web.Response(status=200, text=loc.get('isod_account_successfully_unlinked_info', device_language))
 
     except InvalidRequestError as e:
@@ -159,39 +151,30 @@ async def get_isod_link_status(request):
         logging.info(f"Attempting to check ISOD account link status for user: {user_token}")
 
         # Check if user exists
-        user = await db.collection('users').where('token', '==', user_token).get()
+        user = await user_exists(db, token=user_token)
         if not user:
             logging.info(f"No such user")
             return web.Response(status=200, text='0')
-        user = user[0]
 
         # Check if user has linked ISOD account
-        isod_account = await user.reference.collection('isod_account').get()
+        isod_account = await isod_account_exists(user.reference)
         if not isod_account:
             logging.info(f"User has no linked ISOD account")
             return web.Response(status=200, text='0')
-        isod_account = isod_account[0]
 
         # Fetch ISOD auth data
         isod_username = isod_account.id
         isod_api_key = isod_account.get('isod_api_key')
 
-        # Verify api key
+        # Verify API key
         try:
             await async_get_request(session, ISOD_PORTAL_URL + f'/wapi?q=mynewsfingerprint&username={isod_username}&apikey={isod_api_key}')
 
         except aiohttp.ClientResponseError as e:
             if e.status == 400:
                 # Key expired, unlink ISOD account
-                logging.info(f"ISOD api key expired")
-
-                # Delete ISOD news
-                isod_news_collection = await isod_account.reference.collection('isod_news').get()
-                for doc in isod_news_collection:
-                    await doc.reference.delete()
-
-                # Delete ISOD account
-                isod_account.reference.delete()
+                logging.info(f"ISOD api key expired for {isod_username}. Unlinking ISOD account")
+                await delete_isod_account(isod_account.reference)
                 return web.Response(status=200, text='0')
 
         logging.info(f"ISOD account ({isod_username}) is linked with user: {user.id}")

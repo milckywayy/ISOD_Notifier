@@ -5,6 +5,7 @@ from aiohttp import web
 from asynchttp.async_http_request import async_get_request
 from constants import ISOD_PORTAL_URL, EE_USOS_ID
 from endpoints.validate_request import InvalidRequestError, validate_post_request
+from utils.firestore import user_exists, usos_account_exists, isod_account_exists
 
 
 def get_week_start_end():
@@ -115,7 +116,7 @@ def read_days_off(date_ranges):
 
 def merge_schedules(isod_schedule, usos_schedule, days_off):
     if isod_schedule == '' and usos_schedule == '':
-        raise RuntimeError("Schedule couldn't be created")
+        raise RuntimeError("At least one account should be linked in order to create schedule")
 
     elif isod_schedule == '':
         return format_usos_schedule(usos_schedule)
@@ -173,12 +174,10 @@ async def get_student_schedule(request):
         logging.info(f"Attempting to create student schedule")
 
         # Check if user exists
-        user = await db.collection('users').where('token', '==', user_token).get()
+        user = await user_exists(db, token=user_token)
         if not user:
             logging.error(f"Such user does not exist")
             return web.Response(status=400, text=loc.get('user_not_found_info', device_language))
-        user = user[0]
-        student_number = user.id
 
         isod_schedule = ''
         usos_schedule = ''
@@ -187,32 +186,33 @@ async def get_student_schedule(request):
         monday, friday = get_week_start_end()
 
         # Get ISOD schedule
-        isod_account = await user.reference.collection('isod_account').get()
+        isod_account = await isod_account_exists(user.reference)
         if isod_account:
-            isod_account = isod_account[0]
             isod_username = isod_account.id
             isod_api_key = isod_account.get('isod_api_key')
 
             isod_schedule = await async_get_request(session, ISOD_PORTAL_URL + f'/wapi?q=myplan&username={isod_username}&apikey={isod_api_key}')
 
         # Get USOS schedule
-        usos_account = await user.reference.collection('usos_account').get()
+        usos_account = await usos_account_exists(user.reference)
         if usos_account:
-            usos_account = usos_account[0]
             usos_access_token = usos_account.get('access_token')
             usos_access_token_secret = usos_account.get('access_token_secret')
 
             usosapi.resume_session(usos_access_token, usos_access_token_secret)
-
             usos_schedule = usosapi.fetch_from_service('services/tt/user', start=monday, days=5, fields='start_time|end_time|name|course_id|classtype_id|frequency|room_number|building_id')
             days_off = usosapi.fetch_from_service('services/calendar/search', faculty_id=EE_USOS_ID, start_date=monday, end_date=friday, fields='start_date|end_date')
 
         # Integrate schedules
         final_schedule = merge_schedules(isod_schedule, usos_schedule, days_off)
 
-        logging.info(f"Created schedule for student: {student_number}")
+        logging.info(f"Created schedule for student: {user.id}")
         return web.json_response(status=200, data=final_schedule)
 
     except InvalidRequestError as e:
         logging.error(f"Invalid request received: {e}")
         return web.Response(status=400, text=loc.get('invalid_input_data_error', device_language))
+
+    except RuntimeError as e:
+        logging.error(f"Couldn't create schedule: {e}")
+        return web.Response(status=500, text=loc.get('internal_server_error', device_language))

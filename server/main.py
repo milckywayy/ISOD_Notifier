@@ -1,6 +1,7 @@
-import logging
+import warnings
+
 import firebase_admin
-from aiohttp import web, ClientSession
+from aiohttp import ClientSession
 from firebase_admin import credentials
 from firebase_admin import firestore_async
 import json
@@ -16,7 +17,9 @@ from looptasks.invoke_handlers import invoke_handlers
 from usosapi.usosapi import USOSAPISession
 from utils.rate_limiter import rate_limiter
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - [%(funcName)s] - %(message)s')
+logging.getLogger('aiohttp.access').setLevel(logging.WARNING)
+warnings.filterwarnings("ignore", message="Detected filter using positional arguments. Prefer using the 'filter' keyword argument instead.")
 
 
 async def create_session(app):

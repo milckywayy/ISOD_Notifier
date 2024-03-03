@@ -1,5 +1,4 @@
 import logging
-
 from aiohttp import web
 
 from constants import DEFAULT_RESPONSE_LANGUAGE
@@ -8,6 +7,7 @@ from endpoints.validate_request import InvalidRequestError, validate_post_reques
 from notifications.notify import send_silent_message, notify
 from usosapi.usosapi import *
 from firebase_admin import exceptions
+from utils.firestore import user_exists, usos_account_exists, delete_usos_account
 
 
 async def get_usos_auth_url(request):
@@ -90,11 +90,10 @@ async def link_usos_account(request):
         notify(token_fcm, loc.get('hello_usos_notification_title', device_language), loc.get('hello_usos_notification_body', device_language))
         logging.info(f"USOS account ({usos_id}) successfully linked to {student_number}")
 
-        data = {
+        return web.json_response(status=200, data={
             'user_token': user_token,
             'firstname': firstname
-        }
-        return web.json_response(status=200, data=data)
+        })
 
     except InvalidRequestError as e:
         logging.error(f"Invalid request received: {e}")
@@ -121,24 +120,21 @@ async def unlink_usos_account(request):
         logging.info(f"Attempting to unlink USOS account for user: {user_token}")
 
         # Check if user exists
-        user = await db.collection('users').where('token', '==', user_token).get()
+        user = await user_exists(db, token=user_token)
         if not user:
             logging.info(f"Such user does not exist")
             return web.Response(status=200, text=loc.get('user_not_found_info', device_language))
-        user = user[0]
 
         # Check if user has linked USOS account
-        usos_account = await user.reference.collection('usos_account').get()
+        usos_account = await usos_account_exists(user.reference)
         if not usos_account:
             logging.info(f"User has no linked USOS account")
             return web.Response(status=200, text=loc.get('no_usos_account_linked_info', device_language))
-        usos_account = usos_account[0]
-        usos_id = usos_account.id
 
         # Delete USOS Account
-        await usos_account.reference.delete()
+        await delete_usos_account(usos_account.reference)
 
-        logging.info(f"Unlinked USOS account ({usos_id}) for user: {user.id}")
+        logging.info(f"Unlinked USOS account ({usos_account.id}) for user: {user.id}")
         return web.Response(status=200, text=loc.get('usos_account_successfully_unlinked_info', device_language))
 
     except InvalidRequestError as e:
@@ -159,21 +155,18 @@ async def get_usos_link_status(request):
         logging.info(f"Attempting to check USOS account link status for user: {user_token}")
 
         # Check if user exists
-        user = await db.collection('users').where('token', '==', user_token).get()
+        user = await user_exists(db, token=user_token)
         if not user:
             logging.info(f"No such user")
             return web.Response(status=200, text='0')
-        user = user[0]
 
         # Check if user has linked USOS account
-        usos_account = await user.reference.collection('usos_account').get()
+        usos_account = await usos_account_exists(user.reference)
         if not usos_account:
             logging.info(f"User has no linked USOS account")
             return web.Response(status=200, text='0')
-        usos_account = usos_account[0]
 
         # Fetch USOS auth data
-        usos_account_id = usos_account.id
         usos_access_token = usos_account.get('access_token')
         usos_access_token_secret = usos_account.get('access_token_secret')
 
@@ -183,11 +176,11 @@ async def get_usos_link_status(request):
 
         except USOSAPIAuthorizationError:
             # Tokens expired, unlink USOS account
-            logging.info(f"USOSAPI access tokens expired")
-            usos_account.reference.delete()
+            logging.info(f"USOSAPI access tokens expired for {usos_account.ic}. Unlinking USOS account")
+            await delete_usos_account(usos_account.reference)
             return web.Response(status=200, text='0')
 
-        logging.info(f"USOS account ({usos_account_id}) is linked with user: {user.id}")
+        logging.info(f"USOS account ({usos_account.id}) is linked with user: {user.id}")
         return web.Response(status=200, text='1')
     
     except InvalidRequestError as e:

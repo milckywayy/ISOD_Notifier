@@ -23,3 +23,12 @@ async def isod_account_exists(user_ref):
 async def delete_isod_account(isod_account_ref):
     await delete_collection(isod_account_ref.collection('isod_news'))
     await isod_account_ref.delete()
+
+
+async def usos_account_exists(user_ref):
+    usos_account = await user_ref.collection('usos_account').get()
+    return usos_account[0] if usos_account else None
+
+
+async def delete_usos_account(usos_account_ref):
+    await usos_account_ref.delete()

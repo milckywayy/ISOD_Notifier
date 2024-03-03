@@ -36,7 +36,7 @@ async def logout_from_all_other_devices(request):
     device_language = 'en'
 
     try:
-        data = await validate_post_request(request, ['user_token'])
+        data = await validate_post_request(request, ['user_token', 'token_fcm'])
         user_token = data['user_token']
         device_token = data['token_fcm']
 
