@@ -42,7 +42,7 @@ async def logout_from_all_other_devices(request):
         data = await validate_post_request(request, ['user_token'])
         user_token = data['user_token']
 
-        logging.info(f"Attempting to remove all user data from device: {user_token}")
+        logging.info(f"Attempting to logout user from all devices except: {user_token}")
 
         # Check if user exists
         user = await db.collection('users').where('token', '==', user_token).get()
@@ -76,7 +76,7 @@ async def delete_user_data(request):
         data = await validate_post_request(request, ['user_token'])
         user_token = data['user_token']
 
-        logging.info(f"Attempting to logout user from all devices except: {user_token}")
+        logging.info(f"Attempting to remove all user data from device: {user_token}")
 
         # Check if user exists
         user = await db.collection('users').where('token', '==', user_token).get()
@@ -86,10 +86,28 @@ async def delete_user_data(request):
         user = user[0]
         student_number = user.id
 
-        # Delete user data
+        # Delete user devices
+        devices_collection = await user.reference.collection('devices').get()
+        for doc in devices_collection:
+            await doc.reference.delete()
+
+        # Delete ISOD account
+        isod_account = await user.reference.collection('isod_account').get()
+        if isod_account:
+            isod_account = isod_account[0]
+
+            # Delete ISOD news
+            isod_news_collection = await isod_account.reference.collection('isod_news').get()
+            for doc in isod_news_collection:
+                await doc.reference.delete()
+
+            # Delete ISOD account
+            await isod_account.reference.delete()
+
+        # Delete user
         await user.reference.delete()
 
-        logging.info(f"Logged out {student_number} from all other devices")
+        logging.info(f"Successfully removed all {student_number}'s data")
         return web.Response(status=200, text=loc.get('all_user_data_successfully_removed_info', device_language))
 
     except InvalidRequestError as e:

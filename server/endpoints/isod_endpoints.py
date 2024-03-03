@@ -56,7 +56,7 @@ async def link_isod_account(request):
         })
 
         # Add user news
-        news_collection = db.collection('users').document(student_number).collection('isod_news')
+        news_collection = db.collection('users').document(student_number).collection('isod_account').document(isod_username).collection('isod_news')
 
         async def save_news(news_hash, news_type):
             await news_collection.document(news_hash).set({
@@ -130,6 +130,11 @@ async def unlink_isod_account(request):
         isod_account = isod_account[0]
         isod_username = isod_account.id
 
+        # Delete ISOD news
+        isod_news_collection = await isod_account.reference.collection('isod_news').get()
+        for doc in isod_news_collection:
+            await doc.reference.delete()
+
         # Delete ISOD Account
         await isod_account.reference.delete()
 
@@ -179,6 +184,13 @@ async def get_isod_link_status(request):
             if e.status == 400:
                 # Key expired, unlink ISOD account
                 logging.info(f"ISOD api key expired")
+
+                # Delete ISOD news
+                isod_news_collection = await isod_account.reference.collection('isod_news').get()
+                for doc in isod_news_collection:
+                    await doc.reference.delete()
+
+                # Delete ISOD account
                 isod_account.reference.delete()
                 return web.Response(status=200, text='0')
 

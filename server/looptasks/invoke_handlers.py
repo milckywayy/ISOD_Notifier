@@ -10,5 +10,5 @@ async def invoke_handlers(app):
     session = app['http_session']
     usosapi = app['usosapi_session']
 
-    app['isod_news_handler_task'] = asyncio.create_task(isod_news_handler(loc, db, session))
+    app['isod_news_handler_task'] = asyncio.create_task(isod_news_handler(db, loc, session))
     app['cleanup_usos_sessions_task'] = asyncio.create_task(cleanup_usos_sessions(usosapi))

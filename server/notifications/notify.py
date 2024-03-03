@@ -4,8 +4,8 @@ from firebase_admin import messaging
 
 def notify(token, title, body, url=None, news_hash=None):
     data = {
-        'url': url if url is not None else {},
-        'news_hash': news_hash if news_hash is not None else {}
+        'url': url if url is not None else '',
+        'news_hash': news_hash if news_hash is not None else ''
     }
 
     message = messaging.Message(
