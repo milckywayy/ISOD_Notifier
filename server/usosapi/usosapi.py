@@ -1,3 +1,4 @@
+import logging
 import time
 import rauth
 
@@ -117,5 +118,9 @@ class USOSAPISession:
         expired_tokens = [token for token, details in self.auth_sessions.items() if
                           current_time - details['timestamp'] > expiration_time]
 
+        expired_sessions_count = 0
         for token in expired_tokens:
             del self.auth_sessions[token]
+            expired_sessions_count += 1
+
+        logging.info(f"Removed {expired_sessions_count} expired sessions")
