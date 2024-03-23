@@ -44,8 +44,10 @@ async def link_isod_account(request):
         # Get user data
         response = await async_get_request(session, ISOD_PORTAL_URL + f'/wapi?q=mynewsheaders&username={isod_username}&apikey={isod_api_key}&from=0&to=10')
         news_hashes = [(item['hash'], item['type']) for item in response['items']]
-        usos_id = response['usosId']
         firstname = response['firstname']
+        usos_id = response.get('usosId')
+        if usos_id is None:
+            return web.Response(status=400, text=loc.get('user_has_no_usos_id_in_isod', device_language))
 
         # Add user
         user_token = await create_user(db, usos_id, firstname)

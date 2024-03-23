@@ -19,6 +19,7 @@
         <errors>
             <string key="isod_server_error">ISOD server error</string>
             <string key="invalid_isod_auth_data_error">Invalid username or API key</string>
+            <string key="user_has_no_usos_id_in_isod">User has no USOS id in ISOD</string>
         </errors>
     </ISOD>
 
