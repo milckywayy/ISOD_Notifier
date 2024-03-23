@@ -50,8 +50,6 @@
 
     <!-- What's new popup -->
     <string name="whats_new_title">What\'s new?</string>
-    <string name="whats_new_line1">added contact button</string>
-    <string name="whats_new_line2">updated app info</string>
-    <string name="whats_new_line3">fixed filter button color</string>
+    <string name="whats_new_line1">fixed a bug in the app information</string>
     <string name="whats_new_dismiss_button_text">Dismiss</string>
 </resources>

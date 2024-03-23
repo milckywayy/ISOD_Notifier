@@ -13,8 +13,8 @@
     <!-- App info popup -->
     <string name="app_info_title">Więcej o ISOD Notifier</string>
     <string name="app_info_line1">Autor: Mikołaj Frączek, WRS EE</string>
-    <string name="app_info_line3">Wsparcie:</string>
-    <string name="app_info_line2">Wersja aplikacji:</string>
+    <string name="app_info_line2">Wsparcie:</string>
+    <string name="app_info_line3">Wersja aplikacji:</string>
     <string name="app_info_contact_button_text">Kontakt</string>
     <string name="app_info_dismiss_button_text">Zamknij</string>
 
@@ -45,8 +45,6 @@
 
     <!-- What's new popup -->
     <string name="whats_new_title">Co nowego?</string>
-    <string name="whats_new_line2">dodano przycisk kontaktu z twórcą</string>
-    <string name="whats_new_line3">zaktualizowano informacje o aplikacji</string>
-    <string name="whats_new_line1">naprawiono kolor przycisku filtrowania</string>
+    <string name="whats_new_line1">naprawiono błąd w informacjach o aplikacji</string>
     <string name="whats_new_dismiss_button_text">Zamknij</string>
 </resources>

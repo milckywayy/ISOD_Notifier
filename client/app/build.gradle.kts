@@ -12,8 +12,8 @@ android {
         applicationId = "pl.edu.pw.ee.isod_notifier"
         minSdk = 22
         targetSdk = 34
-        versionCode = 10
-        versionName = "1.0"
+        versionCode = 11
+        versionName = "1.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -52,7 +52,7 @@ dependencies {
     implementation ("com.squareup.okhttp3:okhttp:5.0.0-alpha.3")
     implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
     implementation ("com.google.firebase:firebase-messaging-ktx:23.4.1")
-    implementation ("androidx.compose.material:material-icons-extended:1.6.1")
+    implementation ("androidx.compose.material:material-icons-extended:1.6.4")
     implementation ("com.google.accompanist:accompanist-drawablepainter:0.28.0")
 
     implementation("androidx.core:core-ktx:1.12.0")
