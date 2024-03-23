@@ -66,8 +66,8 @@ async def link_usos_account(request):
             'services/users/user',
             fields='id|first_name'
         )
-        usos_id = user_data.get('id')
-        firstname = user_data.get('first_name')
+        usos_id = user_data['id']
+        firstname = user_data['first_name']
 
         # Create user
         user_token = await create_user(db, usos_id, firstname)
@@ -97,6 +97,10 @@ async def link_usos_account(request):
     except InvalidRequestError as e:
         logging.error(f"Invalid request received: {e}")
         return web.Response(status=400, text=loc.get('invalid_input_data_error', device_language))
+
+    except KeyError as e:
+        logging.error(f"Invalid data received from external service: {e}")
+        return web.Response(status=502, text=loc.get('invalid_data_received_form_external_service', device_language))
 
     except exceptions.FirebaseError as e:
         logging.error(f"Invalid FCM token given during USOS auth: {e}")

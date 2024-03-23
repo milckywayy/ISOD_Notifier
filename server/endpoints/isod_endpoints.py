@@ -90,6 +90,10 @@ async def link_isod_account(request):
         logging.error(f"Invalid request received: {e}")
         return web.Response(status=400, text=loc.get('invalid_input_data_error', device_language))
 
+    except KeyError as e:
+        logging.error(f"Invalid data received from external service: {e}")
+        return web.Response(status=502, text=loc.get('invalid_data_received_form_external_service', device_language))
+
     except exceptions.FirebaseError as e:
         logging.error(f"Invalid FCM token given during ISOD auth: {e}")
         return web.Response(status=400, text=loc.get('invalid_fcm_token_error', device_language))
@@ -185,6 +189,10 @@ async def get_isod_link_status(request):
     except InvalidRequestError as e:
         logging.error(f"Invalid request received: {e}")
         return web.Response(status=400, text=loc.get('invalid_input_data_error', device_language))
+
+    except KeyError as e:
+        logging.error(f"Invalid data received from external service: {e}")
+        return web.Response(status=502, text=loc.get('invalid_data_received_form_external_service', device_language))
 
     except aiohttp.ClientResponseError as e:
         logging.error(f"HTTP error during ISOD status check (bad request or ISOD credentials): {e}")

@@ -59,6 +59,7 @@
             <string key="internal_server_error">Internal server error</string>
             <string key="invalid_input_data_error">Invalid data given</string>
             <string key="invalid_fcm_token_error">Invalid FCM token given</string>
+            <string key="invalid_data_received_form_external_service">Invalid data received from external service</string>
         </errors>
     </Global>
 </strings>
