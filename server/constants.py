@@ -3,6 +3,7 @@ SERVICE_PORT = 8080
 ISOD_PORTAL_URL = "https://isod.ee.pw.edu.pl/isod-portal"
 DEFAULT_NOTIFICATION_URL = "https://isod.ee.pw.edu.pl/isod-stud/"
 EE_USOS_ID = '104000'
+EE_USOS_ID_IN_COURSE = '1040'
 DEFAULT_RESPONSE_LANGUAGE = 'en'
 
 CLEANUP_USOS_SESSIONS_INTERVAL = 60 * 60 * 12  # 12h

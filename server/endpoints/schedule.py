@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from aiohttp import web
 
 from asynchttp.async_http_request import async_get_request
-from constants import ISOD_PORTAL_URL, EE_USOS_ID
+from constants import ISOD_PORTAL_URL, EE_USOS_ID, EE_USOS_ID_IN_COURSE
 from endpoints.validate_request import InvalidRequestError, validate_post_request
 from utils.classtypes import convert_isod_to_usos_classtype
 from utils.firestore import user_exists, usos_account_exists, isod_account_exists
@@ -83,7 +83,7 @@ def format_usos_schedule(input_data):
             "startTime": start_time,
             "endTime": end_time,
             "name": {"pl": item['name']['pl'].split(' - ')[0], "en": item['name']['en'].split(' - ')[0]},
-            "courseId": item['course_id'].replace('1040-IN-ISP-', ''),
+            "courseId": item['course_id'][item['course_id'].rfind('-')+1:] if item['course_id'].startswith(EE_USOS_ID_IN_COURSE) else item['course_id'],
             "typeOfClasses": item['classtype_id'],
             "building": item['building_id'].split('-')[1],
             "room": item['room_number'],
