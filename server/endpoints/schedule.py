@@ -5,6 +5,7 @@ from aiohttp import web
 from asynchttp.async_http_request import async_get_request
 from constants import ISOD_PORTAL_URL, EE_USOS_ID
 from endpoints.validate_request import InvalidRequestError, validate_post_request
+from utils.classtypes import convert_isod_to_usos_classtype
 from utils.firestore import user_exists, usos_account_exists, isod_account_exists
 
 
@@ -47,7 +48,7 @@ def format_isod_schedule(data):
             "endTime": convert_time(item['endTime'], '%I:%M:%S %p'),
             "name": {"pl": item['courseName'], "en": item['courseName']},
             "courseId": item['courseNumber'],
-            "typeOfClasses": item['typeOfClasses'],
+            "typeOfClasses": convert_isod_to_usos_classtype(item['typeOfClasses']),
             "building": item['buildingShort'],
             "room": item['room'],
             "note": item['notesTeachers'] if 'notesTeachers' in item else '',

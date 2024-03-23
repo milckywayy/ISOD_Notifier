@@ -13,3 +13,16 @@ ISOD_NEWS_CHECK_INTERVALS = {
     (16, 22): 120,  # 16:00 - 21:59 | 2 min
     (22, 24): 600,  # 22:00 - 23:59 | 10 min
 }
+
+CLASSTYPE_ISOD_TO_USOS = {
+    'W': 'WYK',
+    'C': 'CWI',
+    'L': 'LAB',
+    'P': 'PRO'
+}
+CLASSTYPE_USOS_TO_ISOD = {
+    'WYK': 'W',
+    'CWI': 'C',
+    'LAB': 'L',
+    'PRO': 'P'
+}
