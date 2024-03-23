@@ -44,20 +44,20 @@ async def link_isod_account(request):
         # Get user data
         response = await async_get_request(session, ISOD_PORTAL_URL + f'/wapi?q=mynewsheaders&username={isod_username}&apikey={isod_api_key}&from=0&to=10')
         news_hashes = [(item['hash'], item['type']) for item in response['items']]
-        student_number = response['studentNo']
+        usos_id = response['usosId']
         firstname = response['firstname']
 
         # Add user
-        user_token = await create_user(db, student_number, firstname)
+        user_token = await create_user(db, usos_id, firstname)
 
         # Link ISOD account (username, api key)
-        await db.collection('users').document(student_number).collection('isod_account').document(isod_username).set({
+        await db.collection('users').document(usos_id).collection('isod_account').document(isod_username).set({
             'isod_api_key': isod_api_key,
             'news_fingerprint': news_fingerprint,
         })
 
         # Add user news
-        news_collection = db.collection('users').document(student_number).collection('isod_account').document(isod_username).collection('isod_news')
+        news_collection = db.collection('users').document(usos_id).collection('isod_account').document(isod_username).collection('isod_news')
 
         async def save_news(news_hash, news_type):
             await news_collection.document(news_hash).set({
@@ -69,7 +69,7 @@ async def link_isod_account(request):
         await asyncio.gather(*tasks)
 
         # Add device
-        await db.collection('users').document(student_number).collection('devices').document(token_fcm).set({
+        await db.collection('users').document(usos_id).collection('devices').document(token_fcm).set({
             'app_version': app_version,
             'news_filter': news_filter,
             'language': device_language,
@@ -77,7 +77,7 @@ async def link_isod_account(request):
 
         # Confirm successful link
         notify(token_fcm, loc.get('hello_isod_notification_title', device_language), loc.get('hello_isod_notification_body', device_language))
-        logging.info(f"ISOD account ({isod_username}) successfully linked to {student_number}")
+        logging.info(f"ISOD account ({isod_username}) successfully linked to {usos_id}")
 
         return web.json_response(status=200, data={
             'user_token': user_token,

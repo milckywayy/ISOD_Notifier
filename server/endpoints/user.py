@@ -10,19 +10,19 @@ def generate_new_user_token():
     return secrets.token_hex(32)
 
 
-async def create_user(db, index, firstname):
-    user = await user_exists(db, index=index)
+async def create_user(db, usos_id, firstname):
+    user = await user_exists(db, usos_id=usos_id)
     if user:
         # Get token from db
-        logging.info(f"Such user already exists: {index}")
+        logging.info(f"Such user already exists: {usos_id}")
         user_token = user.get('token')
     else:
         # Add user and generate new token
-        logging.info(f"Adding new user: {index}")
+        logging.info(f"Adding new user: {usos_id}")
         user_token = generate_new_user_token()
 
         # Add user (index, name)
-        await db.collection('users').document(index).set({
+        await db.collection('users').document(usos_id).set({
             'first_name': firstname,
             'token': user_token,
         })

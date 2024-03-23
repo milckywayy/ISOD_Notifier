@@ -5,12 +5,12 @@ async def delete_collection(collection_ref):
         await doc.reference.delete()
 
 
-async def user_exists(db, token=None, index=None):
+async def user_exists(db, token=None, usos_id=None):
     if token:
         user = await db.collection('users').where('token', '==', token).get()
         return user[0] if user else None
-    elif index:
-        user = await db.collection('users').document(index).get()
+    elif usos_id:
+        user = await db.collection('users').document(usos_id).get()
         return user if user.exists else None
     return None
 

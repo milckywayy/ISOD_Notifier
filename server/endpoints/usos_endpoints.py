@@ -64,23 +64,22 @@ async def link_usos_account(request):
         access_token, access_token_secret = usosapi.get_access_data()
         user_data = usosapi.fetch_from_service(
             'services/users/user',
-            fields='id|first_name|student_number'
+            fields='id|first_name'
         )
         usos_id = user_data.get('id')
         firstname = user_data.get('first_name')
-        student_number = user_data.get('student_number')
 
         # Create user
-        user_token = await create_user(db, student_number, firstname)
+        user_token = await create_user(db, usos_id, firstname)
 
         # Link USOS account (access_token, access_token_secret)
-        await db.collection('users').document(student_number).collection('usos_account').document(usos_id).set({
+        await db.collection('users').document(usos_id).collection('usos_account').document(usos_id).set({
             'access_token': access_token,
             'access_token_secret': access_token_secret,
         })
 
         # Add device
-        await db.collection('users').document(student_number).collection('devices').document(token_fcm).set({
+        await db.collection('users').document(usos_id).collection('devices').document(token_fcm).set({
             'app_version': app_version,
             'news_filter': news_filter,
             'language': device_language,
@@ -88,7 +87,7 @@ async def link_usos_account(request):
 
         # Confirm successful link
         notify(token_fcm, loc.get('hello_usos_notification_title', device_language), loc.get('hello_usos_notification_body', device_language))
-        logging.info(f"USOS account ({usos_id}) successfully linked to {student_number}")
+        logging.info(f"USOS account ({usos_id}) successfully linked to {usos_id}")
 
         return web.json_response(status=200, data={
             'user_token': user_token,
