@@ -3,11 +3,11 @@ from datetime import datetime, timedelta
 from aiohttp import web
 
 from asynchttp.async_http_request import async_get_request
-from constants import ISOD_PORTAL_URL, EE_USOS_ID, EE_USOS_ID_IN_COURSE
+from constants import ISOD_PORTAL_URL, EE_USOS_ID, EE_USOS_ID_IN_COURSE, DEFAULT_RESPONSE_LANGUAGE
 from endpoints.validate_request import InvalidRequestError, validate_post_request
 from utils.classtypes import convert_isod_to_usos_classtype
 from utils.firestore import user_exists, usos_account_exists, isod_account_exists
-from utils.studies import convert_usos_to_isod_course_id
+from utils.studies import convert_usos_to_isod_course_id, trim_usos_course_name
 
 
 def get_week_start_end():
@@ -47,7 +47,7 @@ def format_isod_schedule(data):
         lesson = {
             "startTime": convert_time(item['startTime'], '%I:%M:%S %p'),
             "endTime": convert_time(item['endTime'], '%I:%M:%S %p'),
-            "name": {"pl": item['courseName'], "en": item['courseName']},
+            "name": item['courseName'],
             "courseId": item['courseNumber'],
             "typeOfClasses": convert_isod_to_usos_classtype(item['typeOfClasses']),
             "building": item['buildingShort'],
@@ -65,7 +65,7 @@ def format_isod_schedule(data):
     return formatted_data
 
 
-def format_usos_schedule(input_data):
+def format_usos_schedule(input_data, language):
     formatted_data = {"classes": []}
     days = {}
 
@@ -83,7 +83,7 @@ def format_usos_schedule(input_data):
         lesson = {
             "startTime": start_time,
             "endTime": end_time,
-            "name": {"pl": item['name']['pl'].split(' - ')[0], "en": item['name']['en'].split(' - ')[0]},
+            "name": trim_usos_course_name(item['name'][language]),
             "courseId": convert_usos_to_isod_course_id(item['course_id']),
             "typeOfClasses": item['classtype_id'],
             "building": item['building_id'].split('-')[1],
@@ -116,7 +116,7 @@ def read_days_off(date_ranges):
     return list(days_of_week)
 
 
-def merge_schedules(isod_schedule, usos_schedule, days_off):
+def merge_schedules(isod_schedule, usos_schedule, days_off, language):
     if isod_schedule == '' and usos_schedule == '':
         raise RuntimeError("At least one account should be linked in order to create schedule")
 
@@ -129,7 +129,7 @@ def merge_schedules(isod_schedule, usos_schedule, days_off):
     final_schedule = {'classes': []}
     days_off = read_days_off(days_off)
     isod_schedule = format_isod_schedule(isod_schedule)
-    usos_schedule = format_usos_schedule(usos_schedule)
+    usos_schedule = format_usos_schedule(usos_schedule, language)
     isod_days = {day['dayOfWeek']: day for day in isod_schedule['classes']}
     usos_days = {day['dayOfWeek']: day for day in usos_schedule['classes']}
 
@@ -167,11 +167,12 @@ async def get_student_schedule(request):
     db = request.app['database_manager']
     session = request.app['http_session']
     usosapi = request.app['usosapi_session']
-    device_language = 'en'
+    device_language = DEFAULT_RESPONSE_LANGUAGE
 
     try:
         data = await validate_post_request(request, ['user_token'])
         user_token = data['user_token']
+        device_language = loc.validate_language(data.get('language'))
 
         logging.info(f"Attempting to create student schedule")
 
@@ -206,7 +207,7 @@ async def get_student_schedule(request):
             days_off = usosapi.fetch_from_service('services/calendar/search', faculty_id=EE_USOS_ID, start_date=monday, end_date=friday, fields='start_date|end_date')
 
         # Merge schedules
-        final_schedule = merge_schedules(isod_schedule, usos_schedule, days_off)
+        final_schedule = merge_schedules(isod_schedule, usos_schedule, days_off, device_language)
 
         logging.info(f"Created schedule for student: {user.id}")
         return web.json_response(status=200, data=final_schedule)

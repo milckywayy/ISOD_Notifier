@@ -2,6 +2,7 @@ import logging
 import secrets
 from aiohttp import web
 
+from constants import DEFAULT_RESPONSE_LANGUAGE
 from endpoints.validate_request import validate_post_request, InvalidRequestError
 from utils.firestore import delete_collection, user_exists, isod_account_exists, delete_isod_account
 
@@ -33,12 +34,13 @@ async def create_user(db, usos_id, firstname):
 async def logout_from_all_other_devices(request):
     loc = request.app['localization_manager']
     db = request.app['database_manager']
-    device_language = 'en'
+    device_language = DEFAULT_RESPONSE_LANGUAGE
 
     try:
         data = await validate_post_request(request, ['user_token', 'token_fcm'])
         user_token = data['user_token']
         device_token = data['token_fcm']
+        device_language = loc.validate_language(data.get('language'))
 
         logging.info(f"Attempting to logout user from all devices except: {user_token}")
 
@@ -71,11 +73,12 @@ async def logout_from_all_other_devices(request):
 async def delete_user_data(request):
     loc = request.app['localization_manager']
     db = request.app['database_manager']
-    device_language = 'en'
+    device_language = DEFAULT_RESPONSE_LANGUAGE
 
     try:
         data = await validate_post_request(request, ['user_token'])
         user_token = data['user_token']
+        device_language = loc.validate_language(data.get('language'))
 
         logging.info(f"Attempting to remove all user data from device: {user_token}")
 

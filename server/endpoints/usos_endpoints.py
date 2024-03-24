@@ -16,7 +16,8 @@ async def get_usos_auth_url(request):
     device_language = DEFAULT_RESPONSE_LANGUAGE
 
     try:
-        await validate_post_request(request, [])
+        data = await validate_post_request(request, [])
+        device_language = loc.validate_language(data.get('language'))
 
         logging.info(f"Request for USOSAPI auth url")
         request_token, request_url = usosapi.get_auth_url()
@@ -119,6 +120,7 @@ async def unlink_usos_account(request):
     try:
         data = await validate_post_request(request, ['user_token'])
         user_token = data['user_token']
+        device_language = loc.validate_language(data.get('language'))
 
         logging.info(f"Attempting to unlink USOS account for user: {user_token}")
 
@@ -154,6 +156,7 @@ async def get_usos_link_status(request):
     try:
         data = await validate_post_request(request, ['user_token'])
         user_token = data['user_token']
+        device_language = loc.validate_language(data.get('language'))
 
         logging.info(f"Attempting to check USOS account link status for user: {user_token}")
 

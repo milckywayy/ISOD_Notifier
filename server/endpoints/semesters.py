@@ -1,13 +1,16 @@
 import logging
 
 from aiohttp import web
+
+from constants import DEFAULT_RESPONSE_LANGUAGE
+from endpoints.validate_request import validate_post_request
 from utils.studies import get_current_semester
 
 
 async def get_semesters(request):
     loc = request.app['localization_manager']
     usosapi = request.app['usosapi_session']
-    device_language = 'en'
+    device_language = DEFAULT_RESPONSE_LANGUAGE
 
     def calculate_previous_semesters(current_id, count=10):
         semesters = []
@@ -24,6 +27,9 @@ async def get_semesters(request):
         return semesters
 
     try:
+        data = await validate_post_request(request, [])
+        device_language = loc.validate_language(data.get('language'))
+
         semester = get_current_semester(usosapi)
         all_semesters = calculate_previous_semesters(semester)
 

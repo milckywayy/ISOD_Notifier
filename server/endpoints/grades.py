@@ -4,7 +4,7 @@ import aiohttp
 from aiohttp import web
 
 from asynchttp.async_http_request import async_get_request
-from constants import ISOD_PORTAL_URL
+from constants import ISOD_PORTAL_URL, DEFAULT_RESPONSE_LANGUAGE
 from endpoints.validate_request import validate_post_request, InvalidRequestError
 from usosapi.usosapi import USOSAPIAuthorizationError
 from utils.classtypes import convert_usos_to_isod_classtype
@@ -133,7 +133,7 @@ async def get_student_grades(request):
     db = request.app['database_manager']
     session = request.app['http_session']
     usosapi = request.app['usosapi_session']
-    device_language = 'en'
+    device_language = DEFAULT_RESPONSE_LANGUAGE
 
     try:
         data = await validate_post_request(request, ['user_token', 'course_id', 'classtype'])
@@ -141,6 +141,7 @@ async def get_student_grades(request):
         course_id = data['course_id']
         classtype = data['classtype']
         semester = data['semester']
+        device_language = loc.validate_language(data.get('language'))
 
         logging.info(f"Attempting to read student grades for course {course_id}")
 

@@ -1,3 +1,5 @@
+from constants import DEFAULT_RESPONSE_LANGUAGE
+
 
 async def delete_collection(collection_ref):
     docs = await collection_ref.get()
@@ -32,3 +34,15 @@ async def usos_account_exists(user_ref):
 
 async def delete_usos_account(usos_account_ref):
     await usos_account_ref.delete()
+
+
+async def get_device_language(user_ref, device_token):
+    if device_token is None:
+        return DEFAULT_RESPONSE_LANGUAGE
+
+    device = await user_ref.collection('devices').document(device_token).get()
+
+    if not device:
+        return DEFAULT_RESPONSE_LANGUAGE
+
+    return device.get('language')

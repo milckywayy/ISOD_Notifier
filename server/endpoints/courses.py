@@ -4,12 +4,12 @@ import aiohttp
 from aiohttp import web
 
 from asynchttp.async_http_request import async_get_request
-from constants import ISOD_PORTAL_URL
+from constants import ISOD_PORTAL_URL, DEFAULT_RESPONSE_LANGUAGE
 from endpoints.validate_request import validate_post_request, InvalidRequestError
 from usosapi.usosapi import USOSAPIAuthorizationError
 from utils.classtypes import convert_isod_to_usos_classtype
-from utils.firestore import user_exists, isod_account_exists, usos_account_exists
-from utils.studies import convert_usos_to_isod_course_id
+from utils.firestore import user_exists, isod_account_exists, usos_account_exists, get_device_language
+from utils.studies import convert_usos_to_isod_course_id, trim_usos_course_name
 
 
 def format_isod_courses(isod_courses):
@@ -38,7 +38,7 @@ def format_isod_courses(isod_courses):
     return reformatted_courses
 
 
-def format_usos_courses(usos_courses, semester):
+def format_usos_courses(usos_courses, semester, language):
     courses = usos_courses['groups'].get(semester, [])
 
     reformatted_courses = {
@@ -53,7 +53,7 @@ def format_usos_courses(usos_courses, semester):
             processed_courses.add(course_id)
 
             course_info = {
-                'name': course['course_name']['pl'],
+                'name': trim_usos_course_name(course['course_name'][language]),
                 'course_id': convert_usos_to_isod_course_id(course_id),
                 'classes': [
                     {
@@ -80,7 +80,7 @@ async def read_isod_courses(session, isod_account, semester):
     return format_isod_courses(isod_courses)
 
 
-async def read_usos_courses(usosapi, usos_account, semester):
+async def read_usos_courses(usosapi, usos_account, semester, language):
     if not usos_account:
         return None
 
@@ -90,7 +90,7 @@ async def read_usos_courses(usosapi, usos_account, semester):
 
     usos_courses = usosapi.fetch_from_service('services/groups/user', fields='course_id|class_type_id')
 
-    return format_usos_courses(usos_courses, semester)
+    return format_usos_courses(usos_courses, semester, language)
 
 
 def add_envelope(courses, semester):
@@ -104,12 +104,13 @@ async def get_student_courses(request):
     db = request.app['database_manager']
     session = request.app['http_session']
     usosapi = request.app['usosapi_session']
-    device_language = 'en'
+    device_language = DEFAULT_RESPONSE_LANGUAGE
 
     try:
         data = await validate_post_request(request, ['user_token', 'semester'])
         user_token = data['user_token']
         semester = data['semester']
+        device_language = loc.validate_language(data.get('language'))
 
         logging.info(f"Attempting to create student course list")
 
@@ -125,7 +126,7 @@ async def get_student_courses(request):
 
         if usos_account:
             # Read USOS courses
-            course_list = await read_usos_courses(usosapi, usos_account, semester)
+            course_list = await read_usos_courses(usosapi, usos_account, semester, device_language)
         else:
             # Read ISOD courses
             course_list = await read_isod_courses(session, isod_account, semester)

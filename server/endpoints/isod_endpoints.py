@@ -118,6 +118,7 @@ async def unlink_isod_account(request):
     try:
         data = await validate_post_request(request, ['user_token'])
         user_token = data['user_token']
+        device_language = loc.validate_language(data.get('language'))
 
         logging.info(f"Attempting to unlink ISOD account for user: {user_token}")
 
@@ -153,6 +154,7 @@ async def get_isod_link_status(request):
     try:
         data = await validate_post_request(request, ['user_token'])
         user_token = data['user_token']
+        device_language = loc.validate_language(data.get('language'))
 
         logging.info(f"Attempting to check ISOD account link status for user: {user_token}")
 

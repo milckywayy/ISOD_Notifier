@@ -17,3 +17,8 @@ def is_usos_course(course_id):
 
 def convert_usos_to_isod_course_id(course_id):
     return course_id[course_id.rfind('-') + 1:] if is_usos_course(course_id) else course_id
+
+
+def trim_usos_course_name(course_name):
+    return course_name.split(' - ')[0]
+
