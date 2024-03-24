@@ -10,6 +10,7 @@ import ssl
 from constants import SERVICE_PORT
 from endpoints.grades import get_student_grades
 from endpoints.schedule import get_student_schedule
+from endpoints.semesters import get_semesters
 from endpoints.user import *
 from endpoints.usos_endpoints import *
 from endpoints.isod_endpoints import *
@@ -60,6 +61,7 @@ if __name__ == '__main__':
                     web.post('/get_usos_link_status', get_usos_link_status),
                     web.post('/logout_from_all_other_devices', logout_from_all_other_devices),
                     web.post('/delete_user_data', delete_user_data),
+                    web.post('/get_semesters', get_semesters),
                     web.post('/get_student_schedule', get_student_schedule),
                     web.post('/get_student_grades', get_student_grades)])
     app.on_startup.append(create_session)
