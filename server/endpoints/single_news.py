@@ -9,35 +9,38 @@ from endpoints.validate_request import validate_post_request, InvalidRequestErro
 from utils.firestore import user_exists, isod_account_exists
 
 
-async def read_isod_news(session, isod_account, news_list):
-    if news_list.get('news') is None:
-        news_list['news'] = []
-
+async def read_isod_news_body(session, isod_account, news_body, news_hash):
     if not isod_account:
-        return news_list
+        return news_body
 
     isod_username = isod_account.id
     isod_api_key = isod_account.get('isod_api_key')
 
-    isod_news = await async_get_request(session, ISOD_PORTAL_URL + f'/wapi?q=mynewsheaders&username={isod_username}&apikey={isod_api_key}&from=0&to=15')
+    isod_news = await async_get_request(session, ISOD_PORTAL_URL + f'/wapi?q=mynewsfull&username={isod_username}&apikey={isod_api_key}&hash={news_hash}')
 
-    for item in isod_news['items']:
-        date = item['modifiedDate'].split(' ')
+    body = isod_news['items']
+    if len(body) < 1:
+        return news_body
+    body = body[0]
 
-        news_item = {
-            'hash': item['hash'],
-            'subject': item['subject'],
-            'type': item['type'],
-            'day': date[0],
-            'hour': date[1]
-        }
+    news_body['subject'] = body['subject']
+    news_body['content'] = body['content']
+    news_body['date'] = body['modifiedDate']
+    news_body['who'] = body['modifiedBy']
 
-        news_list['news'].append(news_item)
-
-    return news_list
+    return news_body
 
 
-async def get_student_news(request):
+def add_envelope(news_body, news_hash):
+    if news_body is None:
+        news_body = {}
+
+    news_body['hash'] = news_hash
+
+    return news_body
+
+
+async def get_single_news(request):
     loc = request.app['localization_manager']
     db = request.app['database_manager']
     cache_manager = request.app['cache_manager']
@@ -45,15 +48,16 @@ async def get_student_news(request):
     device_language = DEFAULT_RESPONSE_LANGUAGE
 
     try:
-        data = await validate_post_request(request, ['user_token'])
+        data = await validate_post_request(request, ['user_token', 'news_hash'])
         user_token = data['user_token']
+        news_hash = data['news_hash']
         device_language = loc.validate_language(data.get('language'))
 
-        cache = await cache_manager.get('get_student_news', user_token, request)
+        cache = await cache_manager.get('get_single_news', user_token, request)
         if cache is not None:
             return web.json_response(status=200, data=cache)
 
-        logging.info(f"Attempting to create student news list")
+        logging.info(f"Attempting to get student news ({news_hash}) body")
 
         # Check if user exists
         user = await user_exists(db, token=user_token)
@@ -61,16 +65,18 @@ async def get_student_news(request):
             logging.error(f"Such user does not exist")
             return web.Response(status=400, text=loc.get('user_not_found_info', device_language))
 
-        news_list = {}
+        news_body = {}
 
-        # Fetch ISOD news
+        # Fetch ISOD news body
         isod_account = await isod_account_exists(user.reference)
         if isod_account:
-            news_list = await read_isod_news(session, isod_account, news_list)
+            news_body = await read_isod_news_body(session, isod_account, news_body, news_hash)
 
-        logging.info(f"Created news list for student: {user.id}")
-        await cache_manager.set('get_student_news', user_token, request, news_list, ttl=ENDPOINT_CACHE_TTL['NEWS'])
-        return web.json_response(status=200, data=news_list)
+        news_body = add_envelope(news_body, news_hash)
+
+        logging.info(f"Got news body for student: {user.id}")
+        await cache_manager.set('get_single_news', user_token, request, news_body, ttl=ENDPOINT_CACHE_TTL['NEWS_BODY'])
+        return web.json_response(status=200, data=news_body)
 
     except InvalidRequestError as e:
         logging.error(f"Invalid request received: {e}")
