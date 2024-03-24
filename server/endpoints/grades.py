@@ -93,6 +93,41 @@ def format_usos_grades(usosapi, usos_grades):
     return formatted_json
 
 
+async def get_isod_course_grades(session, isod_account, course_id, isod_classtype, semester):
+    if not isod_account:
+        return None, None
+
+    isod_username = isod_account.id
+    isod_api_key = isod_account.get('isod_api_key')
+
+    isod_courses = await async_get_request(session, ISOD_PORTAL_URL + f'/wapi?q=mycourses&username={isod_username}&apikey={isod_api_key}&semester={semester}')
+    isod_grades_id, final_grade = get_isod_grades_id(isod_courses, course_id, isod_classtype)
+
+    # Read grades from ISOD
+    if isod_grades_id is not None:
+        isod_grades = await async_get_request(session, ISOD_PORTAL_URL + f'/wapi?q=myclass&username={isod_username}&apikey={isod_api_key}&id={isod_grades_id}')
+        return final_grade, format_isod_grades(isod_grades)
+
+    return final_grade, None
+
+
+async def get_usos_course_grades(usosapi, usos_account, course_id, semester):
+    if not usos_account:
+        return None, None
+
+    usos_access_token = usos_account.get('access_token')
+    usos_access_token_secret = usos_account.get('access_token_secret')
+    usosapi.resume_session(usos_access_token, usos_access_token_secret)
+
+    usos_grades = usosapi.fetch_from_service('services/grades/course_edition2', course_id=course_id, term_id=semester)
+
+    if usos_grades['course_grades']:
+        final_grade = get_usos_final_grade(usos_grades)
+        return final_grade, format_usos_grades(usosapi, usos_grades)
+
+    return None, None
+
+
 async def get_student_grades(request):
     loc = request.app['localization_manager']
     db = request.app['database_manager']
@@ -119,45 +154,31 @@ async def get_student_grades(request):
             return web.Response(status=400, text=loc.get('user_not_found_info', device_language))
 
         isod_classtype = convert_usos_to_isod_classtype(classtype)
-        final_grade = ''
+        final_grade = None
         grades = {}
 
-        # Check if course is in ISOD
-        isod_account = await isod_account_exists(user.reference)
-        if isod_account:
-            isod_username = isod_account.id
-            isod_api_key = isod_account.get('isod_api_key')
-
-            isod_courses = await async_get_request(session, ISOD_PORTAL_URL + f'/wapi?q=mycourses&username={isod_username}&apikey={isod_api_key}&semester={semester}')
-            isod_grades_id, final_grade = get_isod_grades_id(isod_courses, course_id, isod_classtype)
-
-            # Read grades from ISOD
-            if isod_grades_id is not None:
-                isod_grades = await async_get_request(session, ISOD_PORTAL_URL + f'/wapi?q=myclass&username={isod_username}&apikey={isod_api_key}&id={isod_grades_id}')
-                grades = format_isod_grades(isod_grades)
-
-        # If course is not in ISOD, check USOS then
-        usos_account = await usos_account_exists(user.reference) if not grades else None
-        if usos_account:
-            usos_access_token = usos_account.get('access_token')
-            usos_access_token_secret = usos_account.get('access_token_secret')
-            usosapi.resume_session(usos_access_token, usos_access_token_secret)
-
-            usos_grades = usosapi.fetch_from_service('services/grades/course_edition2', course_id=course_id, term_id=semester)
-
-            if usos_grades['course_grades']:
-                final_grade = get_usos_final_grade(usos_grades)
-                grades = format_usos_grades(usosapi, usos_grades)
+        # Check if it's ISOD or USOS course
+        if course_id.startswith('1040'):
+            # Fetch grades from USOS
+            usos_account = await usos_account_exists(user.reference)
+            final_grade, grades = await get_usos_course_grades(usosapi, usos_account, course_id, semester)
+        else:
+            # Fetch grades from ISOD
+            isod_account = await isod_account_exists(user.reference)
+            final_grade, grades = await get_isod_course_grades(session, isod_account, course_id, isod_classtype, semester)
 
         if final_grade is None:
             final_grade = ''
+
+        if grades is None:
+            grades = {}
 
         if grades.get('items') is None:
             grades['items'] = []
 
         grades = add_envelope(grades, course_id, classtype, final_grade)
 
-        logging.info(f"Created grades json for student: {user.id}")
+        logging.info(f"Created grade list for student: {user.id}")
         return web.json_response(status=200, data=grades)
 
     except InvalidRequestError as e:
