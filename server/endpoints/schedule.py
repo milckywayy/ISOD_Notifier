@@ -7,6 +7,7 @@ from constants import ISOD_PORTAL_URL, EE_USOS_ID, EE_USOS_ID_IN_COURSE
 from endpoints.validate_request import InvalidRequestError, validate_post_request
 from utils.classtypes import convert_isod_to_usos_classtype
 from utils.firestore import user_exists, usos_account_exists, isod_account_exists
+from utils.studies import convert_usos_to_isod_course_id
 
 
 def get_week_start_end():
@@ -83,7 +84,7 @@ def format_usos_schedule(input_data):
             "startTime": start_time,
             "endTime": end_time,
             "name": {"pl": item['name']['pl'].split(' - ')[0], "en": item['name']['en'].split(' - ')[0]},
-            "courseId": item['course_id'][item['course_id'].rfind('-')+1:] if item['course_id'].startswith(EE_USOS_ID_IN_COURSE) else item['course_id'],
+            "courseId": convert_usos_to_isod_course_id(item['course_id']),
             "typeOfClasses": item['classtype_id'],
             "building": item['building_id'].split('-')[1],
             "room": item['room_number'],
@@ -204,7 +205,7 @@ async def get_student_schedule(request):
             usos_schedule = usosapi.fetch_from_service('services/tt/user', start=monday, days=5, fields='start_time|end_time|name|course_id|classtype_id|frequency|room_number|building_id')
             days_off = usosapi.fetch_from_service('services/calendar/search', faculty_id=EE_USOS_ID, start_date=monday, end_date=friday, fields='start_date|end_date')
 
-        # Integrate schedules
+        # Merge schedules
         final_schedule = merge_schedules(isod_schedule, usos_schedule, days_off)
 
         logging.info(f"Created schedule for student: {user.id}")

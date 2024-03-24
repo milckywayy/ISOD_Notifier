@@ -1,7 +1,6 @@
 import logging
 
 from aiohttp import web
-
 from utils.studies import get_current_semester
 
 

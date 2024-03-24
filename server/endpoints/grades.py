@@ -9,7 +9,7 @@ from endpoints.validate_request import validate_post_request, InvalidRequestErro
 from usosapi.usosapi import USOSAPIAuthorizationError
 from utils.classtypes import convert_usos_to_isod_classtype
 from utils.firestore import user_exists, isod_account_exists, usos_account_exists
-from utils.studies import get_current_semester
+from utils.studies import get_current_semester, is_usos_course
 
 
 def get_isod_grades_id(isod_courses, course_id, classtype):
@@ -158,7 +158,7 @@ async def get_student_grades(request):
         grades = {}
 
         # Check if it's ISOD or USOS course
-        if course_id.startswith('1040'):
+        if is_usos_course(course_id):
             # Fetch grades from USOS
             usos_account = await usos_account_exists(user.reference)
             final_grade, grades = await get_usos_course_grades(usosapi, usos_account, course_id, semester)
