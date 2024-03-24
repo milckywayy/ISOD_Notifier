@@ -11,6 +11,7 @@ from cache_manager.cache_manager import CacheManager
 from constants import SERVICE_PORT
 from endpoints.courses import get_student_courses
 from endpoints.grades import get_student_grades
+from endpoints.news import get_student_news
 from endpoints.schedule import get_student_schedule
 from endpoints.semesters import get_semesters
 from endpoints.user import *
@@ -70,7 +71,8 @@ if __name__ == '__main__':
                     web.post('/get_semesters', get_semesters),
                     web.post('/get_student_schedule', get_student_schedule),
                     web.post('/get_student_grades', get_student_grades),
-                    web.post('/get_student_courses', get_student_courses)])
+                    web.post('/get_student_courses', get_student_courses),
+                    web.post('/get_student_news', get_student_news)])
     app.on_startup.append(create_session)
     app.on_startup.append(invoke_handlers)
     app.on_cleanup.append(close_session)

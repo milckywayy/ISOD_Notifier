@@ -34,4 +34,5 @@ ENDPOINT_CACHE_TTL = {
     'GRADES': 60 * 30,              # 30 min
     'SEMESTERS': 60 * 60 * 24,      # 24 h
     'COURSES': 60 * 60 * 24,        # 24 h
+    'NEWS': 60 * 60 * 12,           # 12 h
 }

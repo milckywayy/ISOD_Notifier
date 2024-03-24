@@ -80,6 +80,7 @@ async def process_new_news(account, new_hashes_not_in_db, loc, cache_manager):
 
     user = await account.reference.parent.parent.get()
     await cache_manager.delete('get_student_grades', user.get('token'))
+    await cache_manager.delete('get_student_news', user.get('token'))
 
     tasks = [process_device(device, new_hashes_not_in_db, loc) async for device in user.reference.collection('devices').stream()]
     await asyncio.gather(*tasks, return_exceptions=True)
