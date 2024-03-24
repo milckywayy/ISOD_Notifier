@@ -11,12 +11,16 @@ def get_current_semester(usosapi):
     return response[0]['id']
 
 
-def is_usos_course(course_id):
+def is_course_from_ee_faculty(course_id):
+    return '-' not in course_id
+
+
+def is_usos_course_id(course_id):
     return course_id.startswith(EE_USOS_ID_IN_COURSE)
 
 
 def convert_usos_to_isod_course_id(course_id):
-    return course_id[course_id.rfind('-') + 1:] if is_usos_course(course_id) else course_id
+    return course_id[course_id.rfind('-') + 1:] if is_usos_course_id(course_id) else course_id
 
 
 def trim_usos_course_name(course_name):

@@ -9,7 +9,7 @@ from endpoints.validate_request import validate_post_request, InvalidRequestErro
 from usosapi.usosapi import USOSAPIAuthorizationError
 from utils.classtypes import convert_usos_to_isod_classtype
 from utils.firestore import user_exists, isod_account_exists, usos_account_exists
-from utils.studies import get_current_semester, is_usos_course
+from utils.studies import get_current_semester, is_usos_course_id, is_course_from_ee_faculty
 
 
 def get_isod_grades_id(isod_courses, course_id, classtype):
@@ -65,12 +65,12 @@ def get_usos_final_grade(usos_grades):
     return grade['value_symbol'] if grade is not None else ''
 
 
-def get_usos_grade_name(usosapi, grade_id):
+def get_usos_grade_name(usosapi, grade_id, language):
     grade_info = usosapi.fetch_from_service('services/examrep2/examrep', examrep_id=grade_id, fields='description')
-    return grade_info['description']['pl']
+    return grade_info['description'][language]
 
 
-def format_usos_grades(usosapi, usos_grades):
+def format_usos_grades(usosapi, usos_grades, language):
     formatted_json = {}
     items = []
 
@@ -80,7 +80,7 @@ def format_usos_grades(usosapi, usos_grades):
                 if value is None:
                     continue
 
-                name = get_usos_grade_name(usosapi, value['exam_id'])
+                name = get_usos_grade_name(usosapi, value['exam_id'], language)
 
                 item = {
                     'name': name,
@@ -111,7 +111,7 @@ async def get_isod_course_grades(session, isod_account, course_id, isod_classtyp
     return final_grade, None
 
 
-async def get_usos_course_grades(usosapi, usos_account, course_id, semester):
+async def get_usos_course_grades(usosapi, usos_account, course_id, semester, language):
     if not usos_account:
         return None, None
 
@@ -123,7 +123,7 @@ async def get_usos_course_grades(usosapi, usos_account, course_id, semester):
 
     if usos_grades['course_grades']:
         final_grade = get_usos_final_grade(usos_grades)
-        return final_grade, format_usos_grades(usosapi, usos_grades)
+        return final_grade, format_usos_grades(usosapi, usos_grades, language)
 
     return None, None
 
@@ -162,14 +162,14 @@ async def get_student_grades(request):
         isod_classtype = convert_usos_to_isod_classtype(classtype)
 
         # Check if it's ISOD or USOS course
-        if is_usos_course(course_id):
-            # Fetch grades from USOS
-            usos_account = await usos_account_exists(user.reference)
-            final_grade, grades = await get_usos_course_grades(usosapi, usos_account, course_id, semester)
-        else:
+        if is_course_from_ee_faculty(course_id):
             # Fetch grades from ISOD
             isod_account = await isod_account_exists(user.reference)
             final_grade, grades = await get_isod_course_grades(session, isod_account, course_id, isod_classtype, semester)
+        else:
+            # Fetch grades from USOS
+            usos_account = await usos_account_exists(user.reference)
+            final_grade, grades = await get_usos_course_grades(usosapi, usos_account, course_id, semester, device_language)
 
         if final_grade is None:
             final_grade = ''

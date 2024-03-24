@@ -7,7 +7,7 @@ import json
 import ssl
 
 from cache_manager.cache_manager import CacheManager
-from constants import SERVICE_PORT
+from constants import SERVICE_PORT, MAX_CACHE_SIZE, RATE_LIMITER_PERIOD, RATE_LIMITER_MAX_REQUESTS
 from endpoints.courses import get_student_courses
 from endpoints.grades import get_student_grades
 from endpoints.news import get_student_news
@@ -29,7 +29,7 @@ warnings.filterwarnings("ignore", message="Detected filter using positional argu
 
 async def create_session(app):
     app['localization_manager'] = loc
-    app['cache_manager'] = CacheManager()
+    app['cache_manager'] = CacheManager(max_cache_size=MAX_CACHE_SIZE)
     app['database_manager'] = firestore_async.client()
     app['http_session'] = ClientSession()
 
@@ -40,7 +40,7 @@ async def create_session(app):
         usosapi_credentials['api_base_address'],
         usosapi_credentials['consumer_key'],
         usosapi_credentials['consumer_secret'],
-        'offline_access|studies'
+        'offline_access|studies|grades'
     )
 
 
@@ -55,7 +55,7 @@ if __name__ == '__main__':
 
     loc = LocalizationManager('localization/strings')
 
-    app = web.Application(middlewares=[rate_limiter(max_requests=10, period=60)])
+    app = web.Application(middlewares=[rate_limiter(max_requests=RATE_LIMITER_MAX_REQUESTS, period=RATE_LIMITER_PERIOD)])
     app.add_routes([web.post('/link_isod_account', link_isod_account),
                     web.post('/unlink_isod_account', unlink_isod_account),
                     web.post('/get_isod_link_status', get_isod_link_status),

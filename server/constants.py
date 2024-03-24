@@ -4,6 +4,9 @@ ISOD_PORTAL_URL = "https://isod.ee.pw.edu.pl/isod-portal"
 DEFAULT_NOTIFICATION_URL = "https://isod.ee.pw.edu.pl/isod-stud/"
 DEFAULT_RESPONSE_LANGUAGE = 'en'
 
+RATE_LIMITER_MAX_REQUESTS = 10
+RATE_LIMITER_PERIOD = 60
+
 EE_USOS_ID = '104000'
 EE_USOS_ID_IN_COURSE = '1040'
 
@@ -29,11 +32,12 @@ CLASSTYPE_USOS_TO_ISOD = {
     'PRO': 'P'
 }
 
+MAX_CACHE_SIZE = 1500
 ENDPOINT_CACHE_TTL = {
-    'SCHEDULE': 60 * 60 * 12,       # 12 h
-    'GRADES': 60 * 30,              # 30 min
-    'SEMESTERS': 60 * 60 * 24,      # 24 h
-    'COURSES': 60 * 60 * 24,        # 24 h
-    'NEWS': 60 * 60 * 12,           # 12 h
-    'NEWS_BODY': 60 * 60 * 6,       # 6 h
+    'SCHEDULE': 60 * 60 * 12,   # 12 h
+    'GRADES': 60 * 30,          # 30 min
+    'SEMESTERS': 60 * 60 * 24,  # 24 h
+    'COURSES': 60 * 60 * 24,    # 24 h
+    'NEWS': 60 * 60 * 12,       # 12 h
+    'NEWS_BODY': 60 * 60 * 6,   # 6 h
 }
