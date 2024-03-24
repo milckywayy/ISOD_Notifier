@@ -94,6 +94,15 @@ class USOSAPISession:
 
         return response.json()
 
+    def fetch_anonymously_from_service(self, service, **kwargs):
+        session = self.service.get_session()
+        response = session.post(service, params=kwargs, data={})
+
+        if not response.ok:
+            response.raise_for_status()
+
+        return response.json()
+
     def is_session_authorized(self):
         if self.authorized_session is None:
             return False

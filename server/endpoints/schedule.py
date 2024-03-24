@@ -214,6 +214,10 @@ async def get_student_schedule(request):
         logging.error(f"Invalid request received: {e}")
         return web.Response(status=400, text=loc.get('invalid_input_data_error', device_language))
 
+    except KeyError as e:
+        logging.error(f"Invalid data received from external service: {e}")
+        return web.Response(status=502, text=loc.get('invalid_data_received_form_external_service', device_language))
+
     except RuntimeError as e:
         logging.error(f"Couldn't create schedule: {e}")
         return web.Response(status=500, text=loc.get('internal_server_error', device_language))

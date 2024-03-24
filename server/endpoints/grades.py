@@ -1,12 +1,15 @@
 import logging
 
+import aiohttp
 from aiohttp import web
 
 from asynchttp.async_http_request import async_get_request
 from constants import ISOD_PORTAL_URL
 from endpoints.validate_request import validate_post_request, InvalidRequestError
+from usosapi.usosapi import USOSAPIAuthorizationError
 from utils.classtypes import convert_usos_to_isod_classtype
-from utils.firestore import user_exists, isod_account_exists
+from utils.firestore import user_exists, isod_account_exists, usos_account_exists
+from utils.studies import get_current_semester
 
 
 def get_isod_grades_id(isod_courses, course_id, classtype):
@@ -16,7 +19,7 @@ def get_isod_grades_id(isod_courses, course_id, classtype):
 
         for course_class in course['classes']:
             if course_class.get('type', '') == classtype:
-                return course_class.get('id'), course_class.get('credit', '')
+                return course_class.get('id'), course.get('finalGradeComment', '')
 
     return None, None
 
@@ -45,11 +48,48 @@ def format_isod_grades(isod_grades):
 
         items.append(item)
 
-        if item['accounted'] and item['value'] != '':
-            points_sum += float(item['value']) * item['weight']
+        try:
+            if item['accounted'] and item['value'] != '':
+                points_sum += float(item['value'].replace(',', '.')) * item['weight']
+        except Exception:
+            pass
 
     formatted_json['items'] = items
+    formatted_json['partial_grade'] = isod_grades.get('credit', '')
     formatted_json['points_sum'] = points_sum
+    return formatted_json
+
+
+def get_usos_final_grade(usos_grades):
+    grade = usos_grades['course_grades'][0]['1']
+    return grade['value_symbol'] if grade is not None else ''
+
+
+def get_usos_grade_name(usosapi, grade_id):
+    grade_info = usosapi.fetch_from_service('services/examrep2/examrep', examrep_id=grade_id, fields='description')
+    return grade_info['description']['pl']
+
+
+def format_usos_grades(usosapi, usos_grades):
+    formatted_json = {}
+    items = []
+
+    for unit, grades in usos_grades['course_units_grades'].items():
+        for grade in grades:
+            for key, value in grade.items():
+                if value is None:
+                    continue
+
+                name = get_usos_grade_name(usosapi, value['exam_id'])
+
+                item = {
+                    'name': name,
+                    'value': value['value_symbol']
+                }
+
+                items.append(item)
+
+    formatted_json['items'] = items
     return formatted_json
 
 
@@ -65,8 +105,12 @@ async def get_student_grades(request):
         user_token = data['user_token']
         course_id = data['course_id']
         classtype = data['classtype']
+        semester = data['semester']
 
         logging.info(f"Attempting to read student grades for course {course_id}")
+
+        # Get current semester id
+        semester = get_current_semester(usosapi) if not semester else semester
 
         # Check if user exists
         user = await user_exists(db, token=user_token)
@@ -84,7 +128,7 @@ async def get_student_grades(request):
             isod_username = isod_account.id
             isod_api_key = isod_account.get('isod_api_key')
 
-            isod_courses = await async_get_request(session, ISOD_PORTAL_URL + f'/wapi?q=mycourses&username={isod_username}&apikey={isod_api_key}')
+            isod_courses = await async_get_request(session, ISOD_PORTAL_URL + f'/wapi?q=mycourses&username={isod_username}&apikey={isod_api_key}&semester={semester}')
             isod_grades_id, final_grade = get_isod_grades_id(isod_courses, course_id, isod_classtype)
 
             # Read grades from ISOD
@@ -92,10 +136,24 @@ async def get_student_grades(request):
                 isod_grades = await async_get_request(session, ISOD_PORTAL_URL + f'/wapi?q=myclass&username={isod_username}&apikey={isod_api_key}&id={isod_grades_id}')
                 grades = format_isod_grades(isod_grades)
 
-            # Read grades from USOS
-            else:
-                # TODO grades = fetch_usos_grades()
-                pass
+        # If course is not in ISOD, check USOS then
+        usos_account = await usos_account_exists(user.reference) if not grades else None
+        if usos_account:
+            usos_access_token = usos_account.get('access_token')
+            usos_access_token_secret = usos_account.get('access_token_secret')
+            usosapi.resume_session(usos_access_token, usos_access_token_secret)
+
+            usos_grades = usosapi.fetch_from_service('services/grades/course_edition2', course_id=course_id, term_id=semester)
+
+            if usos_grades['course_grades']:
+                final_grade = get_usos_final_grade(usos_grades)
+                grades = format_usos_grades(usosapi, usos_grades)
+
+        if final_grade is None:
+            final_grade = ''
+
+        if grades.get('items') is None:
+            grades['items'] = []
 
         grades = add_envelope(grades, course_id, classtype, final_grade)
 
@@ -105,3 +163,18 @@ async def get_student_grades(request):
     except InvalidRequestError as e:
         logging.error(f"Invalid request received: {e}")
         return web.Response(status=400, text=loc.get('invalid_input_data_error', device_language))
+
+    except KeyError as e:
+        logging.error(f"Invalid data received from external service: {e}")
+        return web.Response(status=502, text=loc.get('invalid_data_received_form_external_service', device_language))
+
+    except aiohttp.ClientResponseError as e:
+        logging.error(f"HTTP error during ISOD status check (bad request or ISOD credentials): {e}")
+        if e.status == 400:
+            return web.Response(status=400, text=loc.get('invalid_isod_auth_data_error', device_language))
+        else:
+            return web.Response(status=e.status, text=loc.get('isod_server_error', device_language))
+
+    except USOSAPIAuthorizationError:
+        logging.info(f"USOSAPI access tokens expired for {usos_account.ic}")
+        return web.Response(status=400, text='0')
