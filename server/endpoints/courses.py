@@ -4,7 +4,7 @@ import aiohttp
 from aiohttp import web
 
 from asynchttp.async_http_request import async_get_request
-from constants import ISOD_PORTAL_URL, DEFAULT_RESPONSE_LANGUAGE
+from constants import ISOD_PORTAL_URL, DEFAULT_RESPONSE_LANGUAGE, ENDPOINT_CACHE_TTL
 from endpoints.validate_request import validate_post_request, InvalidRequestError
 from usosapi.usosapi import USOSAPIAuthorizationError
 from utils.classtypes import convert_isod_to_usos_classtype
@@ -102,6 +102,7 @@ def add_envelope(courses, semester):
 async def get_student_courses(request):
     loc = request.app['localization_manager']
     db = request.app['database_manager']
+    cache_manager = request.app['cache_manager']
     session = request.app['http_session']
     usosapi = request.app['usosapi_session']
     device_language = DEFAULT_RESPONSE_LANGUAGE
@@ -111,6 +112,10 @@ async def get_student_courses(request):
         user_token = data['user_token']
         semester = data['semester']
         device_language = loc.validate_language(data.get('language'))
+
+        cache = await cache_manager.get('get_student_courses', user_token, request)
+        if cache is not None:
+            return web.json_response(status=200, data=cache)
 
         logging.info(f"Attempting to create student course list")
 
@@ -140,6 +145,7 @@ async def get_student_courses(request):
         course_list = add_envelope(course_list, semester)
 
         logging.info(f"Created course list for student: {user.id}")
+        await cache_manager.set('get_student_courses', user_token, request, course_list, ttl=ENDPOINT_CACHE_TTL['COURSES'])
         return web.json_response(status=200, data=course_list)
 
     except InvalidRequestError as e:

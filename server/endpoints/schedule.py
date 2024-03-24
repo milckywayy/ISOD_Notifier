@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from aiohttp import web
 
 from asynchttp.async_http_request import async_get_request
-from constants import ISOD_PORTAL_URL, EE_USOS_ID, EE_USOS_ID_IN_COURSE, DEFAULT_RESPONSE_LANGUAGE
+from constants import ISOD_PORTAL_URL, EE_USOS_ID, EE_USOS_ID_IN_COURSE, DEFAULT_RESPONSE_LANGUAGE, ENDPOINT_CACHE_TTL
 from endpoints.validate_request import InvalidRequestError, validate_post_request
 from utils.classtypes import convert_isod_to_usos_classtype
 from utils.firestore import user_exists, usos_account_exists, isod_account_exists
@@ -165,6 +165,7 @@ def merge_schedules(isod_schedule, usos_schedule, days_off, language):
 async def get_student_schedule(request):
     loc = request.app['localization_manager']
     db = request.app['database_manager']
+    cache_manager = request.app['cache_manager']
     session = request.app['http_session']
     usosapi = request.app['usosapi_session']
     device_language = DEFAULT_RESPONSE_LANGUAGE
@@ -173,6 +174,10 @@ async def get_student_schedule(request):
         data = await validate_post_request(request, ['user_token'])
         user_token = data['user_token']
         device_language = loc.validate_language(data.get('language'))
+
+        cache = await cache_manager.get('get_student_schedule', user_token, request)
+        if cache is not None:
+            return web.json_response(status=200, data=cache)
 
         logging.info(f"Attempting to create student schedule")
 
@@ -210,6 +215,7 @@ async def get_student_schedule(request):
         final_schedule = merge_schedules(isod_schedule, usos_schedule, days_off, device_language)
 
         logging.info(f"Created schedule for student: {user.id}")
+        await cache_manager.set('get_student_schedule', user_token, request, final_schedule, ttl=ENDPOINT_CACHE_TTL['SCHEDULE'])
         return web.json_response(status=200, data=final_schedule)
 
     except InvalidRequestError as e:

@@ -4,7 +4,7 @@ import aiohttp
 from aiohttp import web
 
 from asynchttp.async_http_request import async_get_request
-from constants import ISOD_PORTAL_URL, DEFAULT_RESPONSE_LANGUAGE
+from constants import ISOD_PORTAL_URL, DEFAULT_RESPONSE_LANGUAGE, ENDPOINT_CACHE_TTL
 from endpoints.validate_request import validate_post_request, InvalidRequestError
 from usosapi.usosapi import USOSAPIAuthorizationError
 from utils.classtypes import convert_usos_to_isod_classtype
@@ -131,6 +131,7 @@ async def get_usos_course_grades(usosapi, usos_account, course_id, semester):
 async def get_student_grades(request):
     loc = request.app['localization_manager']
     db = request.app['database_manager']
+    cache_manager = request.app['cache_manager']
     session = request.app['http_session']
     usosapi = request.app['usosapi_session']
     device_language = DEFAULT_RESPONSE_LANGUAGE
@@ -143,7 +144,11 @@ async def get_student_grades(request):
         semester = data['semester']
         device_language = loc.validate_language(data.get('language'))
 
-        logging.info(f"Attempting to read student grades for course {course_id}")
+        cache = await cache_manager.get('get_student_grades', user_token, request)
+        if cache is not None:
+            return web.json_response(status=200, data=cache)
+
+        logging.info(f"Attempting to read student grades for course {course_id} {classtype}")
 
         # Get current semester id
         semester = get_current_semester(usosapi) if not semester else semester
@@ -155,8 +160,6 @@ async def get_student_grades(request):
             return web.Response(status=400, text=loc.get('user_not_found_info', device_language))
 
         isod_classtype = convert_usos_to_isod_classtype(classtype)
-        final_grade = None
-        grades = {}
 
         # Check if it's ISOD or USOS course
         if is_usos_course(course_id):
@@ -180,6 +183,7 @@ async def get_student_grades(request):
         grades = add_envelope(grades, course_id, classtype, final_grade)
 
         logging.info(f"Created grade list for student: {user.id}")
+        await cache_manager.set('get_student_grades', user_token, request, grades, ttl=ENDPOINT_CACHE_TTL['GRADES'])
         return web.json_response(status=200, data=grades)
 
     except InvalidRequestError as e:

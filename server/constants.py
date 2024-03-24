@@ -2,9 +2,10 @@
 SERVICE_PORT = 8080
 ISOD_PORTAL_URL = "https://isod.ee.pw.edu.pl/isod-portal"
 DEFAULT_NOTIFICATION_URL = "https://isod.ee.pw.edu.pl/isod-stud/"
+DEFAULT_RESPONSE_LANGUAGE = 'en'
+
 EE_USOS_ID = '104000'
 EE_USOS_ID_IN_COURSE = '1040'
-DEFAULT_RESPONSE_LANGUAGE = 'en'
 
 CLEANUP_USOS_SESSIONS_INTERVAL = 60 * 60 * 12  # 12h
 ISOD_NEWS_CHECK_INTERVALS = {
@@ -26,4 +27,11 @@ CLASSTYPE_USOS_TO_ISOD = {
     'CWI': 'C',
     'LAB': 'L',
     'PRO': 'P'
+}
+
+ENDPOINT_CACHE_TTL = {
+    'SCHEDULE': 60 * 60 * 12,       # 12 h
+    'GRADES': 60 * 30,              # 30 min
+    'SEMESTERS': 60 * 60 * 24,      # 24 h
+    'COURSES': 60 * 60 * 24,        # 24 h
 }

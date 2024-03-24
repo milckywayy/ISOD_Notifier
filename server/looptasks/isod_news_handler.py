@@ -19,12 +19,12 @@ def get_sleep_duration():
             return interval
 
 
-async def isod_news_handler(db, loc, session):
+async def isod_news_handler(db, loc, cache_manager, session):
     while True:
         try:
             interval = get_sleep_duration()
 
-            tasks = [process_isod_account(account, db, loc, session) async for account in db.collection_group('isod_account').stream()]
+            tasks = [process_isod_account(account, cache_manager, loc, session) async for account in db.collection_group('isod_account').stream()]
             logging.info(f"Processing {len(tasks)} ISOD accounts. Interval: {interval} sec")
             await asyncio.gather(*tasks, return_exceptions=True)
 
@@ -34,7 +34,7 @@ async def isod_news_handler(db, loc, session):
             logging.error(f"Unexpected error while checking ISOD news: {e}")
 
 
-async def process_isod_account(account, db, loc, session):
+async def process_isod_account(account, cache_manager, loc, session):
     account_data = account.to_dict()
     username, api_key, current_fingerprint = account.id, account_data['isod_api_key'], account_data['news_fingerprint']
 
@@ -59,7 +59,7 @@ async def process_isod_account(account, db, loc, session):
         return
 
     logging.info(f"New news for account: {username}")
-    await process_new_news(account, new_hashes_not_in_db, loc)
+    await process_new_news(account, new_hashes_not_in_db, loc, cache_manager)
 
 
 async def check_for_news_update(session, username, api_key, current_fingerprint):
@@ -72,13 +72,16 @@ async def fetch_recent_news(session, username, api_key):
     return [(item['hash'], item['subject'], item['type']) for item in response['items']]
 
 
-async def process_new_news(account, new_hashes_not_in_db, loc):
+async def process_new_news(account, new_hashes_not_in_db, loc, cache_manager):
     for news_hash, _, news_type in new_hashes_not_in_db:
         await account.reference.collection('isod_news').document(news_hash).set({
             'type': news_type, 'date': datetime.now()
         })
 
-    tasks = [process_device(device, new_hashes_not_in_db, loc) async for device in account.reference.parent.parent.collection('devices').stream()]
+    user = await account.reference.parent.parent.get()
+    await cache_manager.delete('get_student_grades', user.get('token'))
+
+    tasks = [process_device(device, new_hashes_not_in_db, loc) async for device in user.reference.collection('devices').stream()]
     await asyncio.gather(*tasks, return_exceptions=True)
 
 
