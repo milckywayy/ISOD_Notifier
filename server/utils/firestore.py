@@ -36,12 +36,16 @@ async def delete_usos_account(usos_account_ref):
     await usos_account_ref.delete()
 
 
+async def device_exists(user_ref, device_token):
+    device = await user_ref.collection('devices').document(device_token).get()
+    return device if device.exists else None
+
+
 async def get_device_language(user_ref, device_token):
-    if device_token is None:
+    if device_token is None or user_ref is None:
         return DEFAULT_RESPONSE_LANGUAGE
 
-    device = await user_ref.collection('devices').document(device_token).get()
-
+    device = await device_exists(user_ref, device_token)
     if not device:
         return DEFAULT_RESPONSE_LANGUAGE
 

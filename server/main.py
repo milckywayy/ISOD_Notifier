@@ -14,6 +14,7 @@ from endpoints.news import get_student_news
 from endpoints.single_news import get_single_news
 from endpoints.schedule import get_student_schedule
 from endpoints.semesters import get_semesters
+from endpoints.status import get_user_status
 from endpoints.user import *
 from endpoints.usos_endpoints import *
 from endpoints.isod_endpoints import *
@@ -65,6 +66,7 @@ if __name__ == '__main__':
                     web.post('/unlink_usos_account', unlink_usos_account),
                     web.post('/get_usos_link_status', get_usos_link_status),
 
+                    web.post('/get_user_status', get_user_status),
                     web.post('/logout_from_all_other_devices', logout_from_all_other_devices),
                     web.post('/delete_user_data', delete_user_data),
 
