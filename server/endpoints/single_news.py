@@ -6,29 +6,52 @@ from aiohttp import web
 from asynchttp.async_http_request import async_get_request
 from constants import DEFAULT_RESPONSE_LANGUAGE, ENDPOINT_CACHE_TTL, ISOD_PORTAL_URL
 from endpoints.validate_request import validate_post_request, InvalidRequestError
-from utils.firestore import user_exists, isod_account_exists
+from utils.firestore import user_exists, isod_account_exists, usos_account_exists
 
 
-async def read_isod_news_body(session, isod_account, news_body, news_hash):
+async def read_isod_news_body(session, isod_account, news_hash):
     if not isod_account:
-        return news_body
+        return None
 
     isod_username = isod_account.id
     isod_api_key = isod_account.get('isod_api_key')
 
     isod_news = await async_get_request(session, ISOD_PORTAL_URL + f'/wapi?q=mynewsfull&username={isod_username}&apikey={isod_api_key}&hash={news_hash}')
-
     body = isod_news['items']
     if len(body) < 1:
-        return news_body
+        return None
     body = body[0]
 
-    news_body['subject'] = body['subject']
-    news_body['content'] = body['content']
-    news_body['date'] = body['modifiedDate']
-    news_body['who'] = body['modifiedBy']
+    return {
+        'subject': body['subject'],
+        'content': body['content'],
+        'date': body['modifiedDate'],
+        'who': body['modifiedBy']
+    }
 
-    return news_body
+
+async def read_usos_news_body(usosapi, usos_account, news_hash, language):
+    if not usos_account:
+        return None
+
+    usos_access_token = usos_account.get('access_token')
+    usos_access_token_secret = usos_account.get('access_token_secret')
+    usosapi.resume_session(usos_access_token, usos_access_token_secret)
+
+    usos_news = usosapi.fetch_from_service('services/pw_jednostka/daj_newsy')
+    body = None
+    for news in usos_news:
+        if str(news['id']) == news_hash:
+            body = news
+    if body is None:
+        return None
+
+    return {
+        'subject': body['nazwa'] if language == 'pl' else body['nazwa_ang'],
+        'content': body['opis'] if language == 'pl' else body['opis_ang'],
+        'date': body['data_od'],
+        'who': ''
+    }
 
 
 def add_envelope(news_body, news_hash):
@@ -45,11 +68,13 @@ async def get_single_news(request):
     db = request.app['database_manager']
     cache_manager = request.app['cache_manager']
     session = request.app['http_session']
+    usosapi = request.app['usosapi_session']
     device_language = DEFAULT_RESPONSE_LANGUAGE
 
     try:
-        data = await validate_post_request(request, ['user_token', 'news_hash'])
+        data = await validate_post_request(request, ['user_token', 'news_service', 'news_hash'])
         user_token = data['user_token']
+        news_service = data['news_service']
         news_hash = data['news_hash']
         device_language = loc.validate_language(data.get('language'))
 
@@ -57,7 +82,7 @@ async def get_single_news(request):
         if cache is not None:
             return web.json_response(status=200, data=cache)
 
-        logging.info(f"Attempting to get student news ({news_hash}) body")
+        logging.info(f"Attempting to get student news ({news_service}: {news_hash}) body")
 
         # Check if user exists
         user = await user_exists(db, token=user_token)
@@ -65,12 +90,21 @@ async def get_single_news(request):
             logging.error(f"Such user does not exist")
             return web.json_response(status=400, data={'message': loc.get('user_not_found_info', device_language)})
 
-        news_body = {}
+        news_body = None
 
-        # Fetch ISOD news body
-        isod_account = await isod_account_exists(user.reference)
-        if isod_account:
-            news_body = await read_isod_news_body(session, isod_account, news_body, news_hash)
+        if news_service == 'ISOD':
+            # Fetch ISOD news body
+            isod_account = await isod_account_exists(user.reference)
+            if isod_account:
+                news_body = await read_isod_news_body(session, isod_account, news_hash)
+        elif news_service == 'USOS':
+            # Fetch USOS news body
+            usos_account = await usos_account_exists(user.reference)
+            if usos_account:
+                news_body = await read_usos_news_body(usosapi, usos_account, news_hash, device_language)
+
+        if news_body is None:
+            news_body = {}
 
         news_body = add_envelope(news_body, news_hash)
 

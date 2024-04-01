@@ -6,7 +6,19 @@ from aiohttp import web
 from asynchttp.async_http_request import async_get_request
 from constants import DEFAULT_RESPONSE_LANGUAGE, ENDPOINT_CACHE_TTL, ISOD_PORTAL_URL
 from endpoints.validate_request import validate_post_request, InvalidRequestError
-from utils.firestore import user_exists, isod_account_exists
+from utils.firestore import user_exists, isod_account_exists, usos_account_exists
+
+
+def format_isod_date(date_str):
+    day, month, year = date_str.split('.')
+    formatted_date = f"{year}.{month}.{day}"
+    return formatted_date
+
+
+def format_usos_hour(time_str):
+    hour, minute, _ = time_str.split(':')
+    formatted_time = f"{hour}:{minute}"
+    return formatted_time
 
 
 async def read_isod_news(session, isod_account, news_list):
@@ -25,11 +37,42 @@ async def read_isod_news(session, isod_account, news_list):
         date = item['modifiedDate'].split(' ')
 
         news_item = {
+            'service': 'ISOD',
             'hash': item['hash'],
             'subject': item['subject'],
             'type': item['type'],
-            'day': date[0],
+            'day': format_isod_date(date[0]),
             'hour': date[1]
+        }
+
+        news_list['news'].append(news_item)
+
+    return news_list
+
+
+async def read_usos_news(usosapi, usos_account, news_list, language):
+    if news_list.get('news') is None:
+        news_list['news'] = []
+
+    if not usos_account:
+        return news_list
+
+    usos_access_token = usos_account.get('access_token')
+    usos_access_token_secret = usos_account.get('access_token_secret')
+    usosapi.resume_session(usos_access_token, usos_access_token_secret)
+
+    usos_news = usosapi.fetch_from_service('services/pw_jednostka/daj_newsy')
+
+    for item in usos_news:
+        date = item['data_od'].split(' ')
+
+        news_item = {
+            'service': 'USOS',
+            'hash': item['id'],
+            'subject': item['nazwa'] if language == 'pl' else item['nazwa_ang'],
+            'type': 'USOS',
+            'day': date[0],
+            'hour': format_usos_hour(date[1])
         }
 
         news_list['news'].append(news_item)
@@ -42,6 +85,7 @@ async def get_student_news(request):
     db = request.app['database_manager']
     cache_manager = request.app['cache_manager']
     session = request.app['http_session']
+    usosapi = request.app['usosapi_session']
     device_language = DEFAULT_RESPONSE_LANGUAGE
 
     try:
@@ -67,6 +111,11 @@ async def get_student_news(request):
         isod_account = await isod_account_exists(user.reference)
         if isod_account:
             news_list = await read_isod_news(session, isod_account, news_list)
+
+        # Fetch USOS news
+        usos_account = await usos_account_exists(user.reference)
+        if usos_account:
+            news_list = await read_usos_news(usosapi, usos_account, news_list, device_language)
 
         logging.info(f"Created news list for student: {user.id}")
         await cache_manager.set('get_student_news', user_token, request, news_list, ttl=ENDPOINT_CACHE_TTL['NEWS'])
