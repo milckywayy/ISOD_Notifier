@@ -1,5 +1,4 @@
 import logging
-
 import aiohttp
 from aiohttp import web
 
@@ -12,24 +11,21 @@ from utils.firestore import user_exists, isod_account_exists, usos_account_exist
 from utils.studies import get_current_semester, is_course_from_ee_faculty
 
 
-def get_isod_grades_id(isod_courses, course_id, classtype):
-    for course in isod_courses['items']:
-        if course.get('courseNumber', '') != course_id:
-            continue
-
-        for course_class in course['classes']:
-            if course_class.get('type', '') == classtype:
-                return course_class.get('id'), course.get('finalGradeComment', '')
-
-    return None, None
-
-
 def add_envelope(grades, course_id, classtype, final_grade):
     grades['course_id'] = course_id
     grades['classtype'] = classtype
     grades['final_grade'] = final_grade
 
     return grades
+
+
+def get_isod_grades_id(isod_courses, course_id, classtype):
+    for course in isod_courses['items']:
+        if course.get('courseNumber') == course_id:
+            for course_class in course['classes']:
+                if course_class.get('type') == classtype:
+                    return course_class.get('id'), course.get('finalGradeComment')
+    return None, None
 
 
 def format_isod_grades(isod_grades):
@@ -50,46 +46,12 @@ def format_isod_grades(isod_grades):
 
         try:
             if item['accounted'] and item['value'] != '':
-                points_sum += float(item['value'].replace(',', '.')) * item['weight']
+                points_sum += float(eval(item['value'].replace(',', '.'))) * item['weight']
         except Exception:
             pass
 
     formatted_json['items'] = items
-    formatted_json['partial_grade'] = isod_grades.get('credit', '')
     formatted_json['points_sum'] = points_sum
-    return formatted_json
-
-
-def get_usos_final_grade(usos_grades):
-    grade = usos_grades['course_grades'][0]['1']
-    return grade['value_symbol'] if grade is not None else ''
-
-
-def get_usos_grade_name(usosapi, grade_id, language):
-    grade_info = usosapi.fetch_from_service('services/examrep2/examrep', examrep_id=grade_id, fields='description')
-    return grade_info['description'][language]
-
-
-def format_usos_grades(usosapi, usos_grades, language):
-    formatted_json = {}
-    items = []
-
-    for unit, grades in usos_grades['course_units_grades'].items():
-        for grade in grades:
-            for key, value in grade.items():
-                if value is None:
-                    continue
-
-                name = get_usos_grade_name(usosapi, value['exam_id'], language)
-
-                item = {
-                    'name': name,
-                    'value': value['value_symbol']
-                }
-
-                items.append(item)
-
-    formatted_json['items'] = items
     return formatted_json
 
 
@@ -99,16 +61,59 @@ async def get_isod_course_grades(session, isod_account, course_id, isod_classtyp
 
     isod_username = isod_account.id
     isod_api_key = isod_account.get('isod_api_key')
-
     isod_courses = await async_get_request(session, ISOD_PORTAL_URL + f'/wapi?q=mycourses&username={isod_username}&apikey={isod_api_key}&semester={semester}')
-    isod_grades_id, final_grade = get_isod_grades_id(isod_courses, course_id, isod_classtype)
 
-    # Read grades from ISOD
+    isod_grades_id, final_grade = get_isod_grades_id(isod_courses, course_id, isod_classtype)
     if isod_grades_id is not None:
         isod_grades = await async_get_request(session, ISOD_PORTAL_URL + f'/wapi?q=myclass&username={isod_username}&apikey={isod_api_key}&id={isod_grades_id}')
         return final_grade, format_isod_grades(isod_grades)
 
     return final_grade, None
+
+
+def get_usos_final_grade(usos_grades):
+    try:
+        grade = usos_grades.get('course_grades', [{}])[0].get('1')
+        return grade.get('value_symbol', '') if grade else ''
+    except IndexError:
+        return ''
+
+
+def get_usos_node_root_id(root_nodes, course_id, term_id):
+    term_tests = root_nodes.get('tests', {}).get(term_id, {})
+    for item_details in term_tests.values():
+        if item_details.get('course_edition', {}).get('course_id') == course_id:
+            return item_details.get('root_id')
+    return None
+
+
+def format_usos_grades(usosapi, subnodes, language):
+    items = []
+    for node in subnodes['subnodes']:
+        node_id = node.get('id')
+        name = node.get('name', {}).get(language, '')
+        node_type = node.get('type')
+        value = ''
+        value_note = ''
+
+        if node_type == 'task':
+            task = usosapi.fetch_from_service('services/crstests/student_point', node_id=node_id, fields='points|comment')
+            value = task['points']
+            value_note = task.get('comment', '')
+        elif node_type == 'grade':
+            task = usosapi.fetch_from_service('services/crstests/student_grade', node_id=node_id, fields='grade_value|comment')
+            value = task['grade_value']['symbol']
+            value_note = task.get('comment', '')
+
+        items.append({
+            'name': name,
+            'value': value,
+            'weight': 1,
+            'accounted': False,
+            'value_note': value_note
+        })
+
+    return {'items': items}
 
 
 async def get_usos_course_grades(usosapi, usos_account, course_id, semester, language):
@@ -119,13 +124,16 @@ async def get_usos_course_grades(usosapi, usos_account, course_id, semester, lan
     usos_access_token_secret = usos_account.get('access_token_secret')
     usosapi.resume_session(usos_access_token, usos_access_token_secret)
 
-    usos_grades = usosapi.fetch_from_service('services/grades/course_edition2', course_id=course_id, term_id=semester)
+    usos_final_grade = usosapi.fetch_from_service('services/grades/course_edition2', course_id=course_id, term_id=semester)
+    final_grade = get_usos_final_grade(usos_final_grade) if usos_final_grade.get('course_grades') else ''
 
-    if usos_grades['course_grades']:
-        final_grade = get_usos_final_grade(usos_grades)
-        return final_grade, format_usos_grades(usosapi, usos_grades, language)
+    root_nodes = usosapi.fetch_from_service('services/crstests/participant')
+    root_id = get_usos_node_root_id(root_nodes, course_id, semester)
+    if not root_id:
+        return final_grade, None
 
-    return None, None
+    subnodes = usosapi.fetch_from_service('services/crstests/node2', node_id=root_id, fields='subnodes')
+    return final_grade, format_usos_grades(usosapi, subnodes, language)
 
 
 async def get_student_grades(request):
