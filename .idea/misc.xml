@@ -7,5 +7,5 @@
   <component name="FrameworkDetectionExcludesConfiguration">
     <file type="web" url="file://$PROJECT_DIR$/client" />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.11 (ISOD_Notifier)" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.10 (venv)" project-jdk-type="Python SDK" />
 </project>

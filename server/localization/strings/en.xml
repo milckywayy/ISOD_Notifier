@@ -41,6 +41,7 @@
         <!-- Errors -->
         <errors>
             <string key="usos_server_error">USOS server error</string>
+            <string key="usos_session_expired_error">USOS session expired</string>
             <string key="invalid_usos_auth_data_error">Given pin invalid or expired</string>
         </errors>
     </USOS>
@@ -57,6 +58,7 @@
         <!-- Errors -->
         <errors>
             <string key="internal_server_error">Internal server error</string>
+            <string key="too_many_requests_error">Too many requests</string>
             <string key="invalid_input_data_error">Invalid data given</string>
             <string key="invalid_fcm_token_error">Invalid FCM token given</string>
             <string key="invalid_data_received_form_external_service">Invalid data received from external service</string>

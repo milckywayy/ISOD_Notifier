@@ -48,7 +48,7 @@ async def logout_from_all_other_devices(request):
         user = await user_exists(db, token=user_token)
         if not user:
             logging.error(f"Such user does not exist")
-            return web.Response(status=400, text=loc.get('user_not_found_info', device_language))
+            return web.json_response(status=400, data={'message': loc.get('user_not_found_info', device_language)})
 
         # Remove other devices
         devices = await user.reference.collection('devices').get()
@@ -63,11 +63,11 @@ async def logout_from_all_other_devices(request):
         })
 
         logging.info(f"Logged out {user.id} from all other devices")
-        return web.Response(status=200, text=new_user_token)
+        return web.json_response(status=200, data={'user_token': new_user_token})
 
     except InvalidRequestError as e:
         logging.error(f"Invalid request received: {e}")
-        return web.Response(status=400, text=loc.get('invalid_input_data_error', device_language))
+        return web.json_response(status=400, data={'message': loc.get('invalid_input_data_error', device_language)})
 
 
 async def delete_user_data(request):
@@ -86,7 +86,7 @@ async def delete_user_data(request):
         user = await user_exists(db, token=user_token)
         if not user:
             logging.error(f"Such user does not exist")
-            return web.Response(status=200, text=loc.get('user_not_found_info', device_language))
+            return web.json_response(status=200, data={'message': loc.get('user_not_found_info', device_language)})
 
         # Delete user devices
         await delete_collection(user.reference.collection('devices'))
@@ -100,8 +100,8 @@ async def delete_user_data(request):
         await user.reference.delete()
 
         logging.info(f"Successfully removed all {user.id}'s data")
-        return web.Response(status=200, text=loc.get('all_user_data_successfully_removed_info', device_language))
+        return web.json_response(status=200, data={'message': loc.get('all_user_data_successfully_removed_info', device_language)})
 
     except InvalidRequestError as e:
         logging.error(f"Invalid request received: {e}")
-        return web.Response(status=400, text=loc.get('invalid_input_data_error', device_language))
+        return web.json_response(status=400, data={'message': loc.get('invalid_input_data_error', device_language)})

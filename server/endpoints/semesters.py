@@ -43,4 +43,4 @@ async def get_semesters(request):
 
     except Exception as e:
         logging.error(f"Internal server error: {e}")
-        return web.Response(status=500, text=loc.get('internal_server_error', device_language))
+        return web.json_response(status=500, data={'message': loc.get('internal_server_error', device_language)})

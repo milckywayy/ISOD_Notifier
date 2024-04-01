@@ -123,7 +123,7 @@ async def get_student_courses(request):
         user = await user_exists(db, token=user_token)
         if not user:
             logging.error(f"Such user does not exist")
-            return web.Response(status=400, text=loc.get('user_not_found_info', device_language))
+            return web.json_response(status=400, data={'message': loc.get('user_not_found_info', device_language)})
 
         # Fetch user accounts
         isod_account = await isod_account_exists(user.reference)
@@ -150,19 +150,19 @@ async def get_student_courses(request):
 
     except InvalidRequestError as e:
         logging.error(f"Invalid request received: {e}")
-        return web.Response(status=400, text=loc.get('invalid_input_data_error', device_language))
+        return web.json_response(status=400, data={"message": loc.get('invalid_input_data_error', device_language)})
 
     except KeyError as e:
         logging.error(f"Invalid data received from external service: {e}")
-        return web.Response(status=502, text=loc.get('invalid_data_received_form_external_service', device_language))
+        return web.json_response(status=502, data={"message": loc.get('invalid_data_received_form_external_service', device_language)})
 
     except aiohttp.ClientResponseError as e:
         logging.error(f"HTTP error during ISOD status check (bad request or ISOD credentials): {e}")
         if e.status == 400:
-            return web.Response(status=400, text=loc.get('invalid_isod_auth_data_error', device_language))
+            return web.json_response(status=400, data={"message": loc.get('invalid_isod_auth_data_error', device_language)})
         else:
-            return web.Response(status=e.status, text=loc.get('isod_server_error', device_language))
+            return web.json_response(status=e.status, data={"message": loc.get('isod_server_error', device_language)})
 
     except USOSAPIAuthorizationError:
         logging.info(f"USOSAPI access tokens expired for {usos_account.ic}")
-        return web.Response(status=400, text='0')
+        return web.json_response(status=400, data={"message": loc.get('usos_session_expired_error', device_language)})

@@ -41,6 +41,7 @@
         <!-- Błędy -->
         <errors>
             <string key="usos_server_error">Błąd serwera USOS</string>
+            <string key="usos_session_expired_error">Sesja USOS wygasła</string>
             <string key="invalid_usos_auth_data_error">Podany kod PIN jest nieprawidłowy lub wygasł</string>
         </errors>
     </USOS>
@@ -57,6 +58,7 @@
         <!-- Błędy -->
         <errors>
             <string key="internal_server_error">Wewnętrzny błąd serwera</string>
+            <string key="too_many_requests_error">Zbyt wiele żądań</string>
             <string key="invalid_input_data_error">Podano nieprawidłowe dane</string>
             <string key="invalid_fcm_token_error">Podano nieprawidłowy token FCM</string>
             <string key="invalid_data_received_form_external_service">Otrzymano nieprawidłowe dane z zewnętrznej usługi</string>

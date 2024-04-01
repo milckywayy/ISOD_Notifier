@@ -31,7 +31,7 @@ async def get_usos_auth_url(request):
 
     except InvalidRequestError as e:
         logging.error(f"Invalid request received: {e}")
-        return web.Response(status=400, text=loc.get('invalid_input_data_error', device_language))
+        return web.json_response(status=400, data={"message": loc.get('invalid_input_data_error', device_language)})
 
 
 async def link_usos_account(request):
@@ -97,19 +97,20 @@ async def link_usos_account(request):
 
     except InvalidRequestError as e:
         logging.error(f"Invalid request received: {e}")
-        return web.Response(status=400, text=loc.get('invalid_input_data_error', device_language))
+        return web.json_response(status=400, data={"message": loc.get('invalid_input_data_error', device_language)})
 
     except KeyError as e:
         logging.error(f"Invalid data received from external service: {e}")
-        return web.Response(status=502, text=loc.get('invalid_data_received_form_external_service', device_language))
+        return web.json_response(status=502, data={
+            "message": loc.get('invalid_data_received_form_external_service', device_language)})
 
     except exceptions.FirebaseError as e:
         logging.error(f"Invalid FCM token given during USOS auth: {e}")
-        return web.Response(status=400, text=loc.get('invalid_fcm_token_error', device_language))
+        return web.json_response(status=400, data={"message": loc.get('invalid_fcm_token_error', device_language)})
 
     except USOSAPIAuthorizationError:
         logging.info(f"Invalid USOSAPI pin was given")
-        return web.Response(status=400, text=loc.get('invalid_usos_auth_data_error', device_language))
+        return web.json_response(status=400, data={"message": loc.get('invalid_usos_auth_data_error', device_language)})
 
 
 async def unlink_usos_account(request):
@@ -128,23 +129,23 @@ async def unlink_usos_account(request):
         user = await user_exists(db, token=user_token)
         if not user:
             logging.info(f"Such user does not exist")
-            return web.Response(status=200, text=loc.get('user_not_found_info', device_language))
+            return web.json_response(status=200, data={'message': loc.get('user_not_found_info', device_language)})
 
         # Check if user has linked USOS account
         usos_account = await usos_account_exists(user.reference)
         if not usos_account:
             logging.info(f"User has no linked USOS account")
-            return web.Response(status=200, text=loc.get('no_usos_account_linked_info', device_language))
+            return web.json_response(status=200, data={'message': loc.get('no_usos_account_linked_info', device_language)})
 
         # Delete USOS Account
         await delete_usos_account(usos_account.reference)
 
         logging.info(f"Unlinked USOS account ({usos_account.id}) for user: {user.id}")
-        return web.Response(status=200, text=loc.get('usos_account_successfully_unlinked_info', device_language))
+        return web.json_response(status=200, data={'message': loc.get('usos_account_successfully_unlinked_info', device_language)})
 
     except InvalidRequestError as e:
         logging.error(f"Invalid request received: {e}")
-        return web.Response(status=400, text=loc.get('invalid_input_data_error', device_language))
+        return web.json_response(status=400, data={'message': loc.get('invalid_input_data_error', device_language)})
 
 
 async def get_usos_link_status(request):
@@ -164,13 +165,13 @@ async def get_usos_link_status(request):
         user = await user_exists(db, token=user_token)
         if not user:
             logging.info(f"No such user")
-            return web.Response(status=200, text='0')
+            return web.json_response(status=200, data={'status': '0'})
 
         # Check if user has linked USOS account
         usos_account = await usos_account_exists(user.reference)
         if not usos_account:
             logging.info(f"User has no linked USOS account")
-            return web.Response(status=200, text='0')
+            return web.json_response(status=200, data={'status': '0'})
 
         # Fetch USOS auth data
         usos_access_token = usos_account.get('access_token')
@@ -184,11 +185,11 @@ async def get_usos_link_status(request):
             # Tokens expired, unlink USOS account
             logging.info(f"USOSAPI access tokens expired for {usos_account.ic}. Unlinking USOS account")
             await delete_usos_account(usos_account.reference)
-            return web.Response(status=200, text='0')
+            return web.json_response(status=200, data={'status': '0'})
 
         logging.info(f"USOS account ({usos_account.id}) is linked with user: {user.id}")
-        return web.Response(status=200, text='1')
-    
+        return web.json_response(status=200, data={'status': '1'})
+
     except InvalidRequestError as e:
         logging.error(f"Invalid request received: {e}")
-        return web.Response(status=400, text=loc.get('invalid_input_data_error', device_language))
+        return web.json_response(status=400, data={'message': loc.get('invalid_input_data_error', device_language)})

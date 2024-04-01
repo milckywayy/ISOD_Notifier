@@ -185,7 +185,7 @@ async def get_student_schedule(request):
         user = await user_exists(db, token=user_token)
         if not user:
             logging.error(f"Such user does not exist")
-            return web.Response(status=400, text=loc.get('user_not_found_info', device_language))
+            return web.json_response(status=400, data={'message': loc.get('user_not_found_info', device_language)})
 
         isod_schedule = ''
         usos_schedule = ''
@@ -220,12 +220,12 @@ async def get_student_schedule(request):
 
     except InvalidRequestError as e:
         logging.error(f"Invalid request received: {e}")
-        return web.Response(status=400, text=loc.get('invalid_input_data_error', device_language))
+        return web.json_response(status=400, data={"message": loc.get('invalid_input_data_error', device_language)})
 
     except KeyError as e:
         logging.error(f"Invalid data received from external service: {e}")
-        return web.Response(status=502, text=loc.get('invalid_data_received_form_external_service', device_language))
+        return web.json_response(status=502, data={"message": loc.get('invalid_data_received_form_external_service', device_language)})
 
     except RuntimeError as e:
         logging.error(f"Couldn't create schedule: {e}")
-        return web.Response(status=500, text=loc.get('internal_server_error', device_language))
+        return web.json_response(status=500, data={"message": loc.get('internal_server_error', device_language)})
