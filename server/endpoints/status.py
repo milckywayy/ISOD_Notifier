@@ -47,6 +47,7 @@ async def get_user_status(request):
         device = await device_exists(user.reference, token_fcm)
         if device is not None:
             if device_language != device.get('language') or app_version != device.get('app_version'):
+                logging.info(f'Updating {user.id}\'s device data: {token_fcm}. ({device.get("app_version")}, {device.get("language")}) -> ({app_version}, {device_language})')
                 await update_device(device.reference, device_language, app_version)
 
         status = {
