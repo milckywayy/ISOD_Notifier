@@ -12,6 +12,7 @@
         <!-- Information -->
         <info>
             <string key="isod_account_successfully_unlinked_info">ISOD account successfully unlinked</string>
+            <string key="isod_api_key_expired">ISOD API key expired</string>
             <string key="no_isod_account_linked_info">User has no linked ISOD account</string>
         </info>
 
@@ -35,6 +36,7 @@
         <!-- Information -->
         <info>
             <string key="usos_account_successfully_unlinked_info">USOS account successfully unlinked</string>
+            <string key="usos_session_expired">USOS session expired</string>
             <string key="no_usos_account_linked_info">User has no linked USOS account</string>
         </info>
 

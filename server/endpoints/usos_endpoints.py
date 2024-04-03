@@ -53,7 +53,7 @@ async def link_usos_account(request):
         device_language = data['device_language']
         news_filter = data['news_filter']
 
-        logging.info(f"Attempting to link USOS account on device: {token_fcm}")
+        logging.info(f"Attempting to link USOS account with session {request_token} on device: {token_fcm}")
 
         # Verify token
         send_silent_message(token_fcm)
@@ -128,13 +128,13 @@ async def unlink_usos_account(request):
         # Check if user exists
         user = await user_exists(db, token=user_token)
         if not user:
-            logging.info(f"Such user does not exist")
+            logging.info(f"Such user does not exist: {user_token}")
             return web.json_response(status=200, data={'message': loc.get('user_not_found_info', device_language)})
 
         # Check if user has linked USOS account
         usos_account = await usos_account_exists(user.reference)
         if not usos_account:
-            logging.info(f"User has no linked USOS account")
+            logging.info(f"User has no linked USOS account: {user_token}")
             return web.json_response(status=200, data={'message': loc.get('no_usos_account_linked_info', device_language)})
 
         # Delete USOS Account
@@ -164,14 +164,14 @@ async def get_usos_link_status(request):
         # Check if user exists
         user = await user_exists(db, token=user_token)
         if not user:
-            logging.info(f"No such user")
-            return web.json_response(status=200, data={'status': '0'})
+            logging.info(f"No such user: {user_token}")
+            return web.json_response(status=200, data={'is_usos_linked': False})
 
         # Check if user has linked USOS account
         usos_account = await usos_account_exists(user.reference)
         if not usos_account:
-            logging.info(f"User has no linked USOS account")
-            return web.json_response(status=200, data={'status': '0'})
+            logging.info(f"User has no linked USOS account: {user_token}")
+            return web.json_response(status=200, data={'is_usos_linked': False})
 
         # Fetch USOS auth data
         usos_access_token = usos_account.get('access_token')
@@ -183,12 +183,12 @@ async def get_usos_link_status(request):
 
         except USOSAPIAuthorizationError:
             # Tokens expired, unlink USOS account
-            logging.info(f"USOSAPI access tokens expired for {usos_account.ic}. Unlinking USOS account")
+            logging.info(f"USOSAPI access tokens expired for {usos_account.id}")
             await delete_usos_account(usos_account.reference)
-            return web.json_response(status=200, data={'status': '0'})
+            return web.json_response(status=200, data={'is_usos_linked': False})
 
         logging.info(f"USOS account ({usos_account.id}) is linked with user: {user.id}")
-        return web.json_response(status=200, data={'status': '1'})
+        return web.json_response(status=200, data={'is_usos_linked': True})
 
     except InvalidRequestError as e:
         logging.error(f"Invalid request received: {e}")

@@ -26,14 +26,14 @@ async def get_user_status(request):
         app_version = data['app_version']
         device_language = loc.validate_language(data.get('language'))
 
-        logging.info(f"Check user status")
+        logging.info(f"Check user status for {user_token}")
 
         is_isod_linked = False
         is_usos_linked = False
 
         user = await user_exists(db, token=user_token)
         if not user:
-            logging.error(f"Such user does not exist")
+            logging.error(f"Such user does not exist: {user_token}")
             return web.json_response(status=400, data={'message': loc.get('user_not_found_info', device_language)})
 
         isod_account = await isod_account_exists(user.reference)

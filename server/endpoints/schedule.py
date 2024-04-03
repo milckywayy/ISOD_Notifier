@@ -1,12 +1,16 @@
 import logging
 from datetime import datetime, timedelta
+
+import aiohttp
 from aiohttp import web
 
 from asynchttp.async_http_request import async_get_request
 from constants import ISOD_PORTAL_URL, EE_USOS_ID, EE_USOS_ID_IN_COURSE, DEFAULT_RESPONSE_LANGUAGE, ENDPOINT_CACHE_TTL
 from endpoints.validate_request import InvalidRequestError, validate_post_request
+from usosapi.usosapi import USOSAPIAuthorizationError
 from utils.classtypes import convert_isod_to_usos_classtype
-from utils.firestore import user_exists, usos_account_exists, isod_account_exists
+from utils.firestore import user_exists, usos_account_exists, isod_account_exists, delete_usos_account, \
+    delete_isod_account
 from utils.studies import convert_usos_to_isod_course_id, trim_usos_course_name
 
 
@@ -179,12 +183,12 @@ async def get_student_schedule(request):
         if cache is not None:
             return web.json_response(status=200, data=cache)
 
-        logging.info(f"Attempting to create student schedule")
+        logging.info(f"Attempting to create student schedule for {user_token}")
 
         # Check if user exists
         user = await user_exists(db, token=user_token)
         if not user:
-            logging.error(f"Such user does not exist")
+            logging.error(f"Such user does not exist: {user_token}")
             return web.json_response(status=400, data={'message': loc.get('user_not_found_info', device_language)})
 
         isod_schedule = ''
@@ -229,3 +233,18 @@ async def get_student_schedule(request):
     except RuntimeError as e:
         logging.error(f"Couldn't create schedule: {e}")
         return web.json_response(status=500, data={"message": loc.get('internal_server_error', device_language)})
+
+    except aiohttp.ClientResponseError as e:
+        if e.status == 400:
+            logging.info(f"ISOD API key expired for {isod_account.id}")
+            await delete_isod_account(isod_account.reference)
+            return web.json_response(status=400, data={"message": loc.get('isod_api_key_expired', device_language)})
+        else:
+            logging.error(f"HTTP error: {e}")
+            return web.json_response(status=e.status, data={"message": loc.get('isod_server_error', device_language)})
+
+    except USOSAPIAuthorizationError:
+        logging.info(f"USOSAPI access tokens expired for {usos_account.id}")
+        await delete_usos_account(usos_account.reference)
+        return web.json_response(status=400, data={"message": loc.get('usos_session_expired_error', device_language)})
+

@@ -32,7 +32,7 @@ async def link_isod_account(request):
         device_language = data['device_language']
         news_filter = data['news_filter']
 
-        logging.info(f"[link_isod_account] Attempting to link ISOD account on device: {token_fcm}")
+        logging.info(f"[link_isod_account] Attempting to link ISOD account {isod_username} on device: {token_fcm}")
 
         # Verify FCM token
         send_silent_message(token_fcm)
@@ -99,10 +99,11 @@ async def link_isod_account(request):
         return web.json_response(status=400, data={"message": loc.get('invalid_fcm_token_error', device_language)})
 
     except aiohttp.ClientResponseError as e:
-        logging.error(f"HTTP error during ISOD auth (bad request or ISOD credentials): {e}")
         if e.status == 400:
+            logging.info(f"Invalid username or API key given")
             return web.json_response(status=400, data={"message": loc.get('invalid_isod_auth_data_error', device_language)})
         else:
+            logging.error(f"HTTP error: {e}")
             return web.json_response(status=e.status, data={"message": loc.get('isod_server_error', device_language)})
 
     except aiohttp.ClientError as e:
@@ -125,13 +126,13 @@ async def unlink_isod_account(request):
         # Check if user exists
         user = await user_exists(db, token=user_token)
         if not user:
-            logging.info(f"Such user does not exist")
+            logging.info(f"Such user does not exist: {user_token}")
             return web.json_response(status=200, data={'message': loc.get('user_not_found_info', device_language)})
 
         # Check if user has linked ISOD account
         isod_account = await isod_account_exists(user.reference)
         if not isod_account:
-            logging.info(f"User has no linked ISOD account")
+            logging.info(f"User has no linked ISOD account: {user_token}")
             return web.json_response(status=200, data={'message': loc.get('no_isod_account_linked_info', device_language)})
 
         # Delete ISOD account
@@ -162,13 +163,13 @@ async def get_isod_link_status(request):
         user = await user_exists(db, token=user_token)
         if not user:
             logging.info(f"No such user")
-            return web.json_response(status=200, data={'status': '0'})
+            return web.json_response(status=200, data={'is_isod_linked': False})
 
         # Check if user has linked ISOD account
         isod_account = await isod_account_exists(user.reference)
         if not isod_account:
-            logging.info(f"User has no linked ISOD account")
-            return web.json_response(status=200, data={'status': '0'})
+            logging.info(f"User {user_token} has no linked ISOD account")
+            return web.json_response(status=200, data={'is_isod_linked': False})
 
         # Fetch ISOD auth data
         isod_username = isod_account.id
@@ -183,10 +184,12 @@ async def get_isod_link_status(request):
                 # Key expired, unlink ISOD account
                 logging.info(f"ISOD api key expired for {isod_username}. Unlinking ISOD account")
                 await delete_isod_account(isod_account.reference)
-                return web.json_response(status=200, data={'status': '0'})
+                return web.json_response(status=200, data={'is_isod_linked': False})
+            else:
+                return web.json_response(status=e.status, data={'message': loc.get('isod_server_error', device_language)})
 
         logging.info(f"ISOD account ({isod_username}) is linked with user: {user.id}")
-        return web.json_response(status=200, data={'status': '1'})
+        return web.json_response(status=200, data={'is_isod_linked': True})
 
     except InvalidRequestError as e:
         logging.error(f"Invalid request received: {e}")
@@ -195,10 +198,3 @@ async def get_isod_link_status(request):
     except KeyError as e:
         logging.error(f"Invalid data received from external service: {e}")
         return web.json_response(status=502, data={"message": loc.get('invalid_data_received_form_external_service', device_language)})
-
-    except aiohttp.ClientResponseError as e:
-        logging.error(f"HTTP error during ISOD status check (bad request or ISOD credentials): {e}")
-        if e.status == 400:
-            return web.json_response(status=400, data={"message": loc.get('invalid_isod_auth_data_error', device_language)})
-        else:
-            return web.json_response(status=e.status, data={"message": loc.get('isod_server_error', device_language)})

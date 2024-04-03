@@ -42,7 +42,7 @@ async def logout_from_all_other_devices(request):
         device_token = data['token_fcm']
         device_language = loc.validate_language(data.get('language'))
 
-        logging.info(f"Attempting to logout user from all devices except: {user_token}")
+        logging.info(f"Attempting to logout user {user_token} from all devices except: {device_token}")
 
         # Check if user exists
         user = await user_exists(db, token=user_token)
@@ -80,12 +80,12 @@ async def delete_user_data(request):
         user_token = data['user_token']
         device_language = loc.validate_language(data.get('language'))
 
-        logging.info(f"Attempting to remove all user data from device: {user_token}")
+        logging.info(f"Attempting to remove all user data for {user_token}")
 
         # Check if user exists
         user = await user_exists(db, token=user_token)
         if not user:
-            logging.error(f"Such user does not exist")
+            logging.error(f"Such user does not exist: {user_token}")
             return web.json_response(status=200, data={'message': loc.get('user_not_found_info', device_language)})
 
         # Delete user devices

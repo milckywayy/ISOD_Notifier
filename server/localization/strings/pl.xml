@@ -12,6 +12,7 @@
         <!-- Informacje -->
         <info>
             <string key="isod_account_successfully_unlinked_info">Konto ISOD pomyślnie odłączone</string>
+            <string key="isod_api_key_expired">Klucz API ISOD wygasł</string>
             <string key="no_isod_account_linked_info">Użytkownik nie ma połączonego konta ISOD</string>
         </info>
 
@@ -35,6 +36,7 @@
         <!-- Informacje -->
         <info>
             <string key="usos_account_successfully_unlinked_info">Konto USOS pomyślnie odłączone</string>
+            <string key="usos_session_expired">Sesja USOS wygasła</string>
             <string key="no_usos_account_linked_info">Użytkownik nie ma połączonego konta USOS</string>
         </info>
 
