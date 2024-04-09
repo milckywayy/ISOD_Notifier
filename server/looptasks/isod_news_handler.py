@@ -86,16 +86,16 @@ async def process_new_news(account, new_hashes_not_in_db, loc, cache_manager):
     await asyncio.gather(*tasks, return_exceptions=True)
 
 
-async def process_device(device, news, loc):
+async def process_device(device, new_news, loc):
     device_data = device.to_dict()
     device_language, news_filter = device_data['language'], int(device_data['news_filter'])
 
-    for news_hash, news_title, news_type in news:
-        if should_notify(news_type, news_filter):
+    for news_hash, news_title, news_type in new_news:
+        if should_notify(news_hash, news_type, news_filter):
             try:
                 notify(
                     device.id,
-                    loc.get('new_isod_notification_title',device_language),
+                    loc.get('new_isod_notification_title', device_language),
                     news_title,
                     url=DEFAULT_NOTIFICATION_URL,
                     news_hash=news_hash
@@ -104,19 +104,23 @@ async def process_device(device, news, loc):
             except exceptions.FirebaseError:
                 logging.error(f"Expired FCM token. Removing device: {device.id}")
                 await device.reference.delete()
+                return
 
 
-def should_notify(news_type, news_filter):
-    filter_classes, filter_announcements, _, filter_other = decode_filter(news_filter)
+def should_notify(news_hash, news_type, news_filter):
+    filter_classes, filter_announcements, filter_wrs, filter_other = decode_filter(news_filter)
 
     if news_type in (1001, 1002) and not filter_classes:
-        logging.info(f"Skipping class type news due to filter settings")
+        logging.info(f"Skipping class type news due to filter settings: {news_hash}")
         return False
     elif news_type == 1000 and not filter_announcements:
-        logging.info(f"Skipping announcement due to filter settings")
+        logging.info(f"Skipping announcement due to filter settings: {news_hash}")
         return False
-    elif news_type in (1003, 1004, 1005) and not filter_other:
-        logging.info(f"Skipping other news due to filter settings")
+    elif news_type == 2414 and not filter_wrs:
+        logging.info(f"Skipping wrs news due to filter settings: {news_hash}")
+        return False
+    elif not filter_other:
+        logging.info(f"Skipping other news due to filter settings: {news_hash}")
         return False
 
     return True
