@@ -11,6 +11,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -20,12 +21,13 @@ fun PullToRefreshColumn(
     onRefresh: () -> Unit,
     scrollState: ScrollState,
     modifier: Modifier = Modifier,
-    verticalArrangement: Arrangement.Vertical
+    verticalArrangement: Arrangement.Vertical = Arrangement.spacedBy(0.dp)
 ) {
     val pullToRefreshState = rememberPullToRefreshState()
 
     Box(
-        modifier = modifier.nestedScroll(pullToRefreshState.nestedScrollConnection)
+        modifier = modifier
+            .nestedScroll(pullToRefreshState.nestedScrollConnection)
     ) {
         Column(
             modifier = Modifier.verticalScroll(scrollState),

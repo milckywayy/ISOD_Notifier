@@ -23,6 +23,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import pl.edu.pw.ee.isod_notifier.model.ActivityItem
 import pl.edu.pw.ee.isod_notifier.model.NewsItem
+import pl.edu.pw.ee.isod_notifier.ui.UiConstants
 import pl.edu.pw.ee.isod_notifier.ui.common.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -76,7 +77,7 @@ fun LatestNewsPager(navController: NavController) {
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        SectionText("Latest news")
+        SectionText("Latest news", padding = PaddingValues(horizontal = UiConstants.TEXT_PADDING))
 
         val newsItems = listOf(
             NewsItem("Zajęcia - SIKOMP: Nowa wartość: '5' w polu 'c1-wejściówka' bez komentarza", "2024-03-19", "1002", "2137"),
@@ -92,13 +93,14 @@ fun LatestNewsPager(navController: NavController) {
 
         HorizontalPager(
             state = pagerState,
+            modifier = Modifier.height(80.dp)
         ) { page ->
             val newsItem = newsItems[page]
 
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp, 0.dp, 16.dp, 0.dp)
+                    .padding(UiConstants.COMPOSABLE_PADDING, 0.dp, UiConstants.COMPOSABLE_PADDING, 0.dp)
             ) {
                 NewsTile(
                     newsItem,
@@ -133,7 +135,7 @@ fun TileRow(navController: NavController) {
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        SectionText("Activities")
+        SectionText("Activities", padding = PaddingValues(horizontal = UiConstants.TEXT_PADDING))
 
         val tiles = listOf(
             ActivityItem("Classes", Icons.Filled.Home, MaterialTheme.colorScheme.primary, "news"),
@@ -143,7 +145,7 @@ fun TileRow(navController: NavController) {
         )
 
         LazyRow(
-            modifier = Modifier.padding(16.dp, 0.dp, 16.dp, 0.dp),
+            modifier = Modifier.padding(UiConstants.COMPOSABLE_PADDING, 0.dp, UiConstants.COMPOSABLE_PADDING, 0.dp),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             items(tiles) { tile ->
@@ -159,6 +161,6 @@ fun ScheduleWidget(navController: NavController) {
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        SectionText("Today's schedule")
+        SectionText("Today's schedule", padding = PaddingValues(horizontal = UiConstants.TEXT_PADDING))
     }
 }

@@ -9,6 +9,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import pl.edu.pw.ee.isod_notifier.model.ActivityItem
+import pl.edu.pw.ee.isod_notifier.ui.UiConstants
 
 @Composable
 fun ActivityTile(activityItem: ActivityItem, onClick: (ActivityItem) -> Unit) {
@@ -16,7 +17,7 @@ fun ActivityTile(activityItem: ActivityItem, onClick: (ActivityItem) -> Unit) {
         modifier = Modifier
             .size(width = 150.dp, height = 200.dp)
             .clickable { onClick(activityItem) },
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(UiConstants.CORNER_RADIUS),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(containerColor = activityItem.color),
     ) {

@@ -1,31 +1,44 @@
 package pl.edu.pw.ee.isod_notifier.ui.common
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import pl.edu.pw.ee.isod_notifier.ui.theme.LexendFontFamily
 
 @Composable
-fun NavigationText(text: String) {
-    Text(
-        text,
-        fontFamily = LexendFontFamily,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 8.sp,
-        textAlign = TextAlign.Center
-    )
+fun NavigationText(
+    text: String,
+    padding: PaddingValues = PaddingValues(0.dp)
+) {
+    Box(
+        modifier = Modifier.padding(padding),
+    ) {
+        Text(
+            text,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 24.sp,
+            textAlign = TextAlign.Left
+        )
+    }
 }
 
 @Composable
-fun BigTitleText(text: String) {
-    Box {
+fun BigTitleText(
+    text: String,
+    padding: PaddingValues = PaddingValues(0.dp)
+) {
+    Box(
+        modifier = Modifier.padding(padding)
+    ) {
         Text(
             text = text,
             fontFamily = FontFamily.Default,
@@ -37,8 +50,13 @@ fun BigTitleText(text: String) {
 }
 
 @Composable
-fun TitleText(text: String) {
-    Box {
+fun TitleText(
+    text: String,
+    padding: PaddingValues = PaddingValues(0.dp)
+) {
+    Box(
+        modifier = Modifier.padding(padding)
+    ) {
         Text(
             text = text,
             fontFamily = FontFamily.Default,
@@ -50,49 +68,77 @@ fun TitleText(text: String) {
 }
 
 @Composable
-fun ActivityTileText(text: String) {
-    Text(
-        text = text,
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Bold,
-        fontSize = 20.sp,
-        textAlign = TextAlign.Left,
-    )
-}
-
-@Composable
-fun SectionText(text: String) {
+fun ActivityTileText(
+    text: String,
+    padding: PaddingValues = PaddingValues(0.dp)
+) {
     Box(
-        modifier = Modifier.padding(16.dp, 0.dp, 0.dp, 0.dp)
+        modifier = Modifier.padding(padding)
     ) {
         Text(
             text = text,
             fontFamily = FontFamily.Default,
             fontWeight = FontWeight.Bold,
             fontSize = 20.sp,
+            textAlign = TextAlign.Left,
+        )
+    }
+}
+
+@Composable
+fun SectionText(
+    text: String,
+    padding: PaddingValues = PaddingValues(0.dp)
+) {
+    Box(
+        modifier = Modifier.padding(padding)
+    ) {
+        Text(
+            text = text,
+            fontFamily = FontFamily.Default,
+            fontWeight = FontWeight.Bold,
+            fontSize = 18.sp,
             textAlign = TextAlign.Left
         )
     }
 }
 
 @Composable
-fun SubsectionText(text: String) {
-    Text(
-        text = text,
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Bold,
-        fontSize = 20.sp,
-        textAlign = TextAlign.Left,
-    )
+fun SubsectionText(
+    text: String,
+    padding: PaddingValues = PaddingValues(0.dp)
+) {
+    Box(
+        modifier = Modifier.padding(padding)
+    ) {
+        Text(
+            text = text,
+            fontFamily = FontFamily.Default,
+            fontWeight = FontWeight.Bold,
+            fontSize = 16.sp,
+            textAlign = TextAlign.Left
+        )
+    }
 }
 
 @Composable
-fun ContentText(text: String) {
-    Text(
-        text = text,
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Bold,
-        fontSize = 20.sp,
-        textAlign = TextAlign.Left,
-    )
+fun ContentText(
+    text: String,
+    maxLines: Int = Int.MAX_VALUE,
+    overflow: TextOverflow = TextOverflow.Clip,
+    padding: PaddingValues = PaddingValues(0.dp)
+) {
+    Box(
+        modifier = Modifier.padding(padding)
+    ) {
+        Text(
+            text = text,
+            fontFamily = FontFamily.Default,
+            fontWeight = FontWeight.Normal,
+            fontSize = 14.sp,
+            textAlign = TextAlign.Left,
+            maxLines = maxLines,
+            overflow = overflow,
+        )
+    }
 }
