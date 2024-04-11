@@ -10,8 +10,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -25,6 +24,7 @@ import pl.edu.pw.ee.isod_notifier.model.ActivityItem
 import pl.edu.pw.ee.isod_notifier.model.NewsItem
 import pl.edu.pw.ee.isod_notifier.ui.UiConstants
 import pl.edu.pw.ee.isod_notifier.ui.common.*
+import pl.edu.pw.ee.isod_notifier.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,7 +44,14 @@ fun HomeScreen(navController: NavController) {
                     ) {
                         Icon(Icons.Filled.MoreVert, contentDescription = "Options")
                     }
-                }
+                },
+                colors = TopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    scrolledContainerColor = MaterialTheme.colorScheme.background,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground,
+                    titleContentColor = MaterialTheme.colorScheme.primary,
+                    actionIconContentColor = MaterialTheme.colorScheme.onBackground,
+                )
             )
         }
     ) { innerPadding ->
@@ -93,7 +100,7 @@ fun LatestNewsPager(navController: NavController) {
 
         HorizontalPager(
             state = pagerState,
-            modifier = Modifier.height(80.dp)
+            modifier = Modifier.height(75.dp)
         ) { page ->
             val newsItem = newsItems[page]
 
@@ -138,10 +145,11 @@ fun TileRow(navController: NavController) {
         SectionText("Activities", padding = PaddingValues(horizontal = UiConstants.TEXT_PADDING))
 
         val tiles = listOf(
-            ActivityItem("Classes", Icons.Filled.Home, MaterialTheme.colorScheme.primary, "news"),
-            ActivityItem("News", Icons.Filled.Home, MaterialTheme.colorScheme.secondary, "news"),
-            ActivityItem("Schedule", Icons.Filled.Home, MaterialTheme.colorScheme.tertiary, "news"),
-            ActivityItem("Events", Icons.Filled.Home, MaterialTheme.colorScheme.tertiary, "news"),
+            ActivityItem("Classes", Icons.Filled.Class, ColorClasses, "news"),
+            ActivityItem("News", Icons.Filled.Newspaper, ColorNews, "news"),
+            ActivityItem("Schedule", Icons.Filled.Schedule, ColorSchedule, "news"),
+            ActivityItem("Exams", Icons.Filled.Assessment, ColorExams, "news"),
+            ActivityItem("Events", Icons.Filled.Celebration, ColorEvents, "news"),
         )
 
         LazyRow(

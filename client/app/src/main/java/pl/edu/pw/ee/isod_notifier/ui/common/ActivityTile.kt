@@ -19,7 +19,10 @@ fun ActivityTile(activityItem: ActivityItem, onClick: (ActivityItem) -> Unit) {
             .clickable { onClick(activityItem) },
         shape = RoundedCornerShape(UiConstants.CORNER_RADIUS),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        colors = CardDefaults.cardColors(containerColor = activityItem.color),
+        colors = CardDefaults.cardColors(
+            containerColor = activityItem.color,
+            contentColor = MaterialTheme.colorScheme.background
+        ),
     ) {
         Column(
             modifier = Modifier.fillMaxHeight().padding(12.dp),

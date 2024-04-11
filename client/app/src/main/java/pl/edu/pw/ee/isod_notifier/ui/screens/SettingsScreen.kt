@@ -43,6 +43,8 @@ fun SettingsScreen(navController: NavController) {
                     .verticalScroll(scrollState),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
+                Spacer(modifier = Modifier)
+
                 SettingsSection(title = "Notification Settings") {
                     SwitchSetting(
                         title = "Enable Notifications",
@@ -126,6 +128,8 @@ fun SettingsScreen(navController: NavController) {
                         icon = { Icon(Icons.Filled.Web, contentDescription = "Notification settings") }
                     )
                 }
+
+                Spacer(modifier = Modifier)
             }
         }
     )

@@ -3,6 +3,7 @@ package pl.edu.pw.ee.isod_notifier.ui.common
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
@@ -37,7 +38,6 @@ fun TopBarRefreshScreen(
     ) { innerPadding ->
         PullToRefreshColumn(
             modifier = Modifier.padding(innerPadding),
-            verticalArrangement = Arrangement.spacedBy(20.dp),
             isRefreshing = isRefreshing,
             scrollState = scrollState,
             onRefresh = onRefresh,
