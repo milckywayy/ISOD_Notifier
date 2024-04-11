@@ -102,15 +102,18 @@ async def process_client(client, db, loc, session):
 
                 filter_classes, filter_announcements, wrs_news, filter_other = decode_filter(news_filter)
 
-                if (news_type == 1001 or news_type == 1002) and not filter_classes:
-                    logging.info(f'Skipping class type news: {news_hash}')
-                    continue
-                elif news_type == 1000 and not filter_announcements:
-                    logging.info(f'Skipping announcement: {news_hash}')
-                    continue
-                elif news_type == 2414 and not wrs_news:
-                    logging.info(f'Skipping announcement: {news_hash}')
-                    continue
+                if news_type in [1001, 1002, 1003, 1004, 1005]:
+                    if not filter_classes:
+                        logging.info(f'Skipping class type news: {news_hash}')
+                        continue
+                elif news_type == 1000:
+                    if not filter_announcements:
+                        logging.info(f'Skipping announcement: {news_hash}')
+                        continue
+                elif news_type == 2414:
+                    if not wrs_news:
+                        logging.info(f'Skipping announcement: {news_hash}')
+                        continue
                 elif not filter_other:
                     logging.info(f'Skipping other news: {news_hash}')
                     continue
