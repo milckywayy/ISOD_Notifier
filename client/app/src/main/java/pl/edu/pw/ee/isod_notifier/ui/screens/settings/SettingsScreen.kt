@@ -1,4 +1,4 @@
-package pl.edu.pw.ee.isod_notifier.ui.screens
+package pl.edu.pw.ee.isod_notifier.ui.screens.settings
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.*
@@ -10,16 +10,20 @@ import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import pl.edu.pw.ee.isod_notifier.R
 import pl.edu.pw.ee.isod_notifier.ui.UiConstants
 import pl.edu.pw.ee.isod_notifier.ui.common.ClickSetting
 import pl.edu.pw.ee.isod_notifier.ui.common.SettingsSection
 import pl.edu.pw.ee.isod_notifier.ui.common.SwitchSetting
 import pl.edu.pw.ee.isod_notifier.ui.common.TopBarScreen
+import pl.edu.pw.ee.isod_notifier.utils.openURL
 
 @Composable
 fun SettingsScreen(navController: NavController) {
+    val context = LocalContext.current
     val scrollState = rememberScrollState()
 
     var notificationsEnabled by remember { mutableStateOf(true) }
@@ -78,16 +82,16 @@ fun SettingsScreen(navController: NavController) {
                     }
                 }
 
-                SettingsSection(title = "Link service") {
+                SettingsSection(title = "University services") {
                     ClickSetting(
-                        title = "Link ISOD account",
+                        title = "Manage ISOD account",
                         onClick = {
 
                         },
                         icon = { Icon(Icons.Filled.AccountCircle, contentDescription = "Notification settings") }
                     )
                     ClickSetting(
-                        title = "Link USOS account",
+                        title = "Manage USOS account",
                         onClick = {
 
                         },
@@ -116,14 +120,14 @@ fun SettingsScreen(navController: NavController) {
                     ClickSetting(
                         title = "See app info",
                         onClick = {
-
+                            navController.navigate("app_info")
                         },
                         icon = { Icon(Icons.Filled.Info, contentDescription = "Notification settings") }
                     )
                     ClickSetting(
                         title = "Visit app on Play Store",
                         onClick = {
-
+                            openURL(context, context.getString(R.string.app_play_store_url))
                         },
                         icon = { Icon(Icons.Filled.Web, contentDescription = "Notification settings") }
                     )
