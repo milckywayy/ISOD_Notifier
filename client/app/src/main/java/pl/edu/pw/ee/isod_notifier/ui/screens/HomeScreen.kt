@@ -142,6 +142,7 @@ fun TileRow(navController: NavController) {
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
+
         SectionText("Activities", padding = PaddingValues(horizontal = UiConstants.TEXT_PADDING))
 
         val tiles = listOf(

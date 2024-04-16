@@ -16,7 +16,8 @@ import pl.edu.pw.ee.isod_notifier.ui.screens.settings.SettingsScreen
 
 @Composable
 fun AppNavHost(navHostController: NavHostController) {
-    NavHost(navController = navHostController, startDestination = "home") {
+    // NavHost(navController = navHostController, startDestination = "home") {
+    NavHost(navController = navHostController, startDestination = "first_time_link_screen") {
         // Main
         composable("home") { HomeScreen(navHostController) }
 
