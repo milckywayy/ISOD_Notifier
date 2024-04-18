@@ -1,14 +1,11 @@
 package pl.edu.pw.ee.isod_notifier.ui.screens.auth
 
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Assessment
-import androidx.compose.material.icons.filled.Celebration
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -23,18 +20,15 @@ import pl.edu.pw.ee.isod_notifier.model.ActivityItem
 import pl.edu.pw.ee.isod_notifier.ui.UiConstants
 import pl.edu.pw.ee.isod_notifier.ui.common.ActivityTile
 import pl.edu.pw.ee.isod_notifier.ui.common.BigTitleText
-import pl.edu.pw.ee.isod_notifier.ui.common.ContentText
 import pl.edu.pw.ee.isod_notifier.ui.common.InfoBar
-import pl.edu.pw.ee.isod_notifier.ui.theme.ColorEvents
-import pl.edu.pw.ee.isod_notifier.ui.theme.ColorExams
 
 @Composable
 fun FirstTimeLinkScreen(navController: NavController) {
     val scrollState = rememberScrollState()
 
     val tiles = listOf(
-        ActivityItem("ISOD", ImageVector.vectorResource(R.drawable.we_logo), ColorExams, "news"),
-        ActivityItem("USOS", ImageVector.vectorResource(R.drawable.usos_logo), ColorEvents, "news"),
+        ActivityItem("ISOD", ImageVector.vectorResource(R.drawable.we_logo), MaterialTheme.colorScheme.primary, "news"),
+        ActivityItem("USOS", ImageVector.vectorResource(R.drawable.usos_logo), MaterialTheme.colorScheme.surface, "news"),
     )
 
     Column(
