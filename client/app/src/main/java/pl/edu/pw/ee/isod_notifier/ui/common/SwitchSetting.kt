@@ -18,7 +18,7 @@ fun SwitchSetting(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = UiConstants.COMPOSABLE_PADDING),
+            .padding(horizontal = UiConstants.TILE_PADDING),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -28,7 +28,7 @@ fun SwitchSetting(
         ) {
             if (icon != null) {
                 icon.invoke()
-                Spacer(modifier = Modifier.width(UiConstants.COMPOSABLE_PADDING))
+                Spacer(modifier = Modifier.width(UiConstants.TILE_PADDING))
             }
             Box {
                 ContentText(

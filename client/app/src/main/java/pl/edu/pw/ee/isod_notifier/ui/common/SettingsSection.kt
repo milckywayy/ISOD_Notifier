@@ -7,7 +7,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import pl.edu.pw.ee.isod_notifier.ui.UiConstants
 
@@ -17,12 +16,12 @@ fun SettingsSection(
     content: @Composable () -> Unit
 ) {
     Column(
-        verticalArrangement = Arrangement.spacedBy(UiConstants.COMPOSABLE_PADDING),
+        verticalArrangement = Arrangement.spacedBy(UiConstants.TILE_PADDING),
         modifier = Modifier.fillMaxWidth()
     ) {
         SectionText(
             text = title,
-            padding = PaddingValues(horizontal = UiConstants.COMPOSABLE_PADDING)
+            padding = PaddingValues(horizontal = UiConstants.TILE_PADDING)
         )
         Column(
             modifier = Modifier

@@ -3,7 +3,6 @@ package pl.edu.pw.ee.isod_notifier.ui.common
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,7 +22,7 @@ fun ClickSetting(
             .fillMaxSize()
             .clip(RoundedCornerShape(UiConstants.CORNER_RADIUS))
             .clickable(onClick = onClick)
-            .padding(horizontal = UiConstants.COMPOSABLE_PADDING),
+            .padding(horizontal = UiConstants.TILE_PADDING),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -33,7 +32,7 @@ fun ClickSetting(
         ) {
             if (icon != null) {
                 icon.invoke()
-                Spacer(modifier = Modifier.width(UiConstants.COMPOSABLE_PADDING))
+                Spacer(modifier = Modifier.width(UiConstants.TILE_PADDING))
             }
 
             Box(

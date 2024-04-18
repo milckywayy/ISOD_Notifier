@@ -30,9 +30,9 @@ fun AppInfoScreen(
             Column(
                 modifier = Modifier
                     .padding(
-                        UiConstants.COMPOSABLE_PADDING,
+                        UiConstants.TILE_PADDING,
                         innerPadding.calculateTopPadding(),
-                        UiConstants.COMPOSABLE_PADDING,
+                        UiConstants.TILE_PADDING,
                         0.dp,
                     )
                     .verticalScroll(scrollState),

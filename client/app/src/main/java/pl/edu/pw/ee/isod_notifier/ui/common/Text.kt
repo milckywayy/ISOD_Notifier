@@ -138,7 +138,7 @@ fun ContentText(
             fontFamily = FontFamily.Default,
             fontWeight = FontWeight.Normal,
             fontSize = 14.sp,
-            textAlign = TextAlign.Left,
+            textAlign = TextAlign.Justify,
             maxLines = maxLines,
             overflow = overflow,
         )

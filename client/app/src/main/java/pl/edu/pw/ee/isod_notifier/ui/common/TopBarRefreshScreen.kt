@@ -1,16 +1,13 @@
 package pl.edu.pw.ee.isod_notifier.ui.common
 
 import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import pl.edu.pw.ee.isod_notifier.ui.UiConstants
 
@@ -42,7 +39,7 @@ fun TopBarRefreshScreen(
             scrollState = scrollState,
             onRefresh = onRefresh,
             content = {
-                content(PaddingValues(vertical = innerPadding.calculateTopPadding() + UiConstants.COMPOSABLE_PADDING))
+                content(PaddingValues(vertical = innerPadding.calculateTopPadding() + UiConstants.TILE_PADDING))
             },
         )
     }

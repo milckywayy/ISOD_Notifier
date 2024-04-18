@@ -27,8 +27,8 @@ fun FirstTimeLinkScreen(navController: NavController) {
     val scrollState = rememberScrollState()
 
     val tiles = listOf(
-        ActivityItem("ISOD", ImageVector.vectorResource(R.drawable.we_logo), MaterialTheme.colorScheme.primary, "news"),
-        ActivityItem("USOS", ImageVector.vectorResource(R.drawable.usos_logo), MaterialTheme.colorScheme.surface, "news"),
+        ActivityItem("ISOD", ImageVector.vectorResource(R.drawable.we_logo), MaterialTheme.colorScheme.primary, "link_isod"),
+        ActivityItem("USOS", ImageVector.vectorResource(R.drawable.usos_logo), MaterialTheme.colorScheme.surface, "link_usos"),
     )
 
     Column(
@@ -38,17 +38,17 @@ fun FirstTimeLinkScreen(navController: NavController) {
     ) {
         BigTitleText(
             "Link service",
-            padding = PaddingValues(horizontal = UiConstants.TEXT_PADDING, vertical = 32.dp)
+            padding = PaddingValues(horizontal = UiConstants.COMPOSABLE_PADDING, vertical = 32.dp)
         )
 
         Column {
             InfoBar(
                 "In order to use app, please log in to at least one university service.",
                 icon = Icons.Filled.Info,
-                paddingValues = PaddingValues(horizontal = 32.dp)
+                paddingValues = PaddingValues(horizontal = UiConstants.NARROW_PADDING)
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             LazyRow(
                 modifier = Modifier
@@ -58,7 +58,7 @@ fun FirstTimeLinkScreen(navController: NavController) {
                 items(tiles) { tile ->
                     Row(modifier = Modifier.padding(horizontal = 5.dp)) {
                         ActivityTile(tile, onClick = {
-
+                            navController.navigate(tile.route)
                         })
                     }
                 }
@@ -73,7 +73,7 @@ fun FirstTimeLinkScreen(navController: NavController) {
                 .fillMaxWidth()
         ) {
             Button(
-                modifier = Modifier.padding(UiConstants.TEXT_PADDING),
+                modifier = Modifier.padding(UiConstants.COMPOSABLE_PADDING),
                 onClick = {
                     navController.navigate("home") {
                         popUpTo(navController.graph.startDestinationId) {
