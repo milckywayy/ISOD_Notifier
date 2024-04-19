@@ -8,6 +8,7 @@ class UiConstants {
         val COMPOSABLE_PADDING = 16.dp
         val NARROW_PADDING = 32.dp
 
+        val SMALL_SPACE = 4.dp
         val DEFAULT_SPACE = 8.dp
         val BIG_SPACE = 16.dp
 
