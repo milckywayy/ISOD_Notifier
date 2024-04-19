@@ -9,6 +9,7 @@ class UiConstants {
         val NARROW_PADDING = 32.dp
 
         val DEFAULT_SPACE = 8.dp
+        val BIG_SPACE = 16.dp
 
         val CORNER_RADIUS = 12.dp
     }

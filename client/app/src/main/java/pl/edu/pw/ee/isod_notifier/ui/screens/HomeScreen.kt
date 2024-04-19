@@ -56,7 +56,7 @@ fun HomeScreen(navController: NavController) {
     ) { innerPadding ->
         PullToRefreshColumn(
             modifier = Modifier.padding(innerPadding),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(UiConstants.BIG_SPACE),
             isRefreshing = isRefreshing,
             scrollState = scrollState,
             onRefresh = {
