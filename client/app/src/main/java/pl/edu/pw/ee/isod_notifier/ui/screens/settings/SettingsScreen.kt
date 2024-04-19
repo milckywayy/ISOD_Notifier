@@ -45,7 +45,7 @@ fun SettingsScreen(navController: NavController) {
                         0.dp,
                     )
                     .verticalScroll(scrollState),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+                verticalArrangement = Arrangement.spacedBy(UiConstants.BIG_SPACE),
             ) {
                 Spacer(modifier = Modifier)
 

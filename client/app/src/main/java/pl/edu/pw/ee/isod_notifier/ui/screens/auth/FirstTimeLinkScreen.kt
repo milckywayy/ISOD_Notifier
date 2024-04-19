@@ -38,7 +38,10 @@ fun FirstTimeLinkScreen(navController: NavController) {
     ) {
         BigTitleText(
             "Link service",
-            padding = PaddingValues(horizontal = UiConstants.COMPOSABLE_PADDING, vertical = 32.dp)
+            padding = PaddingValues(
+                horizontal = UiConstants.COMPOSABLE_PADDING,
+                vertical = 32.dp
+            )
         )
 
         Column {
@@ -48,7 +51,7 @@ fun FirstTimeLinkScreen(navController: NavController) {
                 paddingValues = PaddingValues(horizontal = UiConstants.NARROW_PADDING)
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(UiConstants.DEFAULT_SPACE))
 
             LazyRow(
                 modifier = Modifier
@@ -56,7 +59,7 @@ fun FirstTimeLinkScreen(navController: NavController) {
                 horizontalArrangement = Arrangement.Center
             ) {
                 items(tiles) { tile ->
-                    Row(modifier = Modifier.padding(horizontal = 5.dp)) {
+                    Row(modifier = Modifier.padding(horizontal = UiConstants.SPACE_BTW_TILES / 2)) {
                         ActivityTile(tile, onClick = {
                             navController.navigate(tile.route)
                         })

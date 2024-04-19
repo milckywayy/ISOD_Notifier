@@ -81,7 +81,7 @@ fun HomeScreen(navController: NavController) {
 @Composable
 fun LatestNewsPager(navController: NavController) {
     Column(
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(UiConstants.DEFAULT_SPACE)
     ) {
         SectionText("Latest news", padding = PaddingValues(horizontal = UiConstants.COMPOSABLE_PADDING))
 
@@ -139,7 +139,7 @@ fun LatestNewsPager(navController: NavController) {
 @Composable
 fun TileRow(navController: NavController) {
     Column(
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(UiConstants.DEFAULT_SPACE)
     ) {
 
         SectionText("Activities", padding = PaddingValues(horizontal = UiConstants.COMPOSABLE_PADDING))
@@ -154,7 +154,7 @@ fun TileRow(navController: NavController) {
 
         LazyRow(
             modifier = Modifier.padding(UiConstants.TILE_PADDING, 0.dp, UiConstants.TILE_PADDING, 0.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
+            horizontalArrangement = Arrangement.spacedBy(UiConstants.SPACE_BTW_TILES)
         ) {
             items(tiles) { tile ->
                 ActivityTile(tile, onClick = {
@@ -167,7 +167,7 @@ fun TileRow(navController: NavController) {
 @Composable
 fun ScheduleWidget(navController: NavController) {
     Column(
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(UiConstants.DEFAULT_SPACE)
     ) {
         SectionText("Today's schedule", padding = PaddingValues(horizontal = UiConstants.COMPOSABLE_PADDING))
     }

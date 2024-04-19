@@ -27,7 +27,7 @@ fun SettingsSection(
             modifier = Modifier
                 .clip(RoundedCornerShape(UiConstants.CORNER_RADIUS))
                 .background(MaterialTheme.colorScheme.surface)
-                .padding(4.dp)
+                .padding(UiConstants.SMALL_SPACE)
         ) {
             content()
         }

@@ -11,6 +11,7 @@ class UiConstants {
         val SMALL_SPACE = 4.dp
         val DEFAULT_SPACE = 8.dp
         val BIG_SPACE = 16.dp
+        val SPACE_BTW_TILES = 10.dp
 
         val CORNER_RADIUS = 12.dp
     }
