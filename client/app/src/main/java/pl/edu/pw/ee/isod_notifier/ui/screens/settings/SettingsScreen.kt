@@ -86,14 +86,14 @@ fun SettingsScreen(navController: NavController) {
                     ClickSetting(
                         title = "Manage ISOD account",
                         onClick = {
-
+                            navController.navigate("link_isod")
                         },
                         icon = { Icon(Icons.Filled.AccountCircle, contentDescription = "Notification settings") }
                     )
                     ClickSetting(
                         title = "Manage USOS account",
                         onClick = {
-
+                            navController.navigate("link_usos")
                         },
                         icon = { Icon(Icons.Outlined.AccountCircle, contentDescription = "Notification settings") }
                     )

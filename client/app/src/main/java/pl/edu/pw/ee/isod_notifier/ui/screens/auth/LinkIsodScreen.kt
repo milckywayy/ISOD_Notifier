@@ -1,5 +1,7 @@
 package pl.edu.pw.ee.isod_notifier.ui.screens.auth
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -7,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LooksOne
 import androidx.compose.material.icons.filled.LooksTwo
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -22,26 +25,43 @@ import pl.edu.pw.ee.isod_notifier.ui.common.*
 fun LinkIsodScreen(navController: NavController) {
     val scrollState = rememberScrollState()
 
-    var username = remember { mutableStateOf("") }
-    var apiKey = remember { mutableStateOf("") }
+    TopBarScreen(
+    navController,
+        "Link ISOD Account"
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .verticalScroll(scrollState)
+                .fillMaxSize()
 
-    Column(
-        verticalArrangement = Arrangement.SpaceBetween,
+        ) {
+            ScreenContent(navController, innerPadding)
+        }
+    }
+}
+
+@Composable
+private fun ScreenContent(navController: NavController, innerPadding: PaddingValues) {
+    val username = remember { mutableStateOf("") }
+    val apiKey = remember { mutableStateOf("") }
+
+    Column (
+        verticalArrangement = Arrangement.spacedBy(UiConstants.DEFAULT_SPACE * 2),
         modifier = Modifier
-            .verticalScroll(scrollState)
+            .padding(
+                0.dp,
+                innerPadding.calculateTopPadding() + UiConstants.COMPOSABLE_PADDING,
+                0.dp,
+                0.dp
+            )
     ) {
-        BigTitleText(
-            "Link ISOD account",
-            padding = PaddingValues(horizontal = UiConstants.COMPOSABLE_PADDING, vertical = 32.dp)
-        )
-
         Column {
             InfoBar(
                 "Get ISOD API key. Click button below, log in to ISOD and scroll down in order to find the API key.",
                 icon = Icons.Filled.LooksOne,
                 paddingValues = PaddingValues(horizontal = UiConstants.NARROW_PADDING)
             )
-            
+
             Spacer(modifier = Modifier.height(8.dp))
 
             WideButton(
@@ -81,21 +101,23 @@ fun LinkIsodScreen(navController: NavController) {
             )
         }
 
-        Spacer(modifier = Modifier)
-
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
                 .fillMaxWidth()
         ) {
-            Button(
-                modifier = Modifier.padding(UiConstants.COMPOSABLE_PADDING),
+            WideButton(
+                "Link account",
                 onClick = {
                     navController.popBackStack()
-                }
-            ) {
-                Text("Link account")
-            }
+                },
+                padding = PaddingValues(
+                    UiConstants.COMPOSABLE_PADDING,
+                    0.dp,
+                    UiConstants.COMPOSABLE_PADDING,
+                    UiConstants.COMPOSABLE_PADDING
+                )
+            )
         }
     }
 }

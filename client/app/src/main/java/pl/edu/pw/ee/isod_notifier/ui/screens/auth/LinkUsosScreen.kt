@@ -1,5 +1,7 @@
 package pl.edu.pw.ee.isod_notifier.ui.screens.auth
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -7,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LooksOne
 import androidx.compose.material.icons.filled.LooksTwo
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -16,30 +19,44 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import pl.edu.pw.ee.isod_notifier.ui.UiConstants
-import pl.edu.pw.ee.isod_notifier.ui.common.BigTitleText
-import pl.edu.pw.ee.isod_notifier.ui.common.InfoBar
-import pl.edu.pw.ee.isod_notifier.ui.common.TextField
-import pl.edu.pw.ee.isod_notifier.ui.common.WideButton
+import pl.edu.pw.ee.isod_notifier.ui.common.*
 
 @Composable
 fun LinkUsosScreen(navController: NavController) {
     val scrollState = rememberScrollState()
 
-    var authPin = remember { mutableStateOf("") }
+    TopBarScreen(
+        navController,
+        "Link USOS Account"
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .verticalScroll(scrollState)
+                .fillMaxSize()
 
-    Column(
-        verticalArrangement = Arrangement.SpaceBetween,
+        ) {
+            ScreenContent(navController, innerPadding)
+        }
+    }
+}
+
+@Composable
+private fun ScreenContent(navController: NavController, innerPadding: PaddingValues) {
+    val authPin = remember { mutableStateOf("") }
+
+    Column (
+        verticalArrangement = Arrangement.spacedBy(UiConstants.DEFAULT_SPACE * 2),
         modifier = Modifier
-            .verticalScroll(scrollState)
+            .padding(
+                0.dp,
+                innerPadding.calculateTopPadding() + UiConstants.COMPOSABLE_PADDING,
+                0.dp,
+                0.dp
+            )
     ) {
-        BigTitleText(
-            "Link USOS account",
-            padding = PaddingValues(horizontal = UiConstants.COMPOSABLE_PADDING, vertical = 32.dp)
-        )
-
         Column {
             InfoBar(
-                "Get USOS auth pin. Click button below, log in to USOS and accept app permissions in order to get auth pin.",
+                "Get USOS auth pin. Click button below, log in to USOS and accept app privileges in order to get the auth pin.",
                 icon = Icons.Filled.LooksOne,
                 paddingValues = PaddingValues(horizontal = UiConstants.NARROW_PADDING)
             )
@@ -47,7 +64,7 @@ fun LinkUsosScreen(navController: NavController) {
             Spacer(modifier = Modifier.height(8.dp))
 
             WideButton(
-                text = "Get auth pin",
+                text = "Authorize in USOS",
                 padding = PaddingValues(horizontal = UiConstants.COMPOSABLE_PADDING),
                 onClick = {
 
@@ -66,7 +83,7 @@ fun LinkUsosScreen(navController: NavController) {
 
             TextField(
                 text = authPin.value,
-                placeholder = "USOS Auth Pin",
+                placeholder = "USOS Pin",
                 padding = PaddingValues(horizontal = UiConstants.COMPOSABLE_PADDING),
                 onValueChange = { newValue ->
                     authPin.value = newValue
@@ -74,21 +91,23 @@ fun LinkUsosScreen(navController: NavController) {
             )
         }
 
-        Spacer(modifier = Modifier)
-
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
                 .fillMaxWidth()
         ) {
-            Button(
-                modifier = Modifier.padding(UiConstants.COMPOSABLE_PADDING),
+            WideButton(
+                "Link account",
                 onClick = {
                     navController.popBackStack()
-                }
-            ) {
-                Text("Link account")
-            }
+                },
+                padding = PaddingValues(
+                    UiConstants.COMPOSABLE_PADDING,
+                    0.dp,
+                    UiConstants.COMPOSABLE_PADDING,
+                    UiConstants.COMPOSABLE_PADDING
+                )
+            )
         }
     }
 }
