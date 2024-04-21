@@ -86,10 +86,10 @@ fun LatestNewsPager(navController: NavController) {
         SectionText("Latest news", padding = PaddingValues(horizontal = UiConstants.COMPOSABLE_PADDING))
 
         val newsItems = listOf(
-            NewsItem("Zajęcia - SIKOMP: Nowa wartość: '5' w polu 'c1-wejściówka' bez komentarza", "2024-03-19", "1002", "2137"),
-            NewsItem("Zajęcia - TEMIL: Nowa wartość: '50' w polu 'przetwornik C/A (osc XY)' bez komentarza", "2024-03-19", "1002", "2137"),
-            NewsItem("Profil dla klienta VPN", "2024-03-19", "1002", "2137"),
-            NewsItem("Ogłoszenie - PROIN: Spotkanie informacyjne", "2024-03-19", "1002", "2137")
+            NewsItem("Zajęcia - SIKOMP: Nowa wartość: '5' w polu 'c1-wejściówka' bez komentarza", "2137","ISOD", "1002", "2024-03-19", "06:30"),
+            NewsItem("Zajęcia - TEMIL: Nowa wartość: '50' w polu 'przetwornik C/A (osc XY)' bez komentarza", "2137", "ISOD", "1002", "2024-03-19", "06:30"),
+            NewsItem("Profil dla klienta VPN", "2137", "ISOD", "1002", "2024-03-19", "06:30"),
+            NewsItem("Ogłoszenie - PROIN: Spotkanie informacyjne", "2137",  "ISOD", "1002", "2024-03-19", "06:30")
         )
 
         val pagerState = rememberPagerState(
@@ -145,11 +145,11 @@ fun TileRow(navController: NavController) {
         SectionText("Activities", padding = PaddingValues(horizontal = UiConstants.COMPOSABLE_PADDING))
 
         val tiles = listOf(
-            ActivityItem("Classes", Icons.Filled.Class, ColorClasses, "news"),
+            ActivityItem("Classes", Icons.Filled.Class, ColorClasses, "home"),
             ActivityItem("News", Icons.Filled.Newspaper, ColorNews, "news"),
-            ActivityItem("Schedule", Icons.Filled.Schedule, ColorSchedule, "news"),
-            ActivityItem("Exams", Icons.Filled.Assessment, ColorExams, "news"),
-            ActivityItem("Events", Icons.Filled.Celebration, ColorEvents, "news"),
+            ActivityItem("Schedule", Icons.Filled.Schedule, ColorSchedule, "home"),
+            ActivityItem("Exams", Icons.Filled.Assessment, ColorExams, "home"),
+            ActivityItem("Events", Icons.Filled.Celebration, ColorEvents, "home"),
         )
 
         LazyRow(
@@ -158,6 +158,7 @@ fun TileRow(navController: NavController) {
         ) {
             items(tiles) { tile ->
                 ActivityTile(tile, onClick = {
+                    navController.navigate(tile.route)
                 })
             }
         }

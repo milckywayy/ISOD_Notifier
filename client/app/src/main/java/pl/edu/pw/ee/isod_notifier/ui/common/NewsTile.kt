@@ -36,7 +36,7 @@ fun NewsTile(newsItem: NewsItem, onClick: (NewsItem) -> Unit) {
                     .align(Alignment.CenterVertically))
                 Spacer(modifier = Modifier.width(10.dp))
                 ContentText(
-                    text = newsItem.title,
+                    text = newsItem.subject,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )

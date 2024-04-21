@@ -1,8 +1,10 @@
 package pl.edu.pw.ee.isod_notifier.model
 
 class NewsItem (
-    val title: String,
-    val date: String,
+    val subject: String,
+    val hash: String,
+    val service: String,
     val type: String,
-    val hash: String
+    val day: String,
+    val hour: String,
 )
