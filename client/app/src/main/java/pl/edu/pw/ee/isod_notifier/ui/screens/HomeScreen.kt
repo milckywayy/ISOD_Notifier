@@ -145,7 +145,7 @@ fun TileRow(navController: NavController) {
         SectionText("Activities", padding = PaddingValues(horizontal = UiConstants.COMPOSABLE_PADDING))
 
         val tiles = listOf(
-            ActivityItem("Classes", Icons.Filled.Class, ColorClasses, "home"),
+            ActivityItem("Classes", Icons.Filled.Class, ColorClasses, "classes"),
             ActivityItem("News", Icons.Filled.Newspaper, ColorNews, "news"),
             ActivityItem("Schedule", Icons.Filled.Schedule, ColorSchedule, "home"),
             ActivityItem("Exams", Icons.Filled.Assessment, ColorExams, "home"),

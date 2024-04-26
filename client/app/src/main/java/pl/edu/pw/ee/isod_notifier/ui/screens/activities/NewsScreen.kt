@@ -13,7 +13,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import pl.edu.pw.ee.isod_notifier.model.NewsItem
 import pl.edu.pw.ee.isod_notifier.model.NewsTypes
@@ -104,8 +103,7 @@ fun ScreenContent(
 ) {
     var dropDownMenuExpanded by remember { mutableStateOf(false) }
 
-    var filter by remember { mutableStateOf(NewsTypes.FACULTY) }
-    val newsGroups = filterNews(newsItems, filter)
+    var filter by remember { mutableStateOf(NewsTypes.ALL) }
 
     Column(
         verticalArrangement = Arrangement.spacedBy(UiConstants.DEFAULT_SPACE),
@@ -164,7 +162,7 @@ fun ScreenContent(
             }
         }
 
-        for (newsGroup in newsGroups) {
+        for (newsGroup in filterNews(newsItems, filter)) {
             SubsectionText(
                 newsGroup.key,
                 PaddingValues(horizontal = UiConstants.COMPOSABLE_PADDING)
