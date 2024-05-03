@@ -2,7 +2,6 @@ package pl.edu.pw.ee.isod_notifier.ui.screens.activities
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FilterList
@@ -14,20 +13,23 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import pl.edu.pw.ee.isod_notifier.model.NewsItem
 import pl.edu.pw.ee.isod_notifier.model.NewsTypes
 import pl.edu.pw.ee.isod_notifier.ui.UiConstants
-import pl.edu.pw.ee.isod_notifier.ui.common.NewsTile
-import pl.edu.pw.ee.isod_notifier.ui.common.SectionText
-import pl.edu.pw.ee.isod_notifier.ui.common.SubsectionText
-import pl.edu.pw.ee.isod_notifier.ui.common.TopBarScreen
+import pl.edu.pw.ee.isod_notifier.ui.common.*
 import java.util.*
 
 @Composable
 fun NewsScreen(navController: NavController) {
     val scrollState = rememberScrollState()
+    var isRefreshing by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    var isLoading by remember { mutableStateOf(false) }
+    val newsItems = remember { mutableStateListOf<NewsItem>() }
 
-    val newsItems = listOf(
+    val n = listOf (
         NewsItem("Zajęcia - SIKOMP: Nowa wartość: '5' w polu 'c1-wejściówka' bez komentarza", "2137","ISOD", "1002", "2024-03-19", "22:30"),
         NewsItem("Zajęcia - TEMIL: Nowa wartość: '50' w polu 'przetwornik C/A (osc XY)' bez komentarza", "2137", "ISOD", "1002", "2024-03-19", "21:30"),
         NewsItem("Profil dla klienta VPN", "2137", "ISOD", "1002", "2024-03-19", "20:30"),
@@ -49,17 +51,45 @@ fun NewsScreen(navController: NavController) {
         NewsItem("Ogłoszenie - PROIN: Spotkanie informacyjne", "2137",  "ISOD", "1002", "2024-03-11", "06:30")
     )
 
+    suspend fun fetchNewsFromService() {
+        delay(1000L)
+
+        newsItems.clear()
+        newsItems.addAll(n)
+    }
+
+    LaunchedEffect(true) {
+        isLoading = true
+        fetchNewsFromService()
+        isLoading = false
+    }
+
     TopBarScreen(
         navController,
-        "News"
+        "News",
     ) { innerPadding ->
-        Column(
-            modifier = Modifier.verticalScroll(scrollState)
-        ) {
-            ScreenContent(
-                navController,
-                newsItems,
-                innerPadding
+        if (isLoading) {
+            LoadingAnimation()
+        }
+        else {
+            PullToRefreshColumn(
+                modifier = Modifier.padding(innerPadding),
+                isRefreshing = isRefreshing,
+                scrollState = scrollState,
+                onRefresh = {
+                    scope.launch {
+                        isRefreshing = true
+                        delay(1000L)
+                        fetchNewsFromService()
+                        isRefreshing = false
+                    }
+                },
+                content = {
+                    ScreenContent(
+                        navController,
+                        newsItems,
+                    )
+                }
             )
         }
     }
@@ -98,11 +128,9 @@ private fun filterNews(newsItems: List<NewsItem>, type: NewsTypes): SortedMap<St
 @Composable
 fun ScreenContent(
     navController: NavController,
-    newsItems: List<NewsItem>,
-    innerPadding: PaddingValues
+    newsItems: List<NewsItem>
 ) {
     var dropDownMenuExpanded by remember { mutableStateOf(false) }
-
     var filter by remember { mutableStateOf(NewsTypes.ALL) }
 
     Column(
@@ -110,7 +138,7 @@ fun ScreenContent(
         modifier = Modifier
             .padding(
                 UiConstants.TILE_PADDING,
-                innerPadding.calculateTopPadding() + UiConstants.DEFAULT_SPACE,
+                UiConstants.DEFAULT_SPACE,
                 UiConstants.TILE_PADDING,
                 UiConstants.BIG_SPACE
             )
