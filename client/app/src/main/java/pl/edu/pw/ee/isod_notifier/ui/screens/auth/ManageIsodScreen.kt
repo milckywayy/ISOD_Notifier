@@ -1,46 +1,59 @@
 package pl.edu.pw.ee.isod_notifier.ui.screens.auth
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LooksOne
 import androidx.compose.material.icons.filled.LooksTwo
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import kotlinx.coroutines.delay
 import pl.edu.pw.ee.isod_notifier.ui.UiConstants
 import pl.edu.pw.ee.isod_notifier.ui.common.*
 
 @Composable
 fun LinkIsodScreen(navController: NavController) {
     val scrollState = rememberScrollState()
+    var isLoading by remember { mutableStateOf(false) }
+    var isAccountLinked by remember { mutableStateOf(false) }
+
+    LaunchedEffect(true) {
+        isLoading = true
+        delay(1000L)
+        isAccountLinked = false
+        isLoading = false
+    }
 
     TopBarScreen(
-    navController,
-        "Link ISOD Account"
+        navController,
+        "Manage ISOD Account"
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(scrollState)
-        ) {
-            ScreenContent(navController, innerPadding)
+        if (isLoading) {
+            LoadingAnimation()
+        }
+        else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(scrollState)
+            ) {
+                if (isAccountLinked) {
+                    UnlinkScreenContent(navController, innerPadding)
+                }
+                else {
+                    LinkScreenContent(navController, innerPadding)
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun ScreenContent(navController: NavController, innerPadding: PaddingValues) {
+private fun LinkScreenContent(navController: NavController, innerPadding: PaddingValues) {
     val username = remember { mutableStateOf("") }
     val apiKey = remember { mutableStateOf("") }
 
@@ -100,23 +113,52 @@ private fun ScreenContent(navController: NavController, innerPadding: PaddingVal
             )
         }
 
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-        ) {
-            WideButton(
-                "Link account",
-                onClick = {
-                    navController.popBackStack()
-                },
-                padding = PaddingValues(
-                    UiConstants.COMPOSABLE_PADDING,
-                    0.dp,
-                    UiConstants.COMPOSABLE_PADDING,
-                    UiConstants.COMPOSABLE_PADDING
-                )
+        WideButton(
+            "Link account",
+            onClick = {
+                navController.popBackStack()
+            },
+            padding = PaddingValues(
+                UiConstants.COMPOSABLE_PADDING,
+                0.dp,
+                UiConstants.COMPOSABLE_PADDING,
+                UiConstants.COMPOSABLE_PADDING
+            )
+        )
+    }
+}
+
+@Composable
+private fun UnlinkScreenContent(navController: NavController, innerPadding: PaddingValues) {
+    Column (
+        verticalArrangement = Arrangement.spacedBy(UiConstants.BIG_SPACE * 2),
+        modifier = Modifier
+            .padding(
+                0.dp,
+                innerPadding.calculateTopPadding() + (UiConstants.BIG_SPACE * 2),
+                0.dp,
+                0.dp
+            )
+    ) {
+        Column {
+            InfoBar(
+                "Your ISOD account is currently linked. You can disconnect it from the app. Please note that you will need to have a USOS account linked to continue using the app after disconnecting.",
+                icon = Icons.Filled.Info,
+                paddingValues = PaddingValues(horizontal = UiConstants.NARROW_PADDING)
             )
         }
+
+        WideButton(
+            "Unlink account",
+            onClick = {
+                navController.popBackStack()
+            },
+            padding = PaddingValues(
+                UiConstants.COMPOSABLE_PADDING,
+                0.dp,
+                UiConstants.COMPOSABLE_PADDING,
+                UiConstants.COMPOSABLE_PADDING
+            )
+        )
     }
 }
