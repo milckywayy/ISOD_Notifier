@@ -10,9 +10,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import pl.edu.pw.ee.isod_notifier.model.ClassItem
+import pl.edu.pw.ee.isod_notifier.model.NewsItem
 import pl.edu.pw.ee.isod_notifier.ui.UiConstants
 import pl.edu.pw.ee.isod_notifier.ui.common.ClassTile
+import pl.edu.pw.ee.isod_notifier.ui.common.LoadingAnimation
 import pl.edu.pw.ee.isod_notifier.ui.common.SectionText
 import pl.edu.pw.ee.isod_notifier.ui.common.TopBarScreen
 
@@ -53,6 +57,12 @@ private fun getClasses(term: String): List<ClassItem> {
             ClassItem("Języki i metody programowania", "PRO", "1"),
         )
     }
+    else if (term == "2023Z") {
+        return listOf(
+            ClassItem("Toria obwodów i sygnałów", "LAB", "1"),
+            ClassItem("Języki i metody programowania", "PRO", "1"),
+        )
+    }
     return emptyList()
 }
 
@@ -62,11 +72,20 @@ fun ScreenContent(
     terms: List<String>,
     innerPadding: PaddingValues
 ) {
-
+    var isLoading by remember { mutableStateOf(false) }
     var dropDownMenuExpanded by remember { mutableStateOf(false) }
-
     var termFilter by remember { mutableStateOf(terms[0]) }
-    val newsGroups = getClasses(termFilter)
+    val classes = remember { mutableListOf<ClassItem>() }
+
+    LaunchedEffect(termFilter) {
+        isLoading = true
+        delay(1000L)
+
+        classes.clear()
+        classes.addAll(getClasses(termFilter))
+
+        isLoading = false
+    }
 
     Column(
         verticalArrangement = Arrangement.spacedBy(UiConstants.DEFAULT_SPACE),
@@ -118,13 +137,18 @@ fun ScreenContent(
             }
         }
 
-        for (classItem in getClasses(termFilter)) {
-            ClassTile(
-                classItem,
-                onClick = {
+        if (isLoading) {
+            LoadingAnimation()
+        }
+        else {
+            for (classItem in classes) {
+                ClassTile(
+                    classItem,
+                    onClick = {
 
-                }
-            )
+                    }
+                )
+            }
         }
     }
 }
