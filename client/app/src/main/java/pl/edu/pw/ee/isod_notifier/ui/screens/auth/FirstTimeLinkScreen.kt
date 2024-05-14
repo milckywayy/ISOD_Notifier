@@ -12,29 +12,73 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import kotlinx.coroutines.delay
 import pl.edu.pw.ee.isod_notifier.R
+import pl.edu.pw.ee.isod_notifier.http.getOkHttpClient
+import pl.edu.pw.ee.isod_notifier.http.sendRequest
 import pl.edu.pw.ee.isod_notifier.model.ActivityItem
 import pl.edu.pw.ee.isod_notifier.ui.UiConstants
 import pl.edu.pw.ee.isod_notifier.ui.common.ActivityTile
 import pl.edu.pw.ee.isod_notifier.ui.common.BigTitleText
 import pl.edu.pw.ee.isod_notifier.ui.common.InfoBar
 import pl.edu.pw.ee.isod_notifier.ui.common.LoadingAnimation
+import pl.edu.pw.ee.isod_notifier.utils.*
 
 @Composable
 fun FirstTimeLinkScreen(navController: NavController) {
+    val context = LocalContext.current
+    val httpClient = getOkHttpClient(context)
+
     val scrollState = rememberScrollState()
     var isLoading by remember { mutableStateOf(true) }
-    val isIsodLinked by remember { mutableStateOf(false) }
-    val isUsosLinked by remember { mutableStateOf(false) }
+    var isIsodLinked by remember { mutableStateOf(false) }
+    var isUsosLinked by remember { mutableStateOf(false) }
 
     LaunchedEffect(true) {
         isLoading = true
-        delay(1000L)
-        isLoading = false
+
+        val userId = PreferencesManager.getString(context, "USER_ID", "d08fff0c409b78c3e9056dc7c6c1b067b1e2f2109d91daccd3110d3c5f418b1c")
+        if (userId != "") {
+            sendRequest(
+                context,
+                httpClient,
+                "get_user_status",
+                mapOf(
+                    "user_token" to "d08fff0c409b78c3e9056dc7c6c1b067b1e2f2109d91daccd3110d3c5f418b1c",
+                    "token_fcm" to "test",
+                    "app_version" to "test"
+                ),
+                onSuccess = { response ->
+                    val responseBodyString = response.body?.string()
+
+                    isIsodLinked = extractFieldFromResponse(responseBodyString, "is_isod_linked").toBoolean()
+                    isUsosLinked = extractFieldFromResponse(responseBodyString, "is_usos_linked").toBoolean()
+
+                    isLoading = false
+                },
+                onError = { response ->
+                    val responseBodyString = response.body?.string()
+
+                    val message = extractFieldFromResponse(responseBodyString, "message")
+                    context.showToast(message ?: "Error")
+
+                    isLoading = false
+                },
+                onFailure = { _ ->
+                    context.showToast("Connection error")
+
+                    // TODO Connection error screen
+
+                    isLoading = false
+                }
+            )
+        }
+        else {
+            isLoading = false
+        }
     }
 
     val tiles = mutableListOf<ActivityItem>()

@@ -1,0 +1,10 @@
+POST https://localhost:8080/get_user_status
+User-Agent: IntelliJ HTTP Client/IntelliJ IDEA 2024.1.1
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+content-length: 0
+
+<> 2024-05-04T011023.500.txt
+
+###
+
