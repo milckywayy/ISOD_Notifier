@@ -12,6 +12,7 @@ import pl.edu.pw.ee.isod_notifier.ui.screens.auth.FirstTimeLinkScreen
 import pl.edu.pw.ee.isod_notifier.ui.screens.auth.LinkIsodScreen
 import pl.edu.pw.ee.isod_notifier.ui.screens.auth.LinkUsosScreen
 import pl.edu.pw.ee.isod_notifier.ui.screens.settings.AppInfoScreen
+import pl.edu.pw.ee.isod_notifier.ui.screens.settings.ConnectionErrorScreen
 import pl.edu.pw.ee.isod_notifier.ui.screens.settings.SettingsScreen
 
 @Composable
@@ -24,6 +25,7 @@ fun AppNavHost(navHostController: NavHostController) {
         // Settings
         composable("settings") { SettingsScreen(navHostController) }
         composable("app_info") { AppInfoScreen(navHostController) }
+        composable("connection_error_screen") { ConnectionErrorScreen(navHostController) }
 
         // Auth
         composable("first_time_link_screen") { FirstTimeLinkScreen(navHostController) }

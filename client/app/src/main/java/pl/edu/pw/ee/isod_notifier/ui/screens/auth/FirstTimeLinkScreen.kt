@@ -16,6 +16,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import kotlinx.coroutines.launch
 import pl.edu.pw.ee.isod_notifier.R
 import pl.edu.pw.ee.isod_notifier.http.getOkHttpClient
 import pl.edu.pw.ee.isod_notifier.http.sendRequest
@@ -31,6 +32,7 @@ import pl.edu.pw.ee.isod_notifier.utils.*
 fun FirstTimeLinkScreen(navController: NavController) {
     val context = LocalContext.current
     val httpClient = getOkHttpClient(context)
+    val scope = rememberCoroutineScope()
 
     val scrollState = rememberScrollState()
     var isLoading by remember { mutableStateOf(true) }
@@ -68,9 +70,9 @@ fun FirstTimeLinkScreen(navController: NavController) {
                     isLoading = false
                 },
                 onFailure = { _ ->
-                    context.showToast("Connection error")
-
-                    // TODO Connection error screen
+                    scope.launch {
+                        navController.navigate("connection_error_screen")
+                    }
 
                     isLoading = false
                 }
