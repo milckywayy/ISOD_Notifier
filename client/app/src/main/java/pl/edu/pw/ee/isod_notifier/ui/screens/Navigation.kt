@@ -25,7 +25,7 @@ fun AppNavHost(navHostController: NavHostController) {
         // Settings
         composable("settings") { SettingsScreen(navHostController) }
         composable("app_info") { AppInfoScreen(navHostController) }
-        composable("connection_error_screen") { ConnectionErrorScreen(navHostController) }
+        composable("connection_error") { ConnectionErrorScreen(navHostController) }
 
         // Auth
         composable("first_time_link_screen") { FirstTimeLinkScreen(navHostController) }

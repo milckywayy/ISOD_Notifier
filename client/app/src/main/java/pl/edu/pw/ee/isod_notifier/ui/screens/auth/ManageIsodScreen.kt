@@ -9,11 +9,13 @@ import androidx.compose.material.icons.filled.LooksOne
 import androidx.compose.material.icons.filled.LooksTwo
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import kotlinx.coroutines.delay
 import pl.edu.pw.ee.isod_notifier.ui.UiConstants
 import pl.edu.pw.ee.isod_notifier.ui.common.*
+import pl.edu.pw.ee.isod_notifier.utils.PreferencesManager
 
 @Composable
 fun LinkIsodScreen(navController: NavController) {
@@ -54,6 +56,7 @@ fun LinkIsodScreen(navController: NavController) {
 
 @Composable
 private fun LinkScreenContent(navController: NavController, innerPadding: PaddingValues) {
+    val context = LocalContext.current
     val username = remember { mutableStateOf("") }
     val apiKey = remember { mutableStateOf("") }
 
@@ -80,7 +83,11 @@ private fun LinkScreenContent(navController: NavController, innerPadding: Paddin
                 text = "Get API key",
                 padding = PaddingValues(horizontal = UiConstants.COMPOSABLE_PADDING),
                 onClick = {
-
+                    PreferencesManager.saveString(
+                        context,
+                        "USER_ID",
+                        "ad08fff0c409b78c3e9056dc7c6c1b067b1e2f2109d91daccd3110d3c5f418b1c"
+                    )
                 }
             )
         }
@@ -116,6 +123,11 @@ private fun LinkScreenContent(navController: NavController, innerPadding: Paddin
         WideButton(
             "Link account",
             onClick = {
+                PreferencesManager.saveString(
+                    context,
+                    "USER_ID",
+                    "d08fff0c409b78c3e9056dc7c6c1b067b1e2f2109d91daccd3110d3c5f418b1c"
+                )
                 navController.popBackStack()
             },
             padding = PaddingValues(

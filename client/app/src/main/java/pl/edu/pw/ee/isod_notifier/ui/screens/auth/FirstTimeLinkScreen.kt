@@ -39,17 +39,21 @@ fun FirstTimeLinkScreen(navController: NavController) {
     var isIsodLinked by remember { mutableStateOf(false) }
     var isUsosLinked by remember { mutableStateOf(false) }
 
-    LaunchedEffect(true) {
+    LaunchedEffect(Unit) {
         isLoading = true
 
-        val userId = PreferencesManager.getString(context, "USER_ID", "d08fff0c409b78c3e9056dc7c6c1b067b1e2f2109d91daccd3110d3c5f418b1c")
+        val userId = PreferencesManager.getString(
+            context,
+            "USER_ID",
+            ""
+        )
         if (userId != "") {
             sendRequest(
                 context,
                 httpClient,
                 "get_user_status",
                 mapOf(
-                    "user_token" to "d08fff0c409b78c3e9056dc7c6c1b067b1e2f2109d91daccd3110d3c5f418b1c",
+                    "user_token" to userId,
                     "token_fcm" to "test",
                     "app_version" to "test"
                 ),
@@ -59,6 +63,19 @@ fun FirstTimeLinkScreen(navController: NavController) {
                     isIsodLinked = extractFieldFromResponse(responseBodyString, "is_isod_linked").toBoolean()
                     isUsosLinked = extractFieldFromResponse(responseBodyString, "is_usos_linked").toBoolean()
 
+                    if (!PreferencesManager.getBoolean(context, "STATUS_CHECKED")) {
+                        if (isIsodLinked || isUsosLinked) {
+                            PreferencesManager.saveBoolean(context, "LET_IN", true)
+                        }
+                    }
+
+                    if (PreferencesManager.getBoolean(context, "LET_IN")) {
+                        scope.launch {
+                            navController.navigate("home")
+                        }
+                    }
+
+                    PreferencesManager.saveBoolean(context, "STATUS_CHECKED", true)
                     isLoading = false
                 },
                 onError = { response ->
@@ -67,18 +84,26 @@ fun FirstTimeLinkScreen(navController: NavController) {
                     val message = extractFieldFromResponse(responseBodyString, "message")
                     context.showToast(message ?: "Error")
 
+                    PreferencesManager.saveString(
+                        context,
+                        "USER_ID",
+                        ""
+                    )
+
+                    PreferencesManager.saveBoolean(context, "STATUS_CHECKED", true)
                     isLoading = false
                 },
                 onFailure = { _ ->
                     scope.launch {
-                        navController.navigate("connection_error_screen")
+                        navController.navigate("connection_error")
                     }
 
+                    PreferencesManager.saveBoolean(context, "STATUS_CHECKED", true)
                     isLoading = false
                 }
             )
-        }
-        else {
+        } else {
+            PreferencesManager.saveBoolean(context, "STATUS_CHECKED", true)
             isLoading = false
         }
     }
@@ -127,7 +152,7 @@ fun FirstTimeLinkScreen(navController: NavController) {
         )
     }
 
-    if (isLoading) {
+    if (isLoading || PreferencesManager.getBoolean(context, "LET_IN")) {
         LoadingAnimation()
     }
     else {
@@ -138,7 +163,9 @@ fun FirstTimeLinkScreen(navController: NavController) {
         ) {
             ScreenContent(
                 navController,
-                tiles
+                tiles,
+                isIsodLinked,
+                isUsosLinked
             )
         }
     }
@@ -148,7 +175,9 @@ fun FirstTimeLinkScreen(navController: NavController) {
 @Composable
 fun ScreenContent(
     navController: NavController,
-    tiles: MutableList<ActivityItem>
+    tiles: MutableList<ActivityItem>,
+    isIsodLinked: Boolean,
+    isUsosLinked: Boolean,
 ) {
     BigTitleText(
         "Link service",
@@ -192,9 +221,11 @@ fun ScreenContent(
         Button(
             modifier = Modifier.padding(UiConstants.COMPOSABLE_PADDING),
             onClick = {
-                navController.navigate("home") {
-                    popUpTo(navController.graph.startDestinationId) {
-                        inclusive = true
+                if (isIsodLinked || isUsosLinked) {
+                    navController.navigate("home") {
+                        popUpTo(navController.graph.startDestinationId) {
+                            inclusive = true
+                        }
                     }
                 }
             }
