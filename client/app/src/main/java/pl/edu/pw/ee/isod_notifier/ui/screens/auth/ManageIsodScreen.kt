@@ -48,7 +48,7 @@ fun LinkIsodScreen(navController: NavController) {
                 "get_isod_link_status",
                 mapOf(
                     "user_token" to userId,
-                    "language" to "test"
+                    "language" to Locale.getDefault().language
                 ),
                 onSuccess = { response ->
                     val responseBodyString = response.body?.string()
@@ -191,7 +191,7 @@ private fun LinkScreenContent(navController: NavController, httpClient: OkHttpCl
                                 "isod_api_key" to apiKey.value.trim(),
                                 "app_version" to version,
                                 "device_language" to Locale.getDefault().language,
-                                "news_filter" to "15"
+                                "news_filter" to PreferencesManager.getInteger(context, "USER_ID", 15).toString()
                             ),
                             onSuccess = { response ->
                                 val responseBodyString = response.body?.string()
@@ -270,9 +270,9 @@ private fun UnlinkScreenContent(navController: NavController, httpClient: OkHttp
             WideButton(
                 "Unlink account",
                 onClick = {
-                    val userToken = PreferencesManager.getString(context, "USER_ID", "")
-
                     isLoading = true
+
+                    val userToken = PreferencesManager.getString(context, "USER_ID", "")
                     sendRequest(
                         context,
                         httpClient,

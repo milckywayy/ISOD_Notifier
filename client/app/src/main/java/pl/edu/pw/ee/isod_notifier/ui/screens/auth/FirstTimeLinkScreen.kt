@@ -68,6 +68,7 @@ fun FirstTimeLinkScreen(navController: NavController) {
                     }
 
                     if (PreferencesManager.getBoolean(context, "LET_IN")) {
+                        PreferencesManager.saveBoolean(context, "STATUS_CHECKED", false)
                         scope.launch {
                             navController.navigate("home") {
                                 popUpTo(navController.graph.startDestinationId) {

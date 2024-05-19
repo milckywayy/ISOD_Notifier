@@ -23,4 +23,12 @@ object PreferencesManager {
     fun getString(context: Context, key: String, defaultValue: String = ""): String {
         return getSharedPreferences(context).getString(key, defaultValue) ?: defaultValue
     }
+
+    fun saveInteger(context: Context, key: String, value: Int) {
+        getSharedPreferences(context).edit().putInt(key, value).apply()
+    }
+
+    fun getInteger(context: Context, key: String, defaultValue: Int = -1): Int {
+        return getSharedPreferences(context).getInt(key, defaultValue)
+    }
 }
