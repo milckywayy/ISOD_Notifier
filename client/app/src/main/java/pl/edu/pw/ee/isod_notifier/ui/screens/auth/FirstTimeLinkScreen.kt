@@ -39,14 +39,12 @@ fun FirstTimeLinkScreen(navController: NavController) {
     var isIsodLinked by remember { mutableStateOf(false) }
     var isUsosLinked by remember { mutableStateOf(false) }
 
+    // TODO ask for notification permissions
+
     LaunchedEffect(Unit) {
         isLoading = true
 
-        val userId = PreferencesManager.getString(
-            context,
-            "USER_ID",
-            ""
-        )
+        val userId = PreferencesManager.getString(context, "USER_ID", "")
         if (userId != "") {
             sendRequest(
                 context,
@@ -71,7 +69,11 @@ fun FirstTimeLinkScreen(navController: NavController) {
 
                     if (PreferencesManager.getBoolean(context, "LET_IN")) {
                         scope.launch {
-                            navController.navigate("home")
+                            navController.navigate("home") {
+                                popUpTo(navController.graph.startDestinationId) {
+                                    inclusive = true
+                                }
+                            }
                         }
                     }
 
