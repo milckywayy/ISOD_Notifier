@@ -135,6 +135,7 @@ private fun LinkScreenContent(navController: NavController, httpClient: OkHttpCl
                 WideButton(
                     text = "Get API key",
                     padding = PaddingValues(horizontal = UiConstants.COMPOSABLE_PADDING),
+                    enabled = !isLoading,
                     onClick = {
                         openURL(context, context.getString(R.string.isod_api_key_url))
                     }
@@ -153,6 +154,7 @@ private fun LinkScreenContent(navController: NavController, httpClient: OkHttpCl
                 TextField(
                     text = username.value,
                     placeholder = "ISOD Username",
+                    enabled = !isLoading,
                     padding = PaddingValues(horizontal = UiConstants.COMPOSABLE_PADDING),
                     onValueChange = { newValue ->
                         username.value = newValue
@@ -162,6 +164,7 @@ private fun LinkScreenContent(navController: NavController, httpClient: OkHttpCl
                 TextField(
                     text = apiKey.value,
                     placeholder = "ISOD API Key",
+                    enabled = !isLoading,
                     padding = PaddingValues(horizontal = UiConstants.COMPOSABLE_PADDING),
                     onValueChange = { newValue ->
                         apiKey.value = newValue
@@ -172,59 +175,66 @@ private fun LinkScreenContent(navController: NavController, httpClient: OkHttpCl
             WideButton(
                 "Link account",
                 onClick = {
-                    isLoading = true
+                    if (username.value.isNotEmpty() && apiKey.value.isNotEmpty()) {
+                        isLoading = true
 
-                    FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-                        if (!task.isSuccessful) {
-                            isLoading = false
-                            return@addOnCompleteListener
-                        }
-                        val token = task.result
-
-                        sendRequest(
-                            context,
-                            httpClient,
-                            "link_isod_account",
-                            mapOf(
-                                "token_fcm" to token,
-                                "isod_username" to username.value.trim(),
-                                "isod_api_key" to apiKey.value.trim(),
-                                "app_version" to version,
-                                "device_language" to Locale.getDefault().language,
-                                "news_filter" to PreferencesManager.getInteger(context, "USER_ID", 15).toString()
-                            ),
-                            onSuccess = { response ->
-                                val responseBodyString = response.body?.string()
-
-                                val userToken = extractFieldFromResponse(responseBodyString, "user_token").toString()
-                                val firstname = extractFieldFromResponse(responseBodyString, "firstname").toString()
-
-                                PreferencesManager.saveString(context, "USER_ID", userToken)
-                                PreferencesManager.saveString(context, "FIRSTNAME", firstname)
-
-                                scope.launch {
-                                    navController.popBackStack()
-                                }
+                        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+                            if (!task.isSuccessful) {
                                 isLoading = false
-                            },
-                            onError = { response ->
-                                val responseBodyString = response.body?.string()
-
-                                val message = extractFieldFromResponse(responseBodyString, "message")
-                                context.showToast(message ?: "Error")
-
-                                isLoading = false
-                            },
-                            onFailure = { _ ->
-                                scope.launch {
-                                    navController.navigate("connection_error")
-                                }
-
-                                isLoading = false
+                                return@addOnCompleteListener
                             }
-                        )
+                            val token = task.result
+
+                            sendRequest(
+                                context,
+                                httpClient,
+                                "link_isod_account",
+                                mapOf(
+                                    "token_fcm" to token,
+                                    "isod_username" to username.value.trim(),
+                                    "isod_api_key" to apiKey.value.trim(),
+                                    "app_version" to version,
+                                    "device_language" to Locale.getDefault().language,
+                                    "news_filter" to PreferencesManager.getInteger(context, "NEWS_FILTER", 15).toString()
+                                ),
+                                onSuccess = { response ->
+                                    val responseBodyString = response.body?.string()
+
+                                    val userToken =
+                                        extractFieldFromResponse(responseBodyString, "user_token").toString()
+                                    val firstname = extractFieldFromResponse(responseBodyString, "firstname").toString()
+
+                                    PreferencesManager.saveString(context, "USER_ID", userToken)
+                                    PreferencesManager.saveString(context, "FIRSTNAME", firstname)
+
+                                    scope.launch {
+                                        navController.popBackStack()
+                                    }
+                                    isLoading = false
+                                },
+                                onError = { response ->
+                                    val responseBodyString = response.body?.string()
+
+                                    val message = extractFieldFromResponse(responseBodyString, "message")
+                                    context.showToast(message ?: "Error")
+
+                                    isLoading = false
+                                },
+                                onFailure = { _ ->
+                                    scope.launch {
+                                        navController.navigate("connection_error")
+                                    }
+
+                                    isLoading = false
+                                }
+                            )
+                        }
+                    }
+                    else {
+                        context.showToast("Please enter a valid username and API key")
                     }
                 },
+                enabled = !isLoading,
                 padding = PaddingValues(
                     UiConstants.COMPOSABLE_PADDING,
                     0.dp,
@@ -308,6 +318,7 @@ private fun UnlinkScreenContent(navController: NavController, httpClient: OkHttp
                         }
                     )
                 },
+                enabled = !isLoading,
                 padding = PaddingValues(
                     UiConstants.COMPOSABLE_PADDING,
                     0.dp,

@@ -138,6 +138,7 @@ private fun LinkScreenContent(navController: NavController, httpClient: OkHttpCl
                 WideButton(
                     text = "Authorize in USOS",
                     padding = PaddingValues(horizontal = UiConstants.COMPOSABLE_PADDING),
+                    enabled = !isLoading,
                     onClick = {
                         isLoading = true
                         sendRequest(
@@ -189,6 +190,7 @@ private fun LinkScreenContent(navController: NavController, httpClient: OkHttpCl
                 TextField(
                     text = authPin.value,
                     placeholder = "USOS Pin",
+                    enabled = !isLoading,
                     padding = PaddingValues(horizontal = UiConstants.COMPOSABLE_PADDING),
                     onValueChange = { newValue ->
                         authPin.value = newValue
@@ -219,7 +221,7 @@ private fun LinkScreenContent(navController: NavController, httpClient: OkHttpCl
                                     "request_pin" to authPin.value.trim(),
                                     "app_version" to version,
                                     "device_language" to Locale.getDefault().language,
-                                    "news_filter" to PreferencesManager.getInteger(context, "USER_ID", 15).toString()
+                                    "news_filter" to PreferencesManager.getInteger(context, "NEWS_FILTER", 15).toString()
                                 ),
                                 onSuccess = { response ->
                                     val responseBodyString = response.body?.string()
@@ -253,10 +255,12 @@ private fun LinkScreenContent(navController: NavController, httpClient: OkHttpCl
                                 }
                             )
                         }
-                    } else {
-                        context.showToast("Request token not generated")
+                    }
+                    else {
+                        context.showToast("Token not authorized is USOS")
                     }
                 },
+                enabled = !isLoading,
                 padding = PaddingValues(
                     UiConstants.COMPOSABLE_PADDING,
                     0.dp,

@@ -14,9 +14,11 @@ fun WideButton(
     text: String,
     onClick: () -> Unit,
     padding: PaddingValues = PaddingValues(0.dp),
+    enabled: Boolean = true,
 ) {
     Button(
         onClick = onClick,
+        enabled = enabled,
         modifier = Modifier
             .fillMaxWidth()
             .padding(padding)

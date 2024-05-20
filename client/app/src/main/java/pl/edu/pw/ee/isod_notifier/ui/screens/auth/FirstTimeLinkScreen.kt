@@ -182,6 +182,8 @@ fun ScreenContent(
     isIsodLinked: Boolean,
     isUsosLinked: Boolean,
 ) {
+    val context = LocalContext.current
+
     BigTitleText(
         "Link service",
         padding = PaddingValues(
@@ -230,6 +232,9 @@ fun ScreenContent(
                             inclusive = true
                         }
                     }
+                }
+                else {
+                    context.showToast("At least one service must be linked")
                 }
             }
         ) {

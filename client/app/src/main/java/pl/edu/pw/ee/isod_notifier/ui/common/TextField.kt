@@ -15,10 +15,12 @@ fun TextField(
     placeholder: String = "",
     onValueChange: (String) -> Unit,
     padding: PaddingValues = PaddingValues(0.dp),
+    enabled: Boolean = true,
 ) {
     OutlinedTextField(
         value = text,
         onValueChange = onValueChange,
+        enabled = enabled,
         label = { Text(text = placeholder) },
         modifier = Modifier
             .fillMaxWidth()
