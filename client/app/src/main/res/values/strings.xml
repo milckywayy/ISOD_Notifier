@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">ISOD Notifier</string>
-    <string name="server_base_url">https://192.168.1.100:8080/</string>
+    <string name="server_base_url">https://194.59.158.29:5000/</string>
 
     <!-- Auth -->
     <string name="isod_api_key_url">https://isod.ee.pw.edu.pl/isod-stud/person</string>
