@@ -79,7 +79,7 @@ async def link_isod_account(request):
         })
 
         # So old data before link/unlink won't be returned
-        cache_manager.delete_user_cache(user_token)
+        await cache_manager.delete_user_cache(user_token)
 
         # Confirm successful link
         notify(token_fcm, loc.get('hello_isod_notification_title', device_language), loc.get('hello_isod_notification_body', device_language))
@@ -144,7 +144,7 @@ async def unlink_isod_account(request):
         await delete_isod_account(isod_account.reference)
 
         # So old data before link/unlink won't be returned
-        cache_manager.delete_user_cache(user_token)
+        await cache_manager.delete_user_cache(user_token)
 
         logging.info(f"Unlinked ISOD account ({isod_account.id}) for user: {user.id}")
         return web.json_response(status=200, data={'message': loc.get('isod_account_successfully_unlinked_info', device_language)})

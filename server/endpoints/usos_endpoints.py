@@ -88,7 +88,7 @@ async def link_usos_account(request):
         })
 
         # So old data before link/unlink won't be returned
-        cache_manager.delete_user_cache(user_token)
+        await cache_manager.delete_user_cache(user_token)
 
         # Confirm successful link
         notify(token_fcm, loc.get('hello_usos_notification_title', device_language), loc.get('hello_usos_notification_body', device_language))
@@ -146,7 +146,7 @@ async def unlink_usos_account(request):
         await delete_usos_account(usos_account.reference)
 
         # So old data before link/unlink won't be returned
-        cache_manager.delete_user_cache(user_token)
+        await cache_manager.delete_user_cache(user_token)
 
         logging.info(f"Unlinked USOS account ({usos_account.id}) for user: {user.id}")
         return web.json_response(status=200, data={'message': loc.get('usos_account_successfully_unlinked_info', device_language)})
