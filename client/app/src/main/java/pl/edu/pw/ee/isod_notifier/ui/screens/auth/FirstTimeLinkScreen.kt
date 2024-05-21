@@ -27,6 +27,7 @@ import pl.edu.pw.ee.isod_notifier.ui.common.BigTitleText
 import pl.edu.pw.ee.isod_notifier.ui.common.InfoBar
 import pl.edu.pw.ee.isod_notifier.ui.common.LoadingAnimation
 import pl.edu.pw.ee.isod_notifier.utils.*
+import java.util.*
 
 @Composable
 fun FirstTimeLinkScreen(navController: NavController) {
@@ -53,7 +54,8 @@ fun FirstTimeLinkScreen(navController: NavController) {
                 mapOf(
                     "user_token" to userId,
                     "token_fcm" to "test",
-                    "app_version" to "test"
+                    "app_version" to "test",
+                    "language" to Locale.getDefault().language
                 ),
                 onSuccess = { response ->
                     val responseBodyString = response.body?.string()
@@ -69,6 +71,7 @@ fun FirstTimeLinkScreen(navController: NavController) {
 
                     if (PreferencesManager.getBoolean(context, "LET_IN")) {
                         PreferencesManager.saveBoolean(context, "STATUS_CHECKED", false)
+
                         scope.launch {
                             navController.navigate("home") {
                                 popUpTo(navController.graph.startDestinationId) {
@@ -86,12 +89,7 @@ fun FirstTimeLinkScreen(navController: NavController) {
 
                     val message = extractFieldFromResponse(responseBodyString, "message")
                     context.showToast(message ?: "Error")
-
-                    PreferencesManager.saveString(
-                        context,
-                        "USER_ID",
-                        ""
-                    )
+                    PreferencesManager.saveString(context, "USER_ID", "")
 
                     PreferencesManager.saveBoolean(context, "STATUS_CHECKED", true)
                     isLoading = false

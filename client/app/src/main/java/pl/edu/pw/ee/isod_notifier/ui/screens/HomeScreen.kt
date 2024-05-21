@@ -15,6 +15,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import kotlinx.coroutines.delay
@@ -24,19 +25,24 @@ import pl.edu.pw.ee.isod_notifier.model.NewsItem
 import pl.edu.pw.ee.isod_notifier.ui.UiConstants
 import pl.edu.pw.ee.isod_notifier.ui.common.*
 import pl.edu.pw.ee.isod_notifier.ui.theme.*
+import pl.edu.pw.ee.isod_notifier.utils.PreferencesManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavController) {
+    val context = LocalContext.current
+
     val scrollState = rememberScrollState()
     var isRefreshing by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+
+    val firstname = PreferencesManager.getString(context, "FIRSTNAME", "World")
 
     Scaffold(
         topBar = {
             TopAppBar(
                 modifier = Modifier.padding(0.dp, 18.dp, 0.dp, 0.dp),
-                title = { BigTitleText("Hello, Mikołaj!") },
+                title = { BigTitleText("Hello, $firstname!") },
                 actions = {
                     IconButton(
                         onClick = { navController.navigate("settings") }

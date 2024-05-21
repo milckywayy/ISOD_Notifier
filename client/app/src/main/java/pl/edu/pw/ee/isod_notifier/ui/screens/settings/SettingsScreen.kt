@@ -19,6 +19,7 @@ import pl.edu.pw.ee.isod_notifier.ui.common.ClickSetting
 import pl.edu.pw.ee.isod_notifier.ui.common.SettingsSection
 import pl.edu.pw.ee.isod_notifier.ui.common.SwitchSetting
 import pl.edu.pw.ee.isod_notifier.ui.common.TopBarScreen
+import pl.edu.pw.ee.isod_notifier.utils.PreferencesManager
 import pl.edu.pw.ee.isod_notifier.utils.openURL
 
 @Composable
@@ -31,6 +32,11 @@ fun SettingsScreen(navController: NavController) {
     var announcementsEnabled by remember { mutableStateOf(false) }
     var wrsEnabled by remember { mutableStateOf(false) }
     var otherEnabled by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        PreferencesManager.saveBoolean(context, "STATUS_CHECKED", false)
+        PreferencesManager.saveBoolean(context, "LET_IN", false)
+    }
 
     TopBarScreen(
         navController = navController,
