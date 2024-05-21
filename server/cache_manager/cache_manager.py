@@ -36,6 +36,11 @@ class CacheManager:
         for key in keys_to_delete:
             del self.cache[key]
 
+    async def delete_user_cache(self, user_token: str) -> None:
+        keys_to_delete = [key for key in self.cache if key[1] == user_token]
+        for key in keys_to_delete:
+            del self.cache[key]
+
     async def _identify_request(self, request: Any) -> Any:
         return str(await request.text())
 

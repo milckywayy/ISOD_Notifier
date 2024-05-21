@@ -37,6 +37,7 @@ async def get_usos_auth_url(request):
 async def link_usos_account(request):
     loc = request.app['localization_manager']
     db = request.app['database_manager']
+    cache_manager = request.app['cache_manager']
     usosapi = request.app['usosapi_session']
     device_language = DEFAULT_RESPONSE_LANGUAGE
 
@@ -86,6 +87,9 @@ async def link_usos_account(request):
             'language': device_language,
         })
 
+        # So old data before link/unlink won't be returned
+        cache_manager.delete_user_cache(user_token)
+
         # Confirm successful link
         notify(token_fcm, loc.get('hello_usos_notification_title', device_language), loc.get('hello_usos_notification_body', device_language))
         logging.info(f"USOS account ({usos_id}) successfully linked to {usos_id}")
@@ -116,6 +120,7 @@ async def link_usos_account(request):
 async def unlink_usos_account(request):
     loc = request.app['localization_manager']
     db = request.app['database_manager']
+    cache_manager = request.app['cache_manager']
     device_language = DEFAULT_RESPONSE_LANGUAGE
 
     try:
@@ -139,6 +144,9 @@ async def unlink_usos_account(request):
 
         # Delete USOS Account
         await delete_usos_account(usos_account.reference)
+
+        # So old data before link/unlink won't be returned
+        cache_manager.delete_user_cache(user_token)
 
         logging.info(f"Unlinked USOS account ({usos_account.id}) for user: {user.id}")
         return web.json_response(status=200, data={'message': loc.get('usos_account_successfully_unlinked_info', device_language)})

@@ -16,6 +16,7 @@ from utils.firestore import user_exists, isod_account_exists, delete_isod_accoun
 async def link_isod_account(request):
     loc = request.app['localization_manager']
     db = request.app['database_manager']
+    cache_manager = request.app['cache_manager']
     session = request.app['http_session']
     device_language = DEFAULT_RESPONSE_LANGUAGE
 
@@ -77,6 +78,9 @@ async def link_isod_account(request):
             'language': device_language,
         })
 
+        # So old data before link/unlink won't be returned
+        cache_manager.delete_user_cache(user_token)
+
         # Confirm successful link
         notify(token_fcm, loc.get('hello_isod_notification_title', device_language), loc.get('hello_isod_notification_body', device_language))
         logging.info(f"ISOD account ({isod_username}) successfully linked to {usos_id}")
@@ -114,6 +118,7 @@ async def link_isod_account(request):
 async def unlink_isod_account(request):
     loc = request.app['localization_manager']
     db = request.app['database_manager']
+    cache_manager = request.app['cache_manager']
     device_language = DEFAULT_RESPONSE_LANGUAGE
 
     try:
@@ -137,6 +142,9 @@ async def unlink_isod_account(request):
 
         # Delete ISOD account
         await delete_isod_account(isod_account.reference)
+
+        # So old data before link/unlink won't be returned
+        cache_manager.delete_user_cache(user_token)
 
         logging.info(f"Unlinked ISOD account ({isod_account.id}) for user: {user.id}")
         return web.json_response(status=200, data={'message': loc.get('isod_account_successfully_unlinked_info', device_language)})
