@@ -2,7 +2,7 @@ import logging
 
 import aiohttp
 from aiohttp import web
-
+from datetime import datetime
 from asynchttp.async_http_request import async_get_request
 from constants import DEFAULT_RESPONSE_LANGUAGE, ENDPOINT_CACHE_TTL, ISOD_PORTAL_URL
 from endpoints.validate_request import validate_post_request, InvalidRequestError
@@ -13,7 +13,7 @@ from utils.firestore import user_exists, isod_account_exists, usos_account_exist
 
 def format_isod_date(date_str):
     day, month, year = date_str.split('.')
-    formatted_date = f"{year}.{month}.{day}"
+    formatted_date = f"{year}.{month.zfill(2)}.{day.zfill(2)}"
     return formatted_date
 
 
@@ -33,7 +33,7 @@ async def read_isod_news(session, isod_account, news_list):
     isod_username = isod_account.id
     isod_api_key = isod_account.get('isod_api_key')
 
-    isod_news = await async_get_request(session, ISOD_PORTAL_URL + f'/wapi?q=mynewsheaders&username={isod_username}&apikey={isod_api_key}&from=0&to=15')
+    isod_news = await async_get_request(session, ISOD_PORTAL_URL + f'/wapi?q=mynewsheaders&username={isod_username}&apikey={isod_api_key}')
 
     for item in isod_news['items']:
         date = item['modifiedDate'].split(' ')
@@ -73,7 +73,7 @@ async def read_usos_news(usosapi, usos_account, news_list, language):
             'hash': item['id'],
             'subject': item['nazwa'] if language == 'pl' else item['nazwa_ang'],
             'type': 'USOS',
-            'day': date[0],
+            'day': date[0].replace('-', '.'),
             'hour': format_usos_hour(date[1])
         }
 
@@ -91,8 +91,10 @@ async def get_student_news(request):
     device_language = DEFAULT_RESPONSE_LANGUAGE
 
     try:
-        data = await validate_post_request(request, ['user_token'])
+        data = await validate_post_request(request, ['user_token', 'page', 'page_size'])
         user_token = data['user_token']
+        page = int(data['page'])
+        page_size = int(data['page_size'])
         device_language = loc.validate_language(data.get('language'))
 
         cache = await cache_manager.get('get_student_news', user_token, request)
@@ -118,6 +120,14 @@ async def get_student_news(request):
         usos_account = await usos_account_exists(user.reference)
         if usos_account:
             news_list = await read_usos_news(usosapi, usos_account, news_list, device_language)
+
+        # Sort news by date
+        news_list["news"] = sorted(news_list['news'], key=lambda x: datetime.strptime(f"{x['day']} {x['hour']}", '%Y.%m.%d %H:%M'))
+
+        # Paginate news
+        news_from = page * page_size
+        news_to = news_from + page_size
+        news_list["news"] = (news_list["news"][::-1])[news_from:news_to]
 
         logging.info(f"Created news list for student: {user.id}")
         await cache_manager.set('get_student_news', user_token, request, news_list, ttl=ENDPOINT_CACHE_TTL['NEWS'])
