@@ -42,7 +42,7 @@ async def read_isod_news(session, isod_account, news_list):
             'service': 'ISOD',
             'hash': item['hash'],
             'subject': item['subject'],
-            'type': item['type'],
+            'type': str(item['type']),
             'day': format_isod_date(date[0]),
             'hour': date[1]
         }
