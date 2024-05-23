@@ -70,7 +70,7 @@ async def read_usos_news(usosapi, usos_account, news_list, language):
 
         news_item = {
             'service': 'USOS',
-            'hash': item['id'],
+            'hash': str(item['id']),
             'subject': item['nazwa'] if language == 'pl' else item['nazwa_ang'],
             'type': 'USOS',
             'day': date[0].replace('-', '.'),
