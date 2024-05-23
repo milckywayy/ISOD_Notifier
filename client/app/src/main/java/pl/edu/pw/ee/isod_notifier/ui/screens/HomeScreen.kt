@@ -22,6 +22,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import pl.edu.pw.ee.isod_notifier.model.ActivityItem
 import pl.edu.pw.ee.isod_notifier.model.NewsItem
+import pl.edu.pw.ee.isod_notifier.model.NewsTypes
 import pl.edu.pw.ee.isod_notifier.ui.UiConstants
 import pl.edu.pw.ee.isod_notifier.ui.common.*
 import pl.edu.pw.ee.isod_notifier.ui.theme.*
@@ -92,10 +93,10 @@ fun LatestNewsPager(navController: NavController) {
         SectionText("Latest news", padding = PaddingValues(horizontal = UiConstants.COMPOSABLE_PADDING))
 
         val newsItems = listOf(
-            NewsItem("Zajęcia - SIKOMP: Nowa wartość: '5' w polu 'c1-wejściówka' bez komentarza", "2137","ISOD", "1002", "2024-03-19", "06:30"),
-            NewsItem("Zajęcia - TEMIL: Nowa wartość: '50' w polu 'przetwornik C/A (osc XY)' bez komentarza", "2137", "ISOD", "1002", "2024-03-19", "06:30"),
-            NewsItem("Profil dla klienta VPN", "2137", "ISOD", "1002", "2024-03-19", "06:30"),
-            NewsItem("Ogłoszenie - PROIN: Spotkanie informacyjne", "2137",  "ISOD", "1002", "2024-03-19", "06:30")
+            NewsItem("Zajęcia - SIKOMP: Nowa wartość: '5' w polu 'c1-wejściówka' bez komentarza", "2137","ISOD", NewsTypes.CLASSES, "2024-03-19", "06:30"),
+            NewsItem("Zajęcia - TEMIL: Nowa wartość: '50' w polu 'przetwornik C/A (osc XY)' bez komentarza", "2137", "ISOD", NewsTypes.CLASSES, "2024-03-19", "06:30"),
+            NewsItem("Profil dla klienta VPN", "2137", "ISOD", NewsTypes.CLASSES, "2024-03-19", "06:30"),
+            NewsItem("Ogłoszenie - PROIN: Spotkanie informacyjne", "2137",  "ISOD", NewsTypes.CLASSES, "2024-03-19", "06:30")
         )
 
         val pagerState = rememberPagerState(
