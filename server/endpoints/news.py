@@ -71,7 +71,7 @@ async def read_usos_news(usosapi, usos_account, news_list, language):
         news_item = {
             'service': 'USOS',
             'hash': str(item['id']),
-            'subject': item['nazwa'] if language == 'pl' else item['nazwa_ang'],
+            'subject': item['nazwa'] if language == 'pl' and item['nazwa'] else item['nazwa_ang'] if item['nazwa_ang'] else item['nazwa'],
             'type': 'USOS',
             'day': date[0].replace('-', '.'),
             'hour': format_usos_hour(date[1])
