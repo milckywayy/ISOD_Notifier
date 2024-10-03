@@ -27,6 +27,15 @@ class MainActivity : ComponentActivity() {
                     PreferencesManager.saveBoolean(context, "LET_IN", false)
 
                     AppNavHost(navController)
+
+                    if (intent.extras != null) {
+                        val newsHash = intent.extras!!.getString("news_hash")
+                        val newsService = "ISOD"
+
+                        if (!newsHash.isNullOrEmpty()) {
+                            navController.navigate("newsInfo/$newsHash/$newsService")
+                        }
+                    }
                 }
             }
         }
