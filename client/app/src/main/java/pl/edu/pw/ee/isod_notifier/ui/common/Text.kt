@@ -62,7 +62,7 @@ fun TitleText(
             text = text,
             fontFamily = FontFamily.Default,
             fontWeight = FontWeight.Medium,
-            fontSize = 28.sp,
+            fontSize = 20.sp,
             textAlign = TextAlign.Left,
         )
     }
@@ -158,7 +158,7 @@ fun SecondaryText(
             text = text,
             fontFamily = FontFamily.Default,
             fontWeight = FontWeight.Normal,
-            fontSize = 14.sp,
+            fontSize = 12.sp,
             textAlign = TextAlign.Justify,
             maxLines = maxLines,
             overflow = overflow,

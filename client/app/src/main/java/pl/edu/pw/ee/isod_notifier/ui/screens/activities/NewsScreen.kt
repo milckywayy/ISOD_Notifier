@@ -42,7 +42,7 @@ fun NewsScreen(navController: NavController) {
 
     val newsItems = remember { mutableStateListOf<NewsItem>() }
 
-    val pageSize = 20
+    val pageSize = 10
     var page by remember { mutableStateOf(0) }
     var elementsCount by remember { mutableStateOf(pageSize) }
 
@@ -229,7 +229,7 @@ fun ShowNews(
     ) {
         var day = ""
 
-        newsItems.take(elementsCount).forEach {
+        newsItems.take(elementsCount).forEach { it ->
             if (filter != NewsTypes.ALL && it.type != filter) {
                 return@forEach
             }
@@ -242,10 +242,13 @@ fun ShowNews(
                 )
             }
 
+            val hash = it.hash
+            val service = it.service
+
             NewsTile(
                 it,
                 onClick = {
-
+                    navController.navigate("newsInfo/$hash/$service")
                 }
             )
         }

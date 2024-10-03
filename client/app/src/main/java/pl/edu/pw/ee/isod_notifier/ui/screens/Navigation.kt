@@ -4,12 +4,11 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import pl.edu.pw.ee.isod_notifier.ui.screens.activities.ClassesScreen
-import pl.edu.pw.ee.isod_notifier.ui.screens.activities.EventsScreen
-import pl.edu.pw.ee.isod_notifier.ui.screens.activities.NewsScreen
-import pl.edu.pw.ee.isod_notifier.ui.screens.activities.ScheduleScreen
+import androidx.navigation.navArgument
+import pl.edu.pw.ee.isod_notifier.ui.screens.activities.*
 import pl.edu.pw.ee.isod_notifier.ui.screens.auth.FirstTimeLinkScreen
 import pl.edu.pw.ee.isod_notifier.ui.screens.auth.LinkIsodScreen
 import pl.edu.pw.ee.isod_notifier.ui.screens.auth.LinkUsosScreen
@@ -119,6 +118,23 @@ fun AppNavHost(navHostController: NavHostController) {
             popEnterTransition = { scaleIntoContainer(direction = ScaleTransitionDirection.OUTWARDS) },
             popExitTransition = { scaleOutOfContainer() }
         ) { NewsScreen(navHostController) }
+
+        composable("newsInfo/{hash}/{service}",
+            arguments = listOf(
+                navArgument("hash") { type = NavType.StringType },
+                navArgument("service") { type = NavType.StringType },
+            ),
+            enterTransition = { scaleIntoContainer() },
+            exitTransition = { scaleOutOfContainer(direction = ScaleTransitionDirection.INWARDS) },
+            popEnterTransition = { scaleIntoContainer(direction = ScaleTransitionDirection.OUTWARDS) },
+            popExitTransition = { scaleOutOfContainer() }
+        ) { backStackEntry ->
+            val hash = backStackEntry.arguments?.getString("hash")
+            val service = backStackEntry.arguments?.getString("service")
+            if (hash != null && service != null) {
+                NewsInfoScreen(navHostController, hash, service)
+            }
+        }
 
         composable("schedule",
             enterTransition = { scaleIntoContainer() },
