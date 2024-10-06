@@ -31,5 +31,6 @@ fun getOkHttpClient(context: Context): OkHttpClient {
     return OkHttpClient.Builder()
         .sslSocketFactory(sslContext.socketFactory, trustManagerFactory.trustManagers[0] as X509TrustManager)
         .hostnameVerifier { _, _ -> true }
+        .retryOnConnectionFailure(true)
         .build()
 }
