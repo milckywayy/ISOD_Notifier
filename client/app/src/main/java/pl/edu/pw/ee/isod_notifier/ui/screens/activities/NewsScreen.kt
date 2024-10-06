@@ -19,6 +19,9 @@ import pl.edu.pw.ee.isod_notifier.ui.UiConstants
 import pl.edu.pw.ee.isod_notifier.ui.common.*
 import pl.edu.pw.ee.isod_notifier.utils.showToast
 import pl.edu.pw.ee.isod_notifier.repository.NewsRepository
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 
 @Composable
 fun NewsScreen(navController: NavController) {
@@ -183,17 +186,29 @@ fun ShowNews(
                 UiConstants.BIG_SPACE
             )
     ) {
-        var day = ""
+        var lastDisplayedDay = ""
+
+        val dateFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd")
+        val today = LocalDate.now()
+        val yesterday = today.minus(1, ChronoUnit.DAYS)
 
         newsItems.take(elementsCount).forEach {
             if (filter != NewsTypes.ALL && it.type != filter) {
                 return@forEach
             }
 
-            if (day != it.day) {
-                day = it.day
+            val newsDate = LocalDate.parse(it.day, dateFormatter)
+
+            val dayLabel = when (newsDate) {
+                today -> "Today"
+                yesterday -> "Yesterday"
+                else -> it.day
+            }
+
+            if (lastDisplayedDay != it.day) {
+                lastDisplayedDay = it.day
                 SubsectionText(
-                    day,
+                    dayLabel,
                     PaddingValues(horizontal = UiConstants.COMPOSABLE_PADDING)
                 )
             }
