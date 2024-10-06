@@ -4,15 +4,13 @@ from firebase_admin import messaging
 
 def notify(token, title, body, url=None, news_hash=None):
     data = {
+        'title': title,
+        'body': body,
         'url': url if url is not None else '',
         'news_hash': news_hash if news_hash is not None else ''
     }
 
     message = messaging.Message(
-        notification=messaging.Notification(
-            title=title,
-            body=body,
-        ),
         token=token,
         android=messaging.AndroidConfig(
             priority='high'

@@ -32,10 +32,13 @@ class InAppNotificationManager(private val context: Context) {
         notificationManager.createNotificationChannel(channel)
     }
 
-    fun sendNotification(title: String, body: String, newsHash: String) {
+    fun sendNotification(title: String, message: String, data: Map<String, String>? = null) {
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            putExtra("news_hash", newsHash)
+
+            data?.forEach { (key, value) ->
+                putExtra(key, value)
+            }
         }
 
         val pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
@@ -43,7 +46,7 @@ class InAppNotificationManager(private val context: Context) {
         val notificationBuilder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.logo_graphite_filled)
             .setContentTitle(title)
-            .setContentText(body)
+            .setContentText(message)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
