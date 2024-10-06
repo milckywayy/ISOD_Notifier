@@ -97,7 +97,8 @@ async def process_device(device, new_news, loc):
                 loc.get('new_isod_notification_title', device_language),
                 news_title,
                 url=DEFAULT_NOTIFICATION_URL,
-                news_hash=news_hash
+                news_hash=news_hash,
+                news_type=news_type
             )
 
         except exceptions.FirebaseError:

@@ -2,12 +2,13 @@ import logging
 from firebase_admin import messaging
 
 
-def notify(token, title, body, url=None, news_hash=None):
+def notify(token, title, body, url=None, news_hash=None, news_type=None):
     data = {
         'title': title,
         'body': body,
         'url': url if url is not None else '',
-        'news_hash': news_hash if news_hash is not None else ''
+        'news_hash': news_hash if news_hash is not None else '',
+        'news_type': news_type if news_type is not None else ''
     }
 
     message = messaging.Message(
