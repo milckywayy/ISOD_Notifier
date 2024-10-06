@@ -20,6 +20,7 @@ import okhttp3.OkHttpClient
 import pl.edu.pw.ee.isod_notifier.R
 import pl.edu.pw.ee.isod_notifier.http.getOkHttpClient
 import pl.edu.pw.ee.isod_notifier.http.sendRequest
+import pl.edu.pw.ee.isod_notifier.repository.UsosStatusRepository
 import pl.edu.pw.ee.isod_notifier.ui.UiConstants
 import pl.edu.pw.ee.isod_notifier.ui.common.*
 import pl.edu.pw.ee.isod_notifier.utils.PreferencesManager
@@ -33,6 +34,7 @@ fun LinkUsosScreen(navController: NavController) {
     val context = LocalContext.current
     val httpClient = getOkHttpClient(context)
     val scope = rememberCoroutineScope()
+    val repository = UsosStatusRepository(context, httpClient)
 
     val scrollState = rememberScrollState()
     var isLoading by remember { mutableStateOf(false) }
@@ -43,34 +45,19 @@ fun LinkUsosScreen(navController: NavController) {
         LaunchedEffect(true) {
             isLoading = true
 
-            sendRequest(
-                context,
-                httpClient,
-                "get_usos_link_status",
-                mapOf(
-                    "user_token" to userId,
-                    "language" to Locale.getDefault().language
-                ),
-                onSuccess = { response ->
-                    val responseBodyString = response.body?.string()
-
-                    isAccountLinked = extractFieldFromResponse(responseBodyString, "is_usos_linked").toBoolean()
-
+            repository.fetchUsosLinkStatus(
+                onSuccess = { isLinked ->
+                    isAccountLinked = isLinked
                     isLoading = false
                 },
-                onError = { response ->
-                    val responseBodyString = response.body?.string()
-
-                    val message = extractFieldFromResponse(responseBodyString, "message")
+                onError = { message ->
                     context.showToast(message ?: "Error")
-
                     isLoading = false
                 },
-                onFailure = { _ ->
+                onFailure = {
                     scope.launch {
                         navController.navigate("connection_error")
                     }
-
                     isLoading = false
                 }
             )
