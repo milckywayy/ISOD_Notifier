@@ -32,7 +32,7 @@ fun NewsTile(newsItem: NewsItem, onClick: (NewsItem) -> Unit) {
                 Box(modifier = Modifier
                     .width(4.dp)
                     .height(30.dp)
-                    .background(color = ColorNews, shape = RoundedCornerShape(2.dp))
+                    .background(color = newsItem.type.color, shape = RoundedCornerShape(2.dp))
                     .align(Alignment.CenterVertically))
                 Spacer(modifier = Modifier.width(10.dp))
                 ContentText(

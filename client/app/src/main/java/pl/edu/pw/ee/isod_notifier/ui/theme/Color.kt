@@ -18,6 +18,11 @@ val ColorSchedule = Color(0xFF34A853)
 val ColorExams = Color(0xFFE53935)
 val ColorEvents = Color(0xFFFF6F00)
 
+val ColorNewsAll = Color(0xFFFFFFFF)
+val ColorNewsClasses = Color(0xFF57B9FF)
+val ColorNewsFaculty = Color(0xFFF4C430)
+val ColorNewsWRS = Color(0xFF008000)
+val ColorNewsOther = Color(0xFF808080)
 
 
 
