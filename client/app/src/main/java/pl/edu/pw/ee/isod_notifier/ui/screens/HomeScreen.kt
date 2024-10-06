@@ -9,6 +9,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -61,18 +62,11 @@ fun HomeScreen(navController: NavController) {
             )
         }
     ) { innerPadding ->
-        PullToRefreshColumn(
-            modifier = Modifier.padding(innerPadding),
+        Column(
+            modifier = Modifier
+                .padding(innerPadding)
+                .verticalScroll(scrollState),
             verticalArrangement = Arrangement.spacedBy(UiConstants.BIG_SPACE),
-            isRefreshing = isRefreshing,
-            scrollState = scrollState,
-            onRefresh = {
-                scope.launch {
-                    isRefreshing = true
-                    delay(1000L)
-                    isRefreshing = false
-                }
-            },
             content = {
                 Spacer(modifier = Modifier)
 
@@ -84,7 +78,6 @@ fun HomeScreen(navController: NavController) {
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun LatestNewsPager(navController: NavController) {
     Column(
