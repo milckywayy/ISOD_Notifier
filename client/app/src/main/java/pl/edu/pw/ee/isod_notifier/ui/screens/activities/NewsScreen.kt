@@ -1,5 +1,6 @@
 package pl.edu.pw.ee.isod_notifier.ui.screens.activities
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
@@ -43,6 +44,7 @@ fun NewsScreen(navController: NavController) {
     val pageSize = 10
     var page by remember { mutableIntStateOf(0) }
     var elementsCount by remember { mutableIntStateOf(pageSize) }
+    var allNewsCount by remember { mutableIntStateOf(0) }
 
     fun loadNews(pageToFetch: Int = 0, append: Boolean = false) {
         newsRepository.fetchNews(
@@ -52,7 +54,10 @@ fun NewsScreen(navController: NavController) {
                 if (!append) {
                     newsItems.clear()
                 }
-                newsItems.addAll(fetchedNews)
+
+                allNewsCount = fetchedNews.first
+                Log.i("after fetch", allNewsCount.toString())
+                newsItems.addAll(fetchedNews.second)
 
                 if (append) {
                     elementsCount += pageSize
@@ -148,14 +153,17 @@ fun NewsScreen(navController: NavController) {
                     }
 
                     if (!isLoading) {
-                        Button(
-                            modifier = Modifier.padding(bottom = UiConstants.COMPOSABLE_PADDING),
-                            onClick = {
-                                isLoading = true
-                                loadNews(++page, append = true)
+                        Log.i("with button", allNewsCount.toString())
+                        if (elementsCount < allNewsCount) {
+                            Button(
+                                modifier = Modifier.padding(bottom = UiConstants.COMPOSABLE_PADDING),
+                                onClick = {
+                                    isLoading = true
+                                    loadNews(++page, append = true)
+                                }
+                            ) {
+                                Text("Load more")
                             }
-                        ) {
-                            Text("Load more")
                         }
                     } else {
                         LoadingAnimation(

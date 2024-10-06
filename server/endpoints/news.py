@@ -124,6 +124,9 @@ async def get_student_news(request):
         # Sort news by date
         news_list["news"] = sorted(news_list['news'], key=lambda x: datetime.strptime(f"{x['day']} {x['hour']}", '%Y.%m.%d %H:%M'))
 
+        all_news_count = len(news_list['news'])
+        news_list['all_news_count'] = str(all_news_count)
+
         # Paginate news
         news_from = page * page_size
         news_to = news_from + page_size

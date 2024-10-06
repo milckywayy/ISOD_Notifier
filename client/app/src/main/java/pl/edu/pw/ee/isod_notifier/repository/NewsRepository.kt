@@ -15,7 +15,7 @@ class NewsRepository(private val context: Context, private val httpClient: OkHtt
     fun fetchNews(
         pageToFetch: Int = 0,
         pageSize: Int = 10,
-        onSuccess: (List<NewsItem>) -> Unit,
+        onSuccess: (Pair<Int, List<NewsItem>>) -> Unit,
         onError: (String?) -> Unit,
         onFailure: () -> Unit,
     ) {
@@ -26,7 +26,7 @@ class NewsRepository(private val context: Context, private val httpClient: OkHtt
             mapOf(
                 "user_token" to PreferencesManager.getString(context, "USER_ID"),
                 "page" to pageToFetch.toString(),
-                "page_size" to (pageSize + 1).toString(),
+                "page_size" to (pageSize).toString(),
                 "language" to Locale.getDefault().language
             ),
             onSuccess = { response ->
@@ -36,6 +36,7 @@ class NewsRepository(private val context: Context, private val httpClient: OkHtt
                     val mapType = object : TypeToken<Map<String, Any>>() {}.type
                     val newsMap: Map<String, Any> = gson.fromJson(responseBodyString, mapType)
                     val news = newsMap["news"] as List<Map<String, String>>
+                    val allNewsCount = newsMap["all_news_count"] as String
 
                     val newsItems = news.map {
                         NewsItem(
@@ -47,7 +48,8 @@ class NewsRepository(private val context: Context, private val httpClient: OkHtt
                             it["hour"] as String
                         )
                     }
-                    onSuccess(newsItems)
+
+                    onSuccess(Pair(allNewsCount.toInt(), newsItems))
                 } else {
                     onError("Empty response")
                 }
