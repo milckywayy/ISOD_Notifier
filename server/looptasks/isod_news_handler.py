@@ -90,7 +90,6 @@ async def process_device(device, new_news, loc):
     device_language = device_data['language']
 
     for news_hash, news_title, news_type in new_news:
-        print(news_title, news_type)
         try:
             notify(
                 device.id,
