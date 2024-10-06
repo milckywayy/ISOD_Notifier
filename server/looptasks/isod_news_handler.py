@@ -6,7 +6,6 @@ import aiohttp
 from asynchttp.async_http_request import async_get_request
 from constants import ISOD_NEWS_CHECK_INTERVALS, DEFAULT_NOTIFICATION_URL
 from notifications.notify import notify
-from utils.decode_filter import decode_filter
 from firebase_admin import exceptions
 
 from utils.firestore import delete_isod_account
@@ -88,9 +87,10 @@ async def process_new_news(account, new_hashes_not_in_db, loc, cache_manager):
 
 async def process_device(device, new_news, loc):
     device_data = device.to_dict()
-    device_language, news_filter = device_data['language'], int(device_data['news_filter'])
+    device_language = device_data['language']
 
     for news_hash, news_title, news_type in new_news:
+        print(news_title, news_type)
         try:
             notify(
                 device.id,
@@ -98,10 +98,14 @@ async def process_device(device, new_news, loc):
                 news_title,
                 url=DEFAULT_NOTIFICATION_URL,
                 news_hash=news_hash,
-                news_type=news_type
+                news_type=str(news_type)
             )
 
         except exceptions.FirebaseError:
             logging.error(f"Expired FCM token. Removing device: {device.id}")
             await device.reference.delete()
+            return
+
+        except Exception as e:
+            logging.error(f"Unknown error:", e)
             return
