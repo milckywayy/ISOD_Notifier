@@ -27,11 +27,11 @@ fun SettingsScreen(navController: NavController) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
 
-    var notificationsEnabled by remember { mutableStateOf(true) }
-    var classesEnabled by remember { mutableStateOf(false) }
-    var announcementsEnabled by remember { mutableStateOf(false) }
-    var wrsEnabled by remember { mutableStateOf(false) }
-    var otherEnabled by remember { mutableStateOf(false) }
+    var notificationsEnabled by remember { mutableStateOf(PreferencesManager.getBoolean(context, "NEWS_ALLOWED", true)) }
+    var classesEnabled by remember { mutableStateOf(PreferencesManager.getBoolean(context, "RECEIVE_CLASSES_NEWS", true)) }
+    var announcementsEnabled by remember { mutableStateOf(PreferencesManager.getBoolean(context, "RECEIVE_FACULTY_NEWS", true)) }
+    var wrsEnabled by remember { mutableStateOf(PreferencesManager.getBoolean(context, "RECEIVE_WRS_NEWS", true)) }
+    var otherEnabled by remember { mutableStateOf(PreferencesManager.getBoolean(context, "RECEIVE_OTHER_NEWS", true)) }
 
     LaunchedEffect(Unit) {
         PreferencesManager.saveBoolean(context, "STATUS_CHECKED", false)
@@ -59,7 +59,10 @@ fun SettingsScreen(navController: NavController) {
                     SwitchSetting(
                         title = "Enable Notifications",
                         checked = notificationsEnabled,
-                        onCheckedChange = { notificationsEnabled = it },
+                        onCheckedChange = {
+                            PreferencesManager.saveBoolean(context, "NEWS_ALLOWED", it)
+                            notificationsEnabled = it
+                        },
                         icon = { Icon(Icons.Filled.Notifications, contentDescription = "Notification settings") }
                     )
                     AnimatedVisibility(visible = notificationsEnabled) {
@@ -67,22 +70,34 @@ fun SettingsScreen(navController: NavController) {
                             SwitchSetting(
                                 title = "Receive classes related news",
                                 checked = classesEnabled,
-                                onCheckedChange = { classesEnabled = it }
+                                onCheckedChange = {
+                                    PreferencesManager.saveBoolean(context, "RECEIVE_CLASSES_NEWS", it)
+                                    classesEnabled = it
+                                }
                             )
                             SwitchSetting(
                                 title = "Receive faculty announcements",
                                 checked = announcementsEnabled,
-                                onCheckedChange = { announcementsEnabled = it }
+                                onCheckedChange = {
+                                    PreferencesManager.saveBoolean(context, "RECEIVE_FACULTY_NEWS", it)
+                                    announcementsEnabled = it
+                                }
                             )
                             SwitchSetting(
                                 title = "Receive WRS news",
                                 checked = wrsEnabled,
-                                onCheckedChange = { wrsEnabled = it }
+                                onCheckedChange = {
+                                    PreferencesManager.saveBoolean(context, "RECEIVE_WRS_NEWS", it)
+                                    wrsEnabled = it
+                                }
                             )
                             SwitchSetting(
                                 title = "Receive other news",
                                 checked = otherEnabled,
-                                onCheckedChange = { otherEnabled = it }
+                                onCheckedChange = {
+                                    PreferencesManager.saveBoolean(context, "RECEIVE_OTHER_NEWS", it)
+                                    otherEnabled = it
+                                }
                             )
                         }
                     }

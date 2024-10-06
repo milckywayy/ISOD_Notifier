@@ -1,6 +1,5 @@
 package pl.edu.pw.ee.isod_notifier.ui.screens
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -19,8 +18,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import pl.edu.pw.ee.isod_notifier.model.ActivityItem
 import pl.edu.pw.ee.isod_notifier.model.NewsItem
 import pl.edu.pw.ee.isod_notifier.model.NewsTypes
@@ -33,10 +30,7 @@ import pl.edu.pw.ee.isod_notifier.utils.PreferencesManager
 @Composable
 fun HomeScreen(navController: NavController) {
     val context = LocalContext.current
-
     val scrollState = rememberScrollState()
-    var isRefreshing by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
 
     val firstname = PreferencesManager.getString(context, "FIRSTNAME", "World")
 
