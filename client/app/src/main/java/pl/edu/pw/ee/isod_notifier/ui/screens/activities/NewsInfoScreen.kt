@@ -12,14 +12,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import pl.edu.pw.ee.isod_notifier.http.getOkHttpClient
-import pl.edu.pw.ee.isod_notifier.http.sendRequest
 import pl.edu.pw.ee.isod_notifier.model.FullNewsItem
+import pl.edu.pw.ee.isod_notifier.repository.NewsInfoRepository
 import pl.edu.pw.ee.isod_notifier.ui.UiConstants
 import pl.edu.pw.ee.isod_notifier.ui.common.*
-import pl.edu.pw.ee.isod_notifier.utils.PreferencesManager
-import pl.edu.pw.ee.isod_notifier.utils.extractFieldFromResponse
 import pl.edu.pw.ee.isod_notifier.utils.showToast
-import java.util.*
 
 @Composable
 fun NewsInfoScreen(navController: NavController, newsHash: String, newsService: String) {
@@ -27,6 +24,7 @@ fun NewsInfoScreen(navController: NavController, newsHash: String, newsService: 
     val context = LocalContext.current
     val httpClient = getOkHttpClient(context)
     val scope = rememberCoroutineScope()
+    val newsInfoRepository = NewsInfoRepository()
 
     var isLoading by remember { mutableStateOf(false) }
     var newsItem by remember { mutableStateOf<FullNewsItem?>(null) }
@@ -34,46 +32,21 @@ fun NewsInfoScreen(navController: NavController, newsHash: String, newsService: 
     LaunchedEffect(Unit) {
         isLoading = true
 
-        sendRequest(
+        newsInfoRepository.fetchNewsInfo(
+            newsHash,
+            newsService,
             context,
             httpClient,
-            "get_single_news",
-            mapOf(
-                "user_token" to PreferencesManager.getString(context, "USER_ID"),
-                "news_hash" to newsHash,
-                "news_service" to newsService,
-                "language" to Locale.getDefault().language
-            ),
-            onSuccess = { response ->
-                val responseBodyString = response.body?.string()
-
-                if (responseBodyString != null) {
-                    val subject = extractFieldFromResponse(responseBodyString, "subject").toString()
-                    val hash = extractFieldFromResponse(responseBodyString, "hash").toString()
-                    val content = extractFieldFromResponse(responseBodyString, "content").toString()
-                    val date = extractFieldFromResponse(responseBodyString, "date").toString()
-                    val who = extractFieldFromResponse(responseBodyString, "who").toString()
-
-                    newsItem = FullNewsItem(
-                        subject,
-                        hash,
-                        content,
-                        date,
-                        who
-                    )
-                }
-
+            onSuccess = { fetchedNewsItem ->
+                newsItem = fetchedNewsItem
                 isLoading = false
             },
-            onError = { response ->
-                val responseBodyString = response.body?.string()
-
-                val message = extractFieldFromResponse(responseBodyString, "message")
+            onError = { message ->
                 context.showToast(message ?: "Error")
 
                 isLoading = false
             },
-            onFailure = { _ ->
+            onFailure = {
                 scope.launch {
                     navController.navigate("connection_error")
                 }
@@ -94,7 +67,7 @@ fun NewsInfoScreen(navController: NavController, newsHash: String, newsService: 
             Column(
                 modifier = Modifier.verticalScroll(scrollState)
             ) {
-                newsItem?.let { ScreenContent(navController, innerPadding, it) }
+                newsItem?.let { ScreenContent(innerPadding, it) }
             }
         }
     }
@@ -102,7 +75,6 @@ fun NewsInfoScreen(navController: NavController, newsHash: String, newsService: 
 
 @Composable
 fun ScreenContent(
-    navController: NavController,
     innerPadding: PaddingValues,
     newsItem: FullNewsItem
 ) {

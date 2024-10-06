@@ -11,116 +11,74 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.launch
 import pl.edu.pw.ee.isod_notifier.http.getOkHttpClient
-import pl.edu.pw.ee.isod_notifier.http.sendRequest
 import pl.edu.pw.ee.isod_notifier.model.NewsItem
 import pl.edu.pw.ee.isod_notifier.model.NewsTypes
 import pl.edu.pw.ee.isod_notifier.ui.UiConstants
 import pl.edu.pw.ee.isod_notifier.ui.common.*
-import pl.edu.pw.ee.isod_notifier.utils.PreferencesManager
-import pl.edu.pw.ee.isod_notifier.utils.extractFieldFromResponse
-import pl.edu.pw.ee.isod_notifier.utils.getNewsType
 import pl.edu.pw.ee.isod_notifier.utils.showToast
-import java.util.*
+import pl.edu.pw.ee.isod_notifier.repository.NewsRepository
 
 @Composable
 fun NewsScreen(navController: NavController) {
     val context = LocalContext.current
-    val httpClient = getOkHttpClient(context)
+    val httpClient = remember { getOkHttpClient(context) }
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
 
-    val gson = Gson()
+    val gson = remember { Gson() }
+    val newsRepository = remember { NewsRepository(context, httpClient, gson) }
 
     var isRefreshing by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
-    var isLoadingAnotherPage by remember { mutableStateOf(false) }
     var dropDownMenuExpanded by remember { mutableStateOf(false) }
     var filter by remember { mutableStateOf(NewsTypes.ALL) }
 
     val newsItems = remember { mutableStateListOf<NewsItem>() }
 
     val pageSize = 10
-    var page by remember { mutableStateOf(0) }
-    var elementsCount by remember { mutableStateOf(pageSize) }
+    var page by remember { mutableIntStateOf(0) }
+    var elementsCount by remember { mutableIntStateOf(pageSize) }
 
-    fun fetchNewsFromService(pageToFetch: Int=0, append: Boolean=false) {
-        sendRequest(
-            context,
-            httpClient,
-            "get_student_news",
-            mapOf(
-                "user_token" to PreferencesManager.getString(context, "USER_ID"),
-                "page" to pageToFetch.toString(),
-                "page_size" to (pageSize + 1).toString(),
-                "language" to Locale.getDefault().language
-            ),
-            onSuccess = { response ->
-                val responseBodyString = response.body?.string()
-
-                if (responseBodyString != null) {
-
-                    val mapType = object : TypeToken<Map<String, Any>>() {}.type
-                    val newsMap: Map<String, Any> = gson.fromJson(responseBodyString, mapType)
-                    val news = newsMap["news"] as List<Map<String, String>>
-
-                    if (!append) {
-                        newsItems.clear()
-                    }
-
-                    news.forEach {
-                        newsItems.add(
-                            NewsItem(
-                                it["subject"] as String,
-                                it["hash"] as String,
-                                it["service"] as String,
-                                getNewsType(it["type"] as String),
-                                it["day"] as String,
-                                it["hour"] as String
-                            )
-                        )
-                    }
+    fun loadNews(pageToFetch: Int = 0, append: Boolean = false) {
+        newsRepository.fetchNews(
+            pageToFetch = pageToFetch,
+            pageSize = pageSize,
+            onSuccess = { fetchedNews ->
+                if (!append) {
+                    newsItems.clear()
                 }
+                newsItems.addAll(fetchedNews)
 
                 if (append) {
                     elementsCount += pageSize
-                }
-                else {
+                } else {
                     page = 0
                     elementsCount = pageSize
                 }
 
                 isLoading = false
                 isRefreshing = false
-                isLoadingAnotherPage = false
             },
-            onError = { response ->
-                val responseBodyString = response.body?.string()
-
-                val message = extractFieldFromResponse(responseBodyString, "message")
+            onError = { message ->
                 context.showToast(message ?: "Error")
-
                 isLoading = false
                 isRefreshing = false
-                isLoadingAnotherPage = false
             },
-            onFailure = { _ ->
+            onFailure = {
                 scope.launch {
                     navController.navigate("connection_error")
                 }
-
                 isLoading = false
                 isRefreshing = false
-                isLoadingAnotherPage = false
             }
         )
     }
 
     LaunchedEffect(Unit) {
         isLoading = true
-        fetchNewsFromService()
+        loadNews()
     }
 
     TopBarScreen(
@@ -133,7 +91,7 @@ fun NewsScreen(navController: NavController) {
             scrollState = scrollState,
             onRefresh = {
                 isRefreshing = true
-                fetchNewsFromService()
+                loadNews()
             },
             content = {
                 Column(
@@ -181,34 +139,32 @@ fun NewsScreen(navController: NavController) {
                             }
                         }
                     }
-                    if (isLoading) {
-                        LoadingAnimation()
-                    } else if (newsItems.isNotEmpty()) {
+
+                    if (newsItems.isNotEmpty()) {
                         ShowNews(navController, newsItems, filter, elementsCount)
                     }
 
-                    if (newsItems.size >= elementsCount) {
-                        if (!isLoadingAnotherPage) {
-                            Button(
-                                modifier = Modifier.padding(bottom = UiConstants.COMPOSABLE_PADDING),
-                                onClick = {
-                                    isLoadingAnotherPage = true
-                                    fetchNewsFromService(++page, append = true)
-                                }
-                            ) {
-                                Text("Load more")
+                    if (!isLoading) {
+                        Button(
+                            modifier = Modifier.padding(bottom = UiConstants.COMPOSABLE_PADDING),
+                            onClick = {
+                                isLoading = true
+                                loadNews(++page, append = true)
                             }
-                        } else {
-                            LoadingAnimation(
-                                modifier = Modifier.padding(bottom = UiConstants.COMPOSABLE_PADDING)
-                            )
+                        ) {
+                            Text("Load more")
                         }
+                    } else {
+                        LoadingAnimation(
+                            modifier = Modifier.padding(bottom = UiConstants.COMPOSABLE_PADDING)
+                        )
                     }
                 }
             }
         )
     }
 }
+
 
 @Composable
 fun ShowNews(
@@ -229,7 +185,7 @@ fun ShowNews(
     ) {
         var day = ""
 
-        newsItems.take(elementsCount).forEach { it ->
+        newsItems.take(elementsCount).forEach {
             if (filter != NewsTypes.ALL && it.type != filter) {
                 return@forEach
             }
