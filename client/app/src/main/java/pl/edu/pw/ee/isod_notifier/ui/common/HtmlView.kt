@@ -16,7 +16,7 @@ fun generateHtmlContent(htmlContent: String, textColorHex: String): String {
                 * {
                     background-color: transparent !important; 
                     color: $textColorHex !important; 
-                    font-size: 4vw !important; 
+                    font-size: 0.9rem !important; 
                 }
                 body {
                     margin-left: 0;
