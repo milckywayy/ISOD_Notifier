@@ -36,6 +36,7 @@ fun FirstTimeLinkScreen(navController: NavController) {
     val httpClient = getOkHttpClient(context)
     val scope = rememberCoroutineScope()
     val repository = UserStatusRepository(context, httpClient)
+    val notificationStorage = NotificationStorage(context)
 
     val scrollState = rememberScrollState()
     var isLoading by remember { mutableStateOf(true) }
@@ -57,6 +58,9 @@ fun FirstTimeLinkScreen(navController: NavController) {
                     if (!PreferencesManager.getBoolean(context, "STATUS_CHECKED")) {
                         if (isIsodLinked || isUsosLinked) {
                             PreferencesManager.saveBoolean(context, "LET_IN", true)
+                        }
+                        else {
+                            notificationStorage.clearNotifications() // Clear home screen recent news
                         }
                     }
 

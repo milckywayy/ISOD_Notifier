@@ -20,10 +20,10 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import pl.edu.pw.ee.isod_notifier.model.ActivityItem
 import pl.edu.pw.ee.isod_notifier.model.NewsItem
-import pl.edu.pw.ee.isod_notifier.model.NewsTypes
 import pl.edu.pw.ee.isod_notifier.ui.UiConstants
 import pl.edu.pw.ee.isod_notifier.ui.common.*
 import pl.edu.pw.ee.isod_notifier.ui.theme.*
+import pl.edu.pw.ee.isod_notifier.utils.NotificationStorage
 import pl.edu.pw.ee.isod_notifier.utils.PreferencesManager
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -31,8 +31,10 @@ import pl.edu.pw.ee.isod_notifier.utils.PreferencesManager
 fun HomeScreen(navController: NavController) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
+    val notificationStorage = NotificationStorage(context)
 
     val firstname = PreferencesManager.getString(context, "FIRSTNAME", "World")
+    val newsItems = notificationStorage.getNotifications()
 
     Scaffold(
         topBar = {
@@ -64,7 +66,9 @@ fun HomeScreen(navController: NavController) {
             content = {
                 Spacer(modifier = Modifier)
 
-                LatestNewsPager(navController)
+                if (newsItems.isNotEmpty()) {
+                    LatestNewsPager(navController, newsItems)
+                }
                 TileRow(navController)
                 ScheduleWidget(navController)
             },
@@ -73,18 +77,11 @@ fun HomeScreen(navController: NavController) {
 }
 
 @Composable
-fun LatestNewsPager(navController: NavController) {
+fun LatestNewsPager(navController: NavController, newsItems: List<NewsItem>) {
     Column(
         verticalArrangement = Arrangement.spacedBy(UiConstants.DEFAULT_SPACE)
     ) {
         SectionText("Latest news", padding = PaddingValues(horizontal = UiConstants.COMPOSABLE_PADDING))
-
-        val newsItems = listOf(
-            NewsItem("Zajęcia - SIKOMP: Nowa wartość: '5' w polu 'c1-wejściówka' bez komentarza", "2137","ISOD", NewsTypes.CLASSES, "2024-03-19", "06:30"),
-            NewsItem("Zajęcia - TEMIL: Nowa wartość: '50' w polu 'przetwornik C/A (osc XY)' bez komentarza", "2137", "ISOD", NewsTypes.CLASSES, "2024-03-19", "06:30"),
-            NewsItem("Profil dla klienta VPN", "2137", "ISOD", NewsTypes.CLASSES, "2024-03-19", "06:30"),
-            NewsItem("Ogłoszenie - PROIN: Spotkanie informacyjne", "2137",  "ISOD", NewsTypes.CLASSES, "2024-03-19", "06:30")
-        )
 
         val pagerState = rememberPagerState(
             initialPage = 0,
@@ -105,7 +102,7 @@ fun LatestNewsPager(navController: NavController) {
                 NewsTile(
                     newsItem,
                     onClick = {
-
+                        navController.navigate("newsInfo/${it.hash}/${it.service}")
                     }
                 )
             }

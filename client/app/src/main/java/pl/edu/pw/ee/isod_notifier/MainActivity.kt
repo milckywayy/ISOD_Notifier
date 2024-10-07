@@ -30,7 +30,7 @@ class MainActivity : ComponentActivity() {
 
                     if (intent.extras != null) {
                         val newsHash = intent.extras!!.getString("news_hash")
-                        val newsService = "ISOD"
+                        val newsService = intent.extras!!.getString("service")
 
                         if (!newsHash.isNullOrEmpty()) {
                             navController.navigate("newsInfo/$newsHash/$newsService")

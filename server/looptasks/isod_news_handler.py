@@ -96,6 +96,7 @@ async def process_device(device, new_news, loc):
                 loc.get('new_isod_notification_title', device_language),
                 news_title,
                 url=DEFAULT_NOTIFICATION_URL,
+                service='ISOD',
                 news_hash=news_hash,
                 news_type=str(news_type)
             )
