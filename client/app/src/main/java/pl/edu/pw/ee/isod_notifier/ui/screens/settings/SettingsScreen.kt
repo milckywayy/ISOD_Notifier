@@ -16,6 +16,7 @@ import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import pl.edu.pw.ee.isod_notifier.R
 import pl.edu.pw.ee.isod_notifier.http.getOkHttpClient
+import pl.edu.pw.ee.isod_notifier.repository.EraseAllDataRepository
 import pl.edu.pw.ee.isod_notifier.repository.LogoutOtherDevicesRepository
 import pl.edu.pw.ee.isod_notifier.ui.UiConstants
 import pl.edu.pw.ee.isod_notifier.ui.common.*
@@ -40,7 +41,7 @@ fun SettingsScreen(navController: NavController) {
     var isEraseAllDataDialogVisible by remember { mutableStateOf(false) }
 
     val logoutOtherDevicesRepository = LogoutOtherDevicesRepository(context, httpClient)
-    val eraseAllDataRepository = LogoutOtherDevicesRepository(context, httpClient)
+    val eraseAllDataRepository = EraseAllDataRepository(context, httpClient)
 
     LaunchedEffect(Unit) {
         PreferencesManager.saveBoolean(context, "STATUS_CHECKED", false)
@@ -86,6 +87,21 @@ fun SettingsScreen(navController: NavController) {
             "Confirm",
             "Are you sure you want to erase all your data?",
             onConfirm = {
+                eraseAllDataRepository.sendEraseAllDataRequest(
+                    onSuccess = {
+                        scope.launch {
+                            PreferencesManager.saveString(context, "USER_ID", "")
+                            navController.navigate("first_time_link_screen")
+                        }
+                    },
+                    onError = {},
+                    onFailure = {
+                        scope.launch {
+                            navController.navigate("connection_error")
+                        }
+                    }
+                )
+
                 isEraseAllDataDialogVisible = false
             },
             onDismiss = {
