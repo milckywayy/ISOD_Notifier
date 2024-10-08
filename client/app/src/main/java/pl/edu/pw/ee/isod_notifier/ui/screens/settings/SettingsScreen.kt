@@ -13,18 +13,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import kotlinx.coroutines.launch
 import pl.edu.pw.ee.isod_notifier.R
+import pl.edu.pw.ee.isod_notifier.http.getOkHttpClient
+import pl.edu.pw.ee.isod_notifier.repository.LogoutOtherDevicesRepository
 import pl.edu.pw.ee.isod_notifier.ui.UiConstants
-import pl.edu.pw.ee.isod_notifier.ui.common.ClickSetting
-import pl.edu.pw.ee.isod_notifier.ui.common.SettingsSection
-import pl.edu.pw.ee.isod_notifier.ui.common.SwitchSetting
-import pl.edu.pw.ee.isod_notifier.ui.common.TopBarScreen
+import pl.edu.pw.ee.isod_notifier.ui.common.*
 import pl.edu.pw.ee.isod_notifier.utils.PreferencesManager
 import pl.edu.pw.ee.isod_notifier.utils.openURL
 
 @Composable
 fun SettingsScreen(navController: NavController) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val httpClient = remember { getOkHttpClient(context) }
     val scrollState = rememberScrollState()
 
     var notificationsEnabled by remember { mutableStateOf(PreferencesManager.getBoolean(context, "NEWS_ALLOWED", true)) }
@@ -33,9 +35,63 @@ fun SettingsScreen(navController: NavController) {
     var wrsEnabled by remember { mutableStateOf(PreferencesManager.getBoolean(context, "RECEIVE_WRS_NEWS", true)) }
     var otherEnabled by remember { mutableStateOf(PreferencesManager.getBoolean(context, "RECEIVE_OTHER_NEWS", true)) }
 
+    var isSuccessDialogVisible by remember { mutableStateOf(false) }
+    var isLogoutOtherDevicesDialogVisible by remember { mutableStateOf(false) }
+    var isEraseAllDataDialogVisible by remember { mutableStateOf(false) }
+
+    val logoutOtherDevicesRepository = LogoutOtherDevicesRepository(context, httpClient)
+    val eraseAllDataRepository = LogoutOtherDevicesRepository(context, httpClient)
+
     LaunchedEffect(Unit) {
         PreferencesManager.saveBoolean(context, "STATUS_CHECKED", false)
         PreferencesManager.saveBoolean(context, "LET_IN", false)
+    }
+
+    if (isSuccessDialogVisible) {
+        InfoDialog(
+            title = "Success",
+            message = "Operation performed successfully",
+            onDismiss = {
+                isSuccessDialogVisible = false
+            }
+        )
+    }
+
+    if (isLogoutOtherDevicesDialogVisible) {
+        ConfirmationDialog(
+            "Confirm",
+            "Are you sure you want to log out from all other devices?",
+            onConfirm = {
+                logoutOtherDevicesRepository.sendLogoutOthersDevicesRequest(
+                    onSuccess = {
+                        isSuccessDialogVisible = true
+                    },
+                    onError = {},
+                    onFailure = {
+                        scope.launch {
+                            navController.navigate("connection_error")
+                        }
+                    }
+                )
+                isLogoutOtherDevicesDialogVisible = false
+            },
+            onDismiss = {
+                isLogoutOtherDevicesDialogVisible = false
+            }
+        )
+    }
+
+    if (isEraseAllDataDialogVisible) {
+        ConfirmationDialog(
+            "Confirm",
+            "Are you sure you want to erase all your data?",
+            onConfirm = {
+                isEraseAllDataDialogVisible = false
+            },
+            onDismiss = {
+                isEraseAllDataDialogVisible = false
+            }
+        )
     }
 
     TopBarScreen(
@@ -124,14 +180,14 @@ fun SettingsScreen(navController: NavController) {
                     ClickSetting(
                         title = "Logout from all other devices",
                         onClick = {
-
+                            isLogoutOtherDevicesDialogVisible = true
                         },
                         icon = { Icon(Icons.Filled.Output, contentDescription = "Notification settings") }
                     )
                     ClickSetting(
                         title = "Delete all user data",
                         onClick = {
-
+                            isEraseAllDataDialogVisible = true
                         },
                         icon = { Icon(Icons.Filled.DeleteForever, contentDescription = "Notification settings") }
                     )
