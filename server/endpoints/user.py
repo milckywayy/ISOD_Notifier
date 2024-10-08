@@ -4,7 +4,8 @@ from aiohttp import web
 
 from constants import DEFAULT_RESPONSE_LANGUAGE
 from endpoints.validate_request import validate_post_request, InvalidRequestError
-from utils.firestore import delete_collection, user_exists, isod_account_exists, delete_isod_account
+from utils.firestore import delete_collection, user_exists, isod_account_exists, delete_isod_account, \
+    usos_account_exists, delete_usos_account
 
 
 def generate_new_user_token():
@@ -95,6 +96,11 @@ async def delete_user_data(request):
         isod_account = await isod_account_exists(user.reference)
         if isod_account:
             await delete_isod_account(isod_account.reference)
+
+        # Delete USOS account
+        usos_account = await usos_account_exists(user.reference)
+        if usos_account:
+            await delete_usos_account(usos_account.reference)
 
         # Delete user
         await user.reference.delete()
