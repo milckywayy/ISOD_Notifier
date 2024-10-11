@@ -175,7 +175,7 @@ fun ScreenContent(
                 ClassTile(
                     classItem,
                     onClick = {
-
+                        navController.navigate("grades/${it.id}/${it.type}/${termFilter}")
                     }
                 )
             }

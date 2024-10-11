@@ -136,6 +136,25 @@ fun AppNavHost(navHostController: NavHostController) {
             }
         }
 
+        composable("grades/{course_id}/{class_type}/{term}",
+            arguments = listOf(
+                navArgument("course_id") { type = NavType.StringType },
+                navArgument("class_type") { type = NavType.StringType },
+                navArgument("term") { type = NavType.StringType },
+            ),
+            enterTransition = { scaleIntoContainer() },
+            exitTransition = { scaleOutOfContainer(direction = ScaleTransitionDirection.INWARDS) },
+            popEnterTransition = { scaleIntoContainer(direction = ScaleTransitionDirection.OUTWARDS) },
+            popExitTransition = { scaleOutOfContainer() }
+        ) { backStackEntry ->
+            val courseId = backStackEntry.arguments?.getString("course_id")
+            val classType = backStackEntry.arguments?.getString("class_type")
+            val term = backStackEntry.arguments?.getString("term")
+            if (courseId != null && classType != null && term != null) {
+                GradeScreen(navHostController, courseId, classType, term)
+            }
+        }
+
         composable("schedule",
             enterTransition = { scaleIntoContainer() },
             exitTransition = { scaleOutOfContainer(direction = ScaleTransitionDirection.INWARDS) },
