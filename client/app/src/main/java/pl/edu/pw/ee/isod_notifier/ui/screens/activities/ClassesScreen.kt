@@ -1,6 +1,5 @@
 package pl.edu.pw.ee.isod_notifier.ui.screens.activities
 
-import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -12,28 +11,25 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
-import com.google.firebase.logger.Logger
 import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.launch
-import okhttp3.OkHttpClient
 import pl.edu.pw.ee.isod_notifier.http.getOkHttpClient
-import pl.edu.pw.ee.isod_notifier.http.sendRequest
 import pl.edu.pw.ee.isod_notifier.model.ClassItem
+import pl.edu.pw.ee.isod_notifier.repository.ClassesRepository
 import pl.edu.pw.ee.isod_notifier.ui.UiConstants
 import pl.edu.pw.ee.isod_notifier.ui.common.ClassTile
 import pl.edu.pw.ee.isod_notifier.ui.common.LoadingAnimation
 import pl.edu.pw.ee.isod_notifier.ui.common.SectionText
 import pl.edu.pw.ee.isod_notifier.ui.common.TopBarScreen
 import pl.edu.pw.ee.isod_notifier.utils.PreferencesManager
-import pl.edu.pw.ee.isod_notifier.utils.extractFieldFromResponse
 import pl.edu.pw.ee.isod_notifier.utils.showToast
-import java.util.*
 
 @Composable
 fun ClassesScreen(navController: NavController) {
     val context = LocalContext.current
     val httpClient = getOkHttpClient(context)
+    val gson = Gson()
+    val repository = remember { ClassesRepository(context, httpClient, gson) }
     val scope = rememberCoroutineScope()
 
     val scrollState = rememberScrollState()
@@ -43,43 +39,21 @@ fun ClassesScreen(navController: NavController) {
 
     LaunchedEffect(Unit) {
         isLoading = true
-
-        sendRequest(
-            context,
-            httpClient,
-            "get_semesters",
-            mapOf(
-                "user_token" to PreferencesManager.getString(context, "USER_ID"),
-                "language" to Locale.getDefault().language
-            ),
-            onSuccess = { response ->
-                val responseBodyString = response.body?.string()
-
-                if (responseBodyString != null) {
-                    val array = responseBodyString.trim('[', ']').split(", ").map { it.trim('\"') }.toTypedArray()
-
-                    array.forEach { Log.d("Response", it) }
-
-                    terms.clear()
-                    terms.addAll(array)
-                }
-
+        repository.fetchTerms(
+            onSuccess = { fetchedTerms ->
+                terms.clear()
+                terms.addAll(fetchedTerms)
                 isLoading = false
             },
-            onError = { response ->
-                val responseBodyString = response.body?.string()
-
-                val message = extractFieldFromResponse(responseBodyString, "message")
+            onError = { message ->
                 context.showToast(message ?: "Error")
-
                 PreferencesManager.saveBoolean(context, "STATUS_CHECKED", true)
                 isLoading = false
             },
-            onFailure = { _ ->
+            onFailure = {
                 scope.launch {
                     navController.navigate("connection_error")
                 }
-
                 PreferencesManager.saveBoolean(context, "STATUS_CHECKED", true)
                 isLoading = false
             }
@@ -98,7 +72,7 @@ fun ClassesScreen(navController: NavController) {
                     navController,
                     terms,
                     innerPadding,
-                    httpClient
+                    repository
                 )
             }
         }
@@ -110,12 +84,10 @@ fun ScreenContent(
     navController: NavController,
     terms: List<String>,
     innerPadding: PaddingValues,
-    httpClient: OkHttpClient
+    repository: ClassesRepository
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-
-    val gson = Gson()
 
     var isLoading by remember { mutableStateOf(false) }
     var dropDownMenuExpanded by remember { mutableStateOf(false) }
@@ -124,53 +96,22 @@ fun ScreenContent(
 
     LaunchedEffect(termFilter) {
         isLoading = true
-
-        sendRequest(
-            context,
-            httpClient,
-            "get_student_courses",
-            mapOf(
-                "user_token" to PreferencesManager.getString(context, "USER_ID"),
-                "semester" to termFilter,
-                "language" to Locale.getDefault().language
-            ),
-            onSuccess = { response ->
-                val responseBodyString = response.body?.string()
-
-                if (responseBodyString != null) {
-                    val mapType = object : TypeToken<Map<String, Any>>() {}.type
-                    val courseMap: Map<String, Any> = gson.fromJson(responseBodyString, mapType)
-                    val courses = courseMap["courses"] as List<Map<String, Any>>
-
-                    classes.clear()
-                    courses.forEach { course ->
-                        val courseName = course["name"] as String
-                        val courseId = course["course_id"] as String
-                        val classesTemp = course["classes"] as List<Map<String, String>>
-
-                        classesTemp.forEach { classInfo ->
-                            val classType = classInfo["classtype"] as String
-                            classes.add(ClassItem(courseName, classType, courseId))
-                        }
-                    }
-                }
-
+        repository.fetchClasses(
+            term = termFilter,
+            onSuccess = { fetchedClasses ->
+                classes.clear()
+                classes.addAll(fetchedClasses)
                 isLoading = false
             },
-            onError = { response ->
-                val responseBodyString = response.body?.string()
-
-                val message = extractFieldFromResponse(responseBodyString, "message")
+            onError = { message ->
                 context.showToast(message ?: "Error")
-
                 PreferencesManager.saveBoolean(context, "STATUS_CHECKED", true)
                 isLoading = false
             },
-            onFailure = { _ ->
+            onFailure = {
                 scope.launch {
                     navController.navigate("connection_error")
                 }
-
                 PreferencesManager.saveBoolean(context, "STATUS_CHECKED", true)
                 isLoading = false
             }
@@ -229,8 +170,7 @@ fun ScreenContent(
 
         if (isLoading) {
             LoadingAnimation()
-        }
-        else {
+        } else {
             for (classItem in classes) {
                 ClassTile(
                     classItem,
