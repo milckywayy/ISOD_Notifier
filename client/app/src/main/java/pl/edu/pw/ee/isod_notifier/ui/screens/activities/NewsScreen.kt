@@ -10,6 +10,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.google.gson.Gson
 import kotlinx.coroutines.launch
@@ -115,7 +116,7 @@ fun NewsScreen(navController: NavController) {
                             )
                             .fillMaxWidth()
                     ) {
-                        SectionText(filter.displayName)
+                        SectionText(filter.displayName, PaddingValues(horizontal = UiConstants.TILE_PADDING))
 
                         Box(
                             modifier = Modifier.wrapContentSize(Alignment.TopEnd)
@@ -189,7 +190,7 @@ fun ShowNews(
         modifier = Modifier
             .padding(
                 UiConstants.TILE_PADDING,
-                UiConstants.DEFAULT_SPACE,
+                0.dp,
                 UiConstants.TILE_PADDING,
                 UiConstants.BIG_SPACE
             )
