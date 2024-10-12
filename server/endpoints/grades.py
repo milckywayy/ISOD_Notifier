@@ -40,8 +40,11 @@ def format_isod_grades(isod_grades):
             'value': column.get('value', ''),
             'weight': column.get('weight', 1),
             'accounted': column.get('accounted', False),
-            'value_note': column.get('valueNote', '')
+            'value_note': column.get('valueNote', ''),
+            'date': column.get('date', '').split(' ')[0]
         }
+
+        print(item['date'])
 
         items.append(item)
 
