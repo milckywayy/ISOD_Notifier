@@ -12,10 +12,12 @@ from utils.firestore import user_exists, isod_account_exists, usos_account_exist
 from utils.studies import get_current_semester, is_course_from_ee_faculty
 
 
-def add_envelope(grades, course_id, classtype, final_grade):
+def add_envelope(grades, course_id, classtype, final_grade, teachers, place):
     grades['course_id'] = course_id
     grades['classtype'] = classtype
     grades['final_grade'] = final_grade
+    grades['teachers'] = teachers
+    grades['place'] = place
 
     return grades
 
@@ -25,8 +27,11 @@ def get_isod_grades_id(isod_courses, course_id, classtype):
         if course.get('courseNumber') == course_id:
             for course_class in course['classes']:
                 if course_class.get('type') == classtype:
-                    return course_class.get('id'), course.get('finalGradeComment')
-    return None, None
+                    return (course_class.get('id'),
+                            course.get('finalGradeComment'),
+                            course_class.get('teachers').split(', '),
+                            course_class.get('place'))
+    return None, None, None, None
 
 
 def format_isod_grades(isod_grades):
@@ -43,8 +48,6 @@ def format_isod_grades(isod_grades):
             'value_note': column.get('valueNote', ''),
             'date': column.get('date', '').split(' ')[0]
         }
-
-        print(item['date'])
 
         items.append(item)
 
@@ -67,12 +70,12 @@ async def get_isod_course_grades(session, isod_account, course_id, isod_classtyp
     isod_api_key = isod_account.get('isod_api_key')
     isod_courses = await async_get_request(session, ISOD_PORTAL_URL + f'/wapi?q=mycourses&username={isod_username}&apikey={isod_api_key}&semester={semester}')
 
-    isod_grades_id, final_grade = get_isod_grades_id(isod_courses, course_id, isod_classtype)
+    isod_grades_id, final_grade, teachers, grades = get_isod_grades_id(isod_courses, course_id, isod_classtype)
     if isod_grades_id is not None:
         isod_grades = await async_get_request(session, ISOD_PORTAL_URL + f'/wapi?q=myclass&username={isod_username}&apikey={isod_api_key}&id={isod_grades_id}')
-        return final_grade, format_isod_grades(isod_grades)
+        return final_grade, format_isod_grades(isod_grades), teachers, grades
 
-    return final_grade, None
+    return final_grade, None, teachers, grades
 
 
 def get_usos_final_grade(usos_grades):
@@ -99,22 +102,25 @@ def format_usos_grades(usosapi, subnodes, language):
         node_type = node.get('type')
         value = ''
         value_note = ''
+        date = ''
 
         if node_type == 'task':
             task = usosapi.fetch_from_service('services/crstests/student_point', node_id=node_id, fields='points|comment')
             value = task['points']
             value_note = task.get('comment', '')
         elif node_type == 'grade':
-            task = usosapi.fetch_from_service('services/crstests/student_grade', node_id=node_id, fields='grade_value|comment')
+            task = usosapi.fetch_from_service('services/crstests/student_grade', node_id=node_id, fields='grade_value|comment|last_changed')
             value = task['grade_value']['symbol']
             value_note = task.get('comment', '')
+            date = task.get('last_changed', '')
 
         items.append({
             'name': name,
             'value': value,
             'weight': 1,
             'accounted': False,
-            'value_note': value_note
+            'value_note': value_note,
+            'date': date
         })
 
     return {'items': items}
@@ -122,7 +128,7 @@ def format_usos_grades(usosapi, subnodes, language):
 
 async def get_usos_course_grades(usosapi, usos_account, course_id, semester, language):
     if not usos_account:
-        return None, None
+        return None, None, None, None
 
     usos_access_token = usos_account.get('access_token')
     usos_access_token_secret = usos_account.get('access_token_secret')
@@ -131,13 +137,24 @@ async def get_usos_course_grades(usosapi, usos_account, course_id, semester, lan
     usos_final_grade = usosapi.fetch_from_service('services/grades/course_edition2', course_id=course_id, term_id=semester)
     final_grade = get_usos_final_grade(usos_final_grade) if usos_final_grade.get('course_grades') else ''
 
+    usos_course_info = usosapi.fetch_from_service('services/courses/course_edition', course_id=course_id, term_id=semester, fields='user_groups')
+    teachers = [f"{lecturer['first_name']} {lecturer['last_name']}" for lecturer in usos_course_info['user_groups'][0]['lecturers']]
+    group_number = usos_course_info['user_groups'][0]['group_number']
+    unit_id = usos_course_info['user_groups'][0]['course_unit_id']
+
+    usos_class_dates = usosapi.fetch_from_service('services/tt/classgroup_dates2', unit_id=unit_id, group_number=group_number)
+    last_class_date = usos_class_dates[-1]['start_time'].split(' ')[0]
+
+    usos_class_room = usosapi.fetch_from_service('services/tt/classgroup', unit_id=unit_id, group_number=group_number, start=last_class_date, fields='room_number|building_id')
+    room = f"{usos_class_room[0]['building_id']} {usos_class_room[0]['room_number']}"
+
     root_nodes = usosapi.fetch_from_service('services/crstests/participant')
     root_id = get_usos_node_root_id(root_nodes, course_id, semester)
     if not root_id:
-        return final_grade, None
+        return final_grade, None, teachers, room
 
     subnodes = usosapi.fetch_from_service('services/crstests/node2', node_id=root_id, fields='subnodes')
-    return final_grade, format_usos_grades(usosapi, subnodes, language)
+    return final_grade, format_usos_grades(usosapi, subnodes, language), teachers, room
 
 
 async def get_student_grades(request):
@@ -177,11 +194,11 @@ async def get_student_grades(request):
         if is_course_from_ee_faculty(course_id):
             # Fetch grades from ISOD
             isod_account = await isod_account_exists(user.reference)
-            final_grade, grades = await get_isod_course_grades(session, isod_account, course_id, isod_classtype, semester)
+            final_grade, grades, teachers, place = await get_isod_course_grades(session, isod_account, course_id, isod_classtype, semester)
         else:
             # Fetch grades from USOS
             usos_account = await usos_account_exists(user.reference)
-            final_grade, grades = await get_usos_course_grades(usosapi, usos_account, course_id, semester, device_language)
+            final_grade, grades, teachers, place = await get_usos_course_grades(usosapi, usos_account, course_id, semester, device_language)
 
         if final_grade is None:
             final_grade = ''
@@ -189,10 +206,16 @@ async def get_student_grades(request):
         if grades is None:
             grades = {}
 
+        if teachers is None:
+            teachers = []
+
+        if place is None:
+            place = ''
+
         if grades.get('items') is None:
             grades['items'] = []
 
-        grades = add_envelope(grades, course_id, classtype, final_grade)
+        grades = add_envelope(grades, course_id, classtype, final_grade, teachers, place)
 
         logging.info(f"Created grade list for student: {user.id}")
         await cache_manager.set('get_student_grades', user_token, request, grades, ttl=ENDPOINT_CACHE_TTL['GRADES'])
