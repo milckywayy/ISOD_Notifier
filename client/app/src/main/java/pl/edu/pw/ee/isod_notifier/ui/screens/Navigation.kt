@@ -1,5 +1,6 @@
 package pl.edu.pw.ee.isod_notifier.ui.screens
 
+import pl.edu.pw.ee.isod_notifier.ui.screens.activities.ClassesScreen
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
@@ -136,8 +137,9 @@ fun AppNavHost(navHostController: NavHostController) {
             }
         }
 
-        composable("grades/{course_id}/{class_type}/{term}",
+        composable("grades/{course_name}/{course_id}/{class_type}/{term}",
             arguments = listOf(
+                navArgument("course_name") { type = NavType.StringType },
                 navArgument("course_id") { type = NavType.StringType },
                 navArgument("class_type") { type = NavType.StringType },
                 navArgument("term") { type = NavType.StringType },
@@ -147,11 +149,12 @@ fun AppNavHost(navHostController: NavHostController) {
             popEnterTransition = { scaleIntoContainer(direction = ScaleTransitionDirection.OUTWARDS) },
             popExitTransition = { scaleOutOfContainer() }
         ) { backStackEntry ->
+            val courseName = backStackEntry.arguments?.getString("course_name")
             val courseId = backStackEntry.arguments?.getString("course_id")
             val classType = backStackEntry.arguments?.getString("class_type")
             val term = backStackEntry.arguments?.getString("term")
-            if (courseId != null && classType != null && term != null) {
-                GradeScreen(navHostController, courseId, classType, term)
+            if (courseName != null && courseId != null && classType != null && term != null) {
+                GradeScreen(navHostController, courseName, courseId, classType, term)
             }
         }
 

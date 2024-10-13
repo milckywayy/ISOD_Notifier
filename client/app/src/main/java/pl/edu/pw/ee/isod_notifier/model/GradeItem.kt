@@ -6,4 +6,5 @@ data class GradeItem (
     val weight: Float,
     val accounted: Boolean,
     val valueNote: String,
+    val date: String
 )

@@ -168,7 +168,7 @@ fun NewsScreen(navController: NavController) {
                         }
                     } else {
                         LoadingAnimation(
-                            modifier = Modifier.padding(bottom = UiConstants.COMPOSABLE_PADDING)
+                            modifier = Modifier.padding(vertical = innerPadding.calculateTopPadding())
                         )
                     }
                 }
