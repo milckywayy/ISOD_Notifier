@@ -41,3 +41,7 @@ ENDPOINT_CACHE_TTL = {
     'NEWS': 60 * 60 * 12,       # 12 h
     'NEWS_BODY': 60 * 60 * 6,   # 6 h
 }
+
+NEWS_CODES = {
+    'WRS': 2137
+}

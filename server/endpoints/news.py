@@ -4,7 +4,7 @@ import aiohttp
 from aiohttp import web
 from datetime import datetime
 from asynchttp.async_http_request import async_get_request
-from constants import DEFAULT_RESPONSE_LANGUAGE, ENDPOINT_CACHE_TTL, ISOD_PORTAL_URL
+from constants import DEFAULT_RESPONSE_LANGUAGE, ENDPOINT_CACHE_TTL, ISOD_PORTAL_URL, NEWS_CODES
 from endpoints.validate_request import validate_post_request, InvalidRequestError
 from usosapi.usosapi import USOSAPIAuthorizationError
 from utils.firestore import user_exists, isod_account_exists, usos_account_exists, delete_isod_account, \
@@ -42,7 +42,7 @@ async def read_isod_news(session, isod_account, news_list):
             'service': 'ISOD',
             'hash': item['hash'],
             'subject': item['subject'],
-            'type': str(item['type']),
+            'type': NEWS_CODES['WRS'] if '[WRS]' in item['subject'] else str(item['type']),
             'day': format_isod_date(date[0]),
             'hour': date[1]
         }
