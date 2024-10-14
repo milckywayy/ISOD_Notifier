@@ -43,5 +43,5 @@ ENDPOINT_CACHE_TTL = {
 }
 
 NEWS_CODES = {
-    'WRS': 2137
+    'WRS': '2137'
 }
