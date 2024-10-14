@@ -21,7 +21,7 @@ val ColorEvents = Color(0xFFFF6F00)
 val ColorNewsAll = Color(0xFFFFFFFF)
 val ColorNewsClasses = Color(0xFF57B9FF)
 val ColorNewsFaculty = Color(0xFFF4C430)
-val ColorNewsWRS = Color(0xFF008000)
+val ColorNewsWRS = Color(0xFFFF7700)
 val ColorNewsOther = Color(0xFF808080)
 
 
