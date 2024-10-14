@@ -20,6 +20,7 @@ import pl.edu.pw.ee.isod_notifier.repository.EraseAllDataRepository
 import pl.edu.pw.ee.isod_notifier.repository.LogoutOtherDevicesRepository
 import pl.edu.pw.ee.isod_notifier.ui.UiConstants
 import pl.edu.pw.ee.isod_notifier.ui.common.*
+import pl.edu.pw.ee.isod_notifier.utils.NotificationStorage
 import pl.edu.pw.ee.isod_notifier.utils.PreferencesManager
 import pl.edu.pw.ee.isod_notifier.utils.openURL
 
@@ -90,6 +91,9 @@ fun SettingsScreen(navController: NavController) {
                 eraseAllDataRepository.sendEraseAllDataRequest(
                     onSuccess = {
                         scope.launch {
+                            val notificationStorage = NotificationStorage(context)
+                            notificationStorage.clearNotifications()
+
                             PreferencesManager.saveString(context, "USER_ID", "")
                             navController.navigate("first_time_link_screen")
                         }
