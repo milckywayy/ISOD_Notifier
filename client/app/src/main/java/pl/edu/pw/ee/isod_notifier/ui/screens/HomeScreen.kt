@@ -138,7 +138,7 @@ fun TileRow(navController: NavController) {
         val tiles = listOf(
             ActivityItem("Classes", Icons.Filled.Class, ColorClasses, "classes"),
             ActivityItem("News", Icons.Filled.Newspaper, ColorNews, "news"),
-            ActivityItem("Schedule", Icons.Filled.Schedule, ColorSchedule, "home"),
+            ActivityItem("Schedule", Icons.Filled.Schedule, ColorSchedule, "schedule"),
             ActivityItem("Exams", Icons.Filled.Assessment, ColorExams, "home"),
             ActivityItem("Events", Icons.Filled.Celebration, ColorEvents, "home"),
         )
