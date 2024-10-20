@@ -1,5 +1,6 @@
 package pl.edu.pw.ee.isod_notifier.ui.screens
 
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -18,8 +19,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.google.gson.Gson
+import kotlinx.coroutines.launch
+import okhttp3.OkHttpClient
+import pl.edu.pw.ee.isod_notifier.http.getOkHttpClient
 import pl.edu.pw.ee.isod_notifier.model.ActivityItem
 import pl.edu.pw.ee.isod_notifier.model.NewsItem
+import pl.edu.pw.ee.isod_notifier.model.ScheduleDayItem
+import pl.edu.pw.ee.isod_notifier.repository.ScheduleRepository
 import pl.edu.pw.ee.isod_notifier.ui.UiConstants
 import pl.edu.pw.ee.isod_notifier.ui.common.*
 import pl.edu.pw.ee.isod_notifier.ui.theme.*
@@ -30,6 +37,8 @@ import pl.edu.pw.ee.isod_notifier.utils.PreferencesManager
 @Composable
 fun HomeScreen(navController: NavController) {
     val context = LocalContext.current
+    val httpClient = getOkHttpClient(context)
+    val gson = Gson()
     val scrollState = rememberScrollState()
     val notificationStorage = NotificationStorage(context)
 
@@ -62,7 +71,7 @@ fun HomeScreen(navController: NavController) {
             modifier = Modifier
                 .padding(innerPadding)
                 .verticalScroll(scrollState),
-            verticalArrangement = Arrangement.spacedBy(UiConstants.BIG_SPACE),
+            verticalArrangement = Arrangement.spacedBy(UiConstants.EXTRA_BIG_SPACE),
             content = {
                 Spacer(modifier = Modifier)
 
@@ -70,7 +79,7 @@ fun HomeScreen(navController: NavController) {
                     LatestNewsPager(navController, newsItems)
                 }
                 TileRow(navController)
-                ScheduleWidget(navController)
+                ScheduleWidget(navController, context, httpClient, gson)
             },
         )
     }
@@ -90,7 +99,7 @@ fun LatestNewsPager(navController: NavController, newsItems: List<NewsItem>) {
 
         HorizontalPager(
             state = pagerState,
-            modifier = Modifier.height(75.dp)
+            modifier = Modifier.height(70.dp)
         ) { page ->
             val newsItem = newsItems[page]
 
@@ -157,10 +166,61 @@ fun TileRow(navController: NavController) {
 }
 
 @Composable
-fun ScheduleWidget(navController: NavController) {
+fun ScheduleWidget(
+    navController: NavController,
+    context: Context,
+    httpClient: OkHttpClient,
+    gson: Gson
+) {
+    val scope = rememberCoroutineScope()
+
+    val scheduleRepository = remember { ScheduleRepository(context, httpClient, gson) }
+
+    val scheduleDays = remember { mutableStateListOf<ScheduleDayItem>() }
+    var isScheduleLoading by remember { mutableStateOf(false) }
+
+    fun loadSchedule() {
+        scope.launch {
+            isScheduleLoading = true
+            scheduleRepository.fetchSchedule(
+                onSuccess = { fetchedScheduleDays ->
+                    scheduleDays.clear()
+                    scheduleDays.addAll(fetchedScheduleDays)
+                    isScheduleLoading = false
+                },
+                onError = {
+                    isScheduleLoading = false
+                },
+                onFailure = {
+                    navController.navigate("connection_error")
+                    isScheduleLoading = false
+                }
+            )
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        isScheduleLoading = true
+        loadSchedule()
+    }
+
     Column(
         verticalArrangement = Arrangement.spacedBy(UiConstants.DEFAULT_SPACE)
     ) {
         SectionText("Today's schedule", padding = PaddingValues(horizontal = UiConstants.COMPOSABLE_PADDING))
+
+        if (isScheduleLoading) {
+            LoadingAnimation()
+        }
+        else {
+            if (scheduleDays.isNotEmpty()) {
+                ScheduleDayTable(scheduleDays.first())
+            }
+            else {
+                ContentText(
+                    text = "No classes scheduled.",
+                )
+            }
+        }
     }
 }

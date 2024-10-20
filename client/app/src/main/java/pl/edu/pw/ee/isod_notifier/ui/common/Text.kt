@@ -145,6 +145,28 @@ fun ContentText(
 }
 
 @Composable
+fun BoldContentText(
+    text: String,
+    maxLines: Int = Int.MAX_VALUE,
+    overflow: TextOverflow = TextOverflow.Clip,
+    padding: PaddingValues = PaddingValues(0.dp),
+) {
+    Box(
+        modifier = Modifier.padding(padding)
+    ) {
+        Text(
+            text = text,
+            fontFamily = FontFamily.Default,
+            fontWeight = FontWeight.Bold,
+            fontSize = 14.sp,
+            textAlign = TextAlign.Justify,
+            maxLines = maxLines,
+            overflow = overflow,
+        )
+    }
+}
+
+@Composable
 fun SmallContentText(
     text: String,
     maxLines: Int = Int.MAX_VALUE,
