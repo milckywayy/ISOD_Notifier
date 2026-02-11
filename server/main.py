@@ -5,6 +5,7 @@ from firebase_admin import credentials
 from firebase_admin import firestore_async
 import json
 import ssl
+import os
 
 from cache_manager.cache_manager import CacheManager
 from constants import SERVICE_PORT, MAX_CACHE_SIZE, RATE_LIMITER_PERIOD, RATE_LIMITER_MAX_REQUESTS
@@ -80,8 +81,14 @@ if __name__ == '__main__':
     app.on_startup.append(invoke_handlers)
     app.on_cleanup.append(close_session)
 
-    ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
-    ssl_context.load_cert_chain('credentials/certificate.crt', 'credentials/private.key')
-
-    logging.info(f'Starting service on port {SERVICE_PORT}')
-    web.run_app(app, port=SERVICE_PORT, ssl_context=ssl_context)
+    cert_path = 'credentials/certificate.crt'
+    key_path = 'credentials/private.key'
+    
+    if os.path.exists(cert_path) and os.path.exists(key_path):
+        ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+        ssl_context.load_cert_chain(cert_path, key_path)
+        logging.info(f'Starting PROD service on port {SERVICE_PORT}')
+        web.run_app(app, port=SERVICE_PORT, ssl_context=ssl_context)
+    else:
+        logging.info(f'Starting DEV service on port {SERVICE_PORT}')
+        web.run_app(app, port=SERVICE_PORT)

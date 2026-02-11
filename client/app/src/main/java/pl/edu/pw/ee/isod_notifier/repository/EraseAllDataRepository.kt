@@ -21,28 +21,37 @@ class EraseAllDataRepository (private val context: Context, private val httpClie
             return
         }
 
-        sendRequest(
-            context,
-            httpClient,
-            "delete_user_data",
-            mapOf(
-                "user_token" to userId,
-                "language" to Locale.getDefault().language
-            ),
-            onSuccess = {
-                onSuccess()
-            },
-            onError = { response ->
-                val responseBodyString = response.body?.string()
-                val message = extractFieldFromResponse(responseBodyString, "message")
-
-                context.showToast(message ?: "Error")
-
-                onError(message)
-            },
-            onFailure = {
-                onFailure()
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (!task.isSuccessful) {
+                onError("Fetching FCM registration token failed")
+                return@addOnCompleteListener
             }
-        )
+            val token = task.result
+
+            sendRequest(
+                context,
+                httpClient,
+                "delete_user_data",
+                mapOf(
+                    "user_token" to userId,
+                    "token_fcm" to token,
+                    "language" to Locale.getDefault().language
+                ),
+                onSuccess = {
+                    onSuccess()
+                },
+                onError = { response ->
+                    val responseBodyString = response.body?.string()
+                    val message = extractFieldFromResponse(responseBodyString, "message")
+
+                    context.showToast(message ?: "Error")
+
+                    onError(message)
+                },
+                onFailure = {
+                    onFailure()
+                }
+            )
+        }
     }
 }
