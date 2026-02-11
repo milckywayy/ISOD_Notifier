@@ -1,5 +1,6 @@
 package pl.edu.pw.ee.isod_notifier.ui.screens.auth
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -14,7 +15,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.google.firebase.messaging.FirebaseMessaging
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import pl.edu.pw.ee.isod_notifier.R
@@ -99,7 +99,7 @@ private fun LinkScreenContent(navController: NavController, httpClient: OkHttpCl
     val requestToken = remember { mutableStateOf("") }
 
     val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-    val version = packageInfo.versionName
+    val version = packageInfo.versionName ?: "1.0.0"
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -192,11 +192,14 @@ private fun LinkScreenContent(navController: NavController, httpClient: OkHttpCl
                         isLoading = true
 
                         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-                            if (!task.isSuccessful) {
+                            if (!task.isSuccessful || task.result.isNullOrBlank()) {
                                 isLoading = false
+                                Log.e("FCM", "Failed to get token", task.exception)
+                                context.showToast("Failed to get FCM token")
                                 return@addOnCompleteListener
                             }
                             val token = task.result
+                            Log.d("FCM", "Token: $token")
 
                             sendRequest(
                                 context,
@@ -293,6 +296,8 @@ private fun UnlinkScreenContent(navController: NavController, httpClient: OkHttp
             WideButton(
                 "Unlink account",
                 onClick = {
+                    isLoading = true
+
                     val userToken = PreferencesManager.getString(context, "USER_ID", "")
                     sendRequest(
                         context,
@@ -329,6 +334,7 @@ private fun UnlinkScreenContent(navController: NavController, httpClient: OkHttp
                         }
                     )
                 },
+                enabled = !isLoading,
                 padding = PaddingValues(
                     UiConstants.COMPOSABLE_PADDING,
                     0.dp,

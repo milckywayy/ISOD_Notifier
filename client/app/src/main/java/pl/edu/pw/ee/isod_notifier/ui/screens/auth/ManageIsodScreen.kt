@@ -1,5 +1,8 @@
 package pl.edu.pw.ee.isod_notifier.ui.screens.auth
 
+import android.content.pm.PackageManager
+import android.os.Build
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -96,8 +99,16 @@ private fun LinkScreenContent(navController: NavController, httpClient: OkHttpCl
     val username = remember { mutableStateOf("") }
     val apiKey = remember { mutableStateOf("") }
 
-    val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-    val version = packageInfo.versionName
+    val version = try {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            context.packageManager.getPackageInfo(context.packageName, PackageManager.PackageInfoFlags.of(0)).versionName
+        } else {
+            @Suppress("DEPRECATION")
+            context.packageManager.getPackageInfo(context.packageName, 0).versionName
+        }
+    } catch (e: Exception) {
+        null
+    } ?: "1.0.0"
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -166,11 +177,14 @@ private fun LinkScreenContent(navController: NavController, httpClient: OkHttpCl
                         isLoading = true
 
                         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-                            if (!task.isSuccessful) {
+                            if (!task.isSuccessful || task.result.isNullOrBlank()) {
                                 isLoading = false
+                                Log.e("FCM", "Failed to get token", task.exception)
+                                context.showToast("Failed to get FCM token. Please try again.")
                                 return@addOnCompleteListener
                             }
                             val token = task.result
+                            Log.d("FCM", "Token: $token")
 
                             sendRequest(
                                 context,
